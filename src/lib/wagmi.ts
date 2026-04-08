@@ -16,7 +16,7 @@ export const config = createConfig({
 });
 
 export const SHIELD_FACTORY_ADDRESSES: Record<number, string> = {
-    11155111: "0x9a66500886344cbcce882137f263CB0c61aa99b1",
+    11155111: "0x0c060e880A405B1231Ce1263c6a52a272cC1cE05",
     1: import.meta.env.VITE_SHIELD_FACTORY_MAINNET || "",
     31337: import.meta.env.VITE_SHIELD_FACTORY_LOCAL || "0x5FbDB2315678afecb367f032d93F642f64180aa3",
 };
