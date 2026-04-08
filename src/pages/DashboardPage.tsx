@@ -9,6 +9,7 @@ import {
     AlertTriangleIcon, UserIcon, XIcon,
 } from "lucide-react";
 import { useVault } from "@/hooks/useVault";
+import CreateVaultPage from "@/pages/CreateVaultPage";
 import ShieldPanel from "@/components/ShieldPanel";
 import TransferPanel from "@/components/TransferPanel";
 import UnshieldPanel from "@/components/UnshieldPanel";
@@ -360,7 +361,10 @@ function DesktopLayout(p: SharedProps) {
             </header>
 
             <main style={{ marginTop: 58, flex: 1, minHeight: "calc(100vh - 58px)" }}>
-                <DesktopDashboard {...p} />
+                {p.isConnected && !p.hasVault
+                    ? <CreateVaultPage onVaultCreated={p.refetchData} />
+                    : <DesktopDashboard {...p} />
+                }
             </main>
 
             {(["shield", "transfer", "unshield", "vaults", "settings"] as ModalId[]).map(id => (
@@ -498,7 +502,10 @@ function MobileLayout(p: SharedProps) {
             </header>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px" }}>
-                <MobileQryptank p={p} />
+                {p.isConnected && !p.hasVault
+                    ? <CreateVaultPage onVaultCreated={p.refetchData} />
+                    : <MobileQryptank p={p} />
+                }
             </div>
 
             {(["shield", "transfer", "unshield", "settings"] as ModalId[]).map(id => (
