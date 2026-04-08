@@ -1,0 +1,36 @@
+{
+  "name": "qryptum-app",
+  "version": "1.0.0",
+  "description": "Qryptum frontend dApp built with React, Vite, and TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.7",
+    "@web3modal/wagmi": "^5.1.11",
+    "ethers": "^6.16.0",
+    "framer-motion": "^12.6.3",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.2",
+    "viem": "^2.47.10",
+    "wagmi": "^3.6.0",
+    "wouter": "^3.3.5",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.2"
+  }
+}
