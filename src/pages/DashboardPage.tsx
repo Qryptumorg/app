@@ -220,7 +220,7 @@ function formatBalance(balance: bigint | undefined, decimals: number): string {
     return formatted.toFixed(4);
 }
 
-function buildTokenChart(transactions: ApiTransaction[], tokenAddress: string, decimals: number): number[] {
+function buildTokenChart(transactions: ApiTransaction[], tokenAddress: string, _decimals: number): number[] {
     const lower = tokenAddress.toLowerCase();
     const tokenTxs = transactions
         .filter(tx => tx.tokenAddress.toLowerCase() === lower)
@@ -860,7 +860,6 @@ function MobileQryptank({ p }: { p: SharedProps }) {
     }, [p.tokensWithBalances, selected]);
 
     const selectedToken = p.tokensWithBalances.find(t => t.tokenAddress === selected);
-    const shieldCount = p.transactions.filter(t => t.type === "shield").length;
     const relHistory = p.transactions.filter(t => t.tokenAddress.toLowerCase() === selected.toLowerCase()).slice(0, 10);
     const chartData = selectedToken ? buildTokenChart(p.transactions, selected, selectedToken.decimals) : [0,0,0,0,0,0,0];
 
