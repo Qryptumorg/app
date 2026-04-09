@@ -7,7 +7,7 @@ export default function AbiAndAddressesPage() {
             badge="INTEGRATION GUIDE"
             heroTitle="Contract ABIs"
             heroHighlight="and Deployed Addresses"
-            heroSubtitle="ShieldFactory and PersonalQRYPTANK ABIs plus official deployed contract addresses for Ethereum Mainnet and Sepolia testnet. All contracts verified on Etherscan."
+            heroSubtitle="ShieldFactory and PersonalQrypt-Safe ABIs plus official deployed contract addresses for Ethereum Mainnet and Sepolia testnet. All contracts verified on Etherscan."
             primaryColor="#78909C"
             secondaryColor="#42A5F5"
             heroButtons={[
@@ -15,14 +15,14 @@ export default function AbiAndAddressesPage() {
                 { label: "Network Support", href: "/network-support", primary: false },
             ]}
             stats={[
-                { value: "2 contracts", label: "Core contracts", note: "ShieldFactory + QRYPTANK" },
+                { value: "2 contracts", label: "Core contracts", note: "ShieldFactory + Qrypt-Safe" },
                 { value: "Mainnet", label: "Production address", note: "Ethereum Chain ID 1" },
                 { value: "Sepolia", label: "Testnet address", note: "Chain ID 11155111" },
                 { value: "Verified", label: "On Etherscan", note: "Source code published" },
             ]}
             sectionBadge="CONTRACT REFERENCES"
             sectionHeading="Contracts, ABIs, and Where to Find Them"
-            sectionBody="The ShieldFactory ABI covers deployVault() and the vaults mapping. The PersonalQRYPTANK ABI covers shield(), commitTransfer(), revealTransfer(), unshield(), and emergencyWithdraw(). Both are published on Etherscan and in the open-source repository."
+            sectionBody="The ShieldFactory ABI covers deployVault() and the vaults mapping. The PersonalQrypt-Safe ABI covers shield(), commitTransfer(), revealTransfer(), unshield(), and emergencyWithdraw(). Both are published on Etherscan and in the open-source repository."
             sectionColor="#78909C"
             cards={[
                 {
@@ -35,15 +35,15 @@ export default function AbiAndAddressesPage() {
                 {
                     img: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format",
                     color: "#42A5F5",
-                    title: "PersonalQRYPTANK ABI",
+                    title: "PersonalQrypt-Safe ABI",
                     body: "shield, commitTransfer, revealTransfer, unshield, emergencyWithdraw, vaultProofHash, lastActivity. Full ABI published on Etherscan and GitHub.",
-                    link: { text: "PersonalQRYPTANK contract", href: "/personal-qryptank" },
+                    link: { text: "PersonalQrypt-Safe contract", href: "/personal-qrypt-safe" },
                 },
                 {
                     img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format",
                     color: "#546E7A",
                     title: "Mainnet Deployment",
-                    body: "ShieldFactory is deployed at a fixed address on Ethereum Mainnet. PersonalQRYPTANK clones are at addresses returned by ShieldFactory.vaults(wallet).",
+                    body: "ShieldFactory is deployed at a fixed address on Ethereum Mainnet. PersonalQrypt-Safe clones are at addresses returned by ShieldFactory.vaults(wallet).",
                 },
                 {
                     img: "https://images.unsplash.com/photo-1639762681057-408e52192e55?w=800&auto=format",
@@ -64,7 +64,7 @@ export default function AbiAndAddressesPage() {
                     "// v1 -- superseded (ShieldToken defaulted to 18 decimals)",
                     "// ShieldFactory: 0x9a66500886344cbcce882137f263CB0c61aa99b1",
                     "",
-                    "// PersonalQRYPTANK addresses vary per wallet",
+                    "// PersonalQrypt-Safe addresses vary per wallet",
                     "const vault = await shieldFactory.getVault(walletAddress);",
                 ],
             }}
