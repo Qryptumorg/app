@@ -56,16 +56,18 @@ export default function AbiAndAddressesPage() {
                 label: "Contract addresses (Mainnet and Sepolia)",
                 lines: [
                     "// Ethereum Mainnet (Chain ID 1)",
-                    "ShieldFactory: pending deployment",
+                    "QryptSafe: pending deployment",
                     "",
                     "// Sepolia Testnet (Chain ID 11155111)",
-                    "// v2 -- active (qToken decimal precision fix)",
-                    "ShieldFactory: 0x0c060e880A405B1231Ce1263c6a52a272cC1cE05",
+                    "// v3 -- active (no admin keys, fully immutable factory)",
+                    "QryptSafe: 0x5c24dd33C33e70FcD9451e1Fc401E7C810c4135B",
+                    "// v2 -- superseded (had Ownable + Pausable admin keys)",
+                    "// ShieldFactory: 0x0c060e880A405B1231Ce1263c6a52a272cC1cE05",
                     "// v1 -- superseded (ShieldToken defaulted to 18 decimals)",
                     "// ShieldFactory: 0x9a66500886344cbcce882137f263CB0c61aa99b1",
                     "",
                     "// PersonalQrypt-Safe addresses vary per wallet",
-                    "const vault = await shieldFactory.getVault(walletAddress);",
+                    "const vault = await qryptSafe.getVault(walletAddress);",
                 ],
             }}
             relatedLinks={[
