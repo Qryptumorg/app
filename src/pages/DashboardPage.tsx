@@ -243,7 +243,7 @@ const MODAL_TITLES: Record<ModalId, string> = {
     shield:   "Shield Tokens",
     transfer: "Transfer",
     unshield: "Unshield Tokens",
-    vaults:   "My QRYPTANK",
+    vaults:   "My Qrypt-Safe",
     settings: "Settings",
 };
 
@@ -309,7 +309,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                     )}
                     {id === "shield" && (!p.vaultAddress || !p.address) && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a QRYPTANK first.
+                            Connect your wallet and create a Qrypt-Safe first.
                         </p>
                     )}
                     {id === "transfer" && p.vaultAddress && p.address && (
@@ -317,7 +317,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                     )}
                     {id === "transfer" && (!p.vaultAddress || !p.address) && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a QRYPTANK first.
+                            Connect your wallet and create a Qrypt-Safe first.
                         </p>
                     )}
                     {id === "unshield" && p.vaultAddress && p.address && (
@@ -325,7 +325,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                     )}
                     {id === "unshield" && (!p.vaultAddress || !p.address) && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a QRYPTANK first.
+                            Connect your wallet and create a Qrypt-Safe first.
                         </p>
                     )}
                     {id === "vaults" && <ModalVaults p={p} />}
@@ -504,7 +504,7 @@ function MobileLayout(p: SharedProps) {
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px" }}>
                 {p.isConnected && !p.hasVault
                     ? <CreateVaultPage onVaultCreated={p.refetchData} />
-                    : <MobileQryptank p={p} />
+                    : <MobileQryptSafe p={p} />
                 }
             </div>
 
@@ -694,17 +694,17 @@ function DesktopDashboard(p: SharedProps) {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, flexShrink: 0 }}>
                     <StatCard label="Wallet Balance" value={p.balanceStr} sub="Live" />
                     <StatCard
-                        label="Shielded QRYPTANKs"
+                        label="Shielded Qrypt-Safes"
                         value={p.tokensWithBalances.length.toString()}
                         sub={p.tokensWithBalances.length === 1 ? "active token" : "active tokens"}
                     />
-                    <StatCard label="Network" value={p.networkName} sub={p.vaultAddress ? "QRYPTANK active" : "No QRYPTANK"} />
+                    <StatCard label="Network" value={p.networkName} sub={p.vaultAddress ? "Qrypt-Safe active" : "No Qrypt-Safe"} />
                     <StatCard label="Total Shielded Txns" value={shieldCount.toString()} sub="All time" />
                 </div>
 
                 <div style={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: "340px 1fr", gap: 14 }}>
                     <div style={{ ...panelBase }}>
-                        <PH title="Active QRYPTANKs" right={
+                        <PH title="Active Qrypt-Safes" right={
                             <button
                                 onClick={() => p.setActiveModal("shield")}
                                 style={{
@@ -857,7 +857,7 @@ function DesktopDashboard(p: SharedProps) {
     );
 }
 
-function MobileQryptank({ p }: { p: SharedProps }) {
+function MobileQryptSafe({ p }: { p: SharedProps }) {
     const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
@@ -873,13 +873,13 @@ function MobileQryptank({ p }: { p: SharedProps }) {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <StatCard label="Shielded Tokens" value={p.tokensWithBalances.length.toString()} sub="active QRYPTANKs" />
+                <StatCard label="Shielded Tokens" value={p.tokensWithBalances.length.toString()} sub="active Qrypt-Safes" />
                 <StatCard label="Wallet Balance" value={p.balanceStr} sub={p.networkName} />
             </div>
 
             <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>MY QRYPTANKS</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>MY Qrypt-SafeS</p>
                     <button
                         onClick={() => p.setActiveModal("shield")}
                         style={{
@@ -964,7 +964,7 @@ function MobileQryptank({ p }: { p: SharedProps }) {
 
                     <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, overflow: "hidden" }}>
                         <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                            <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>QRYPTANK DETAILS</p>
+                            <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>Qrypt-Safe DETAILS</p>
                         </div>
                         {[
                             { label: "Token", value: `q${selectedToken.tokenSymbol}` },
@@ -1127,12 +1127,12 @@ function ModalSettingsNoVault({ p }: { p: SharedProps }) {
                     <span style={{ fontSize: 13, color: "#fff" }}>{p.networkName}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px" }}>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>QRYPTANK</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>Qrypt-Safe</span>
                     <span style={{ fontSize: 13, color: "#f87171" }}>Not created</span>
                 </div>
             </div>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
-                Create a QRYPTANK to access security settings.
+                Create a Qrypt-Safe to access security settings.
             </p>
         </div>
     );
