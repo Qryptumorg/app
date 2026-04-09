@@ -212,8 +212,8 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId }: 
                     {isValidRecipient && recipientHasVault !== undefined && (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {recipientHasVault
-                                ? <><ShieldIcon className="w-3 h-3 text-primary" /> Recipient has a QRYPTANK.</>
-                                : <><UserIcon className="w-3 h-3" /> No QRYPTANK detected.</>
+                                ? <><ShieldIcon className="w-3 h-3 text-primary" /> Recipient has a Qrypt-Safe.</>
+                                : <><UserIcon className="w-3 h-3" /> No Qrypt-Safe detected.</>
                             }
                             <span>They will receive {tokenSymbol}.</span>
                         </div>
