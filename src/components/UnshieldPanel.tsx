@@ -71,7 +71,7 @@ export default function UnshieldPanel({ vaultAddress, walletAddress, chainId }: 
             args: [tokenAddress as `0x${string}`, parsedAmount, password],
         }, {
             onSuccess: async (hash) => {
-                toast({ title: "Unshield submitted", description: "Releasing tokens from your QRYPTANK..." });
+                toast({ title: "Unshield submitted", description: "Releasing tokens from your Qrypt-Safe..." });
                 try {
                     await recordTransaction({
                         walletAddress,
@@ -113,7 +113,7 @@ export default function UnshieldPanel({ vaultAddress, walletAddress, chainId }: 
         <div className="space-y-6">
             <SectionHeader icon={<UnlockIcon className="w-6 h-6 text-primary" />} title="Unshield Tokens" />
             <p className="text-muted-foreground text-sm">
-                Release tokens from your QRYPTANK back to your wallet. Your q{tokenSymbol || "TOKEN"} will be burned.
+                Release tokens from your Qrypt-Safe back to your wallet. Your q{tokenSymbol || "TOKEN"} will be burned.
             </p>
 
             <div className="glass rounded-2xl p-6 space-y-5">
