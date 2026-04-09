@@ -59,7 +59,7 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
                 args: [pwHash],
             }, {
                 onSuccess: async (_hash) => {
-                    toast({ title: "Transaction submitted", description: "Creating your QRYPTANK on-chain..." });
+                    toast({ title: "Transaction submitted", description: "Creating your Qrypt-Safe on-chain..." });
                 },
                 onError: (err) => {
                     toast({ title: "Transaction failed", description: err.message, variant: "destructive" });
@@ -81,12 +81,12 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
                     <div className="shield-glow mb-6">
                         <CheckCircleIcon className="w-20 h-20 text-green-400 mx-auto" />
                     </div>
-                    <h2 className="text-3xl font-bold text-foreground mb-3">QRYPTANK Created</h2>
+                    <h2 className="text-3xl font-bold text-foreground mb-3">Qrypt-Safe Created</h2>
                     <p className="text-muted-foreground mb-6">
-                        Your QRYPTANK is live on the blockchain. Remember your vault proof. It cannot be recovered.
+                        Your Qrypt-Safe is live on the blockchain. Remember your vault proof. It cannot be recovered.
                     </p>
                     {isReadingVault && (
-                        <p className="text-sm text-muted-foreground mb-4">Reading your QRYPTANK address...</p>
+                        <p className="text-sm text-muted-foreground mb-4">Reading your Qrypt-Safe address...</p>
                     )}
                     <Button size="lg" disabled={isReadingVault} onClick={async () => {
                         if (address) {
@@ -126,9 +126,9 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
                     <div className="shield-glow mb-4">
                         <ShieldIcon className="w-16 h-16 text-primary mx-auto" />
                     </div>
-                    <h1 className="text-3xl font-bold text-foreground mb-2">Create Your QRYPTANK</h1>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Create Your Qrypt-Safe</h1>
                     <p className="text-muted-foreground">
-                        Set a vault proof to protect your tokens. This deploys a QRYPTANK smart contract just for you.
+                        Set a vault proof to protect your tokens. This deploys a Qrypt-Safe smart contract just for you.
                     </p>
                 </div>
 
@@ -199,7 +199,7 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
                         onClick={handleCreate}
                         disabled={!canCreate}
                     >
-                        {isConfirming ? "Creating QRYPTANK..." : creating ? "Confirm in MetaMask..." : "Create QRYPTANK"}
+                        {isConfirming ? "Creating Qrypt-Safe..." : creating ? "Confirm in MetaMask..." : "Create Qrypt-Safe"}
                     </Button>
                 </div>
             </div>
