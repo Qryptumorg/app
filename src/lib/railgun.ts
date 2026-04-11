@@ -176,7 +176,7 @@ function createArtifactStore(): ArtifactStore {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new ArtifactStore(getFile as any, storeFile, fileExists);
+    return new ArtifactStore(getFile as any, storeFile as any, fileExists);
 }
 
 /**
