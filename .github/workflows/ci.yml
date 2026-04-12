@@ -10,6 +10,10 @@ jobs:
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
+    env:
+      PORT: "3000"
+      BASE_PATH: "/app"
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,6 +28,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      PORT: "3000"
+      BASE_PATH: "/app"
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

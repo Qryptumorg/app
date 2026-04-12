@@ -33,27 +33,10 @@ const inlineWasmPlugin = {
   },
 };
 
-const rawPort = process.env.PORT;
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+const port = Number(process.env.PORT ?? "3000");"`);
 }
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
+const basePath = process.env.BASE_PATH ?? "/app";
 
 // esbuild plugin: inlines .wasm imports as data URLs and patches pkg-esm JS wrappers
 // that use fetch(new URL('*_bg.wasm', import.meta.url)) so the pre-bundle resolves correctly
