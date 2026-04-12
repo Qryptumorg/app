@@ -130,7 +130,7 @@ export default function SepoliaVerifiedV1Page() {
                     <img
                         src="/images/v1-hero-bg.png"
                         alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", filter: "brightness(0.15) saturate(1.1)" }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", filter: "brightness(0.35) saturate(1.2)" }}
                     />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.6) 70%, #000 100%)" }} />
                 </div>
