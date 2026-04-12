@@ -73,7 +73,8 @@
     "vaul": "^1.1.2",
     "vite": "^7.3.0",
     "wouter": "^3.3.5",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "esbuild": "^0.25.0"
   },
   "dependencies": {
     "@railgun-community/shared-models": "8.0.1",
@@ -90,5 +91,10 @@
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0",
     "wagmi": "^3.6.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

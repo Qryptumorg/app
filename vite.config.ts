@@ -41,8 +41,8 @@ const basePath = process.env.BASE_PATH ?? "/app";
 // that use fetch(new URL('*_bg.wasm', import.meta.url)) so the pre-bundle resolves correctly
 const wasmDataUrlPlugin = {
   name: "wasm-data-url",
-  setup(build: import("esbuild").PluginBuild) {
-    build.onLoad({ filter: /\.wasm$/ }, (args) => {
+  setup(build: any) {
+    build.onLoad({ filter: /\.wasm$/ }, (args: any) => {
       const data = fs.readFileSync(args.path);
       const base64 = data.toString("base64");
       return {

@@ -40,7 +40,7 @@ import {
 
 export { NetworkName, TXIDVersion };
 
-// ─── Network config ───────────────────────────────────────────────────────────
+// ─── Network config ───────────────────────────��───────────────────────────────
 
 export const RAILGUN_CHAIN_MAP: Partial<Record<number, NetworkName>> = {
     1: NetworkName.Ethereum,
@@ -176,7 +176,7 @@ function createArtifactStore(): ArtifactStore {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new ArtifactStore(getFile as any, storeFile, fileExists);
+    return new ArtifactStore(getFile as any, storeFile as any, fileExists as any);
 }
 
 /**
