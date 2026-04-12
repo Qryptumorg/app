@@ -176,7 +176,7 @@ function createArtifactStore(): ArtifactStore {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new ArtifactStore(getFile as any, storeFile as any, fileExists);
+    return new ArtifactStore(getFile as any, storeFile, fileExists);
 }
 
 /**
@@ -244,11 +244,11 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         // Step 5 — Start engine
         // https://docs.railgun.org/developer-guide/wallet/getting-started/5.-start-the-railgun-privacy-engine
         //
-        // POI node: Railgun's public test aggregator (Sepolia + testnet only).
+        // POI node: Railgun's official public POI aggregator.
         // Without a POI node, shielded UTXOs stay in "ShieldPending" / "MissingInternalPOI"
         // bucket forever and can never be spent. This node verifies fund innocence so
         // UTXOs move to the "Spendable" bucket.
-        // NOTE: This aggregator is for TESTING ONLY — do not use in mainnet production.
+        // Serves Ethereum Mainnet (txidIndex 101,851+) and Sepolia.
         const poiNodeURLs = ["https://ppoi-agg.horsewithsixlegs.xyz"];
 
         await startRailgunEngine(

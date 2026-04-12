@@ -27,6 +27,7 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
         rafRef.current = requestAnimationFrame(tick);
 
         const preloads = Promise.allSettled([
+            import("../pages/LandingPage").catch(() => null),
             import("../pages/DashboardPage").catch(() => null),
         ]);
 

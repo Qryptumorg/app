@@ -63,7 +63,7 @@ function HeroSection() {
                     marginBottom: 20,
                 }}>
                     {p.hero.headline}<br />
-                    <span style={{ background: `linear-gradient(135deg, ${CYAN}, ${PURPLE})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    <span style={{ color: CYAN }}>
                         {p.hero.highlight}
                     </span>
                 </h1>

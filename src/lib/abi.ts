@@ -253,8 +253,7 @@ export const PERSONAL_VAULT_ABI = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // V6 ABIs (OTP chain + airBudget isolation)
-// Factory:  0x04E4d410646a6c5268E003121023111e6328DA59 (Sepolia, VERIFIED MIT)
-// Impl:     0x9b3F78B4abc41cf2c1C5E85F9c79789d5c99d1ca (Sepolia, VERIFIED MIT)
+// Factory and implementation addresses loaded from environment variables.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SHIELD_FACTORY_V6_ABI = [

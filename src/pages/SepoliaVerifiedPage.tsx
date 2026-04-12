@@ -2,23 +2,27 @@ import { useEffect, useState } from "react";
 import SharedNavBar from "@/components/SharedNavBar";
 import { Link } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
+import { translations } from "@/lib/translations";
+type SR = typeof translations.en.sepoliaRecord;
 
-const FACTORY_V3 = "0x5c24dd33C33e70FcD9451e1Fc401E7C810c4135B";
-const VAULT_IMPL_V3 = "0xD2db7514A58c9a940c6f0D411EE8364b9a5302D9";
-const FACTORY_V2 = "0x0c060e880A405B1231Ce1263c6a52a272cC1cE05";
-const VAULT_IMPL_V2 = "0x5A77630B5D49943f71785BC57aF37380bBea0c5e";
-const QUSDC_V2 = "0xcD1569A66F01023a8587D69F3D3ad9C4DA12c3Cf";
-const FACTORY_V1 = "0x9a66500886344cbcce882137f263CB0c61aa99b1";
-const QUSDC_V1 = "0xEAc05bF63B22D4969924998b1b79ceF9b2e4a702";
-const VAULT_A = "0xA236C16e694B22c24Bdc641bF9B439A90fABF6B0";
-const WALLET_A = "0x7ee5dc8845cF2C5626bC8B5C7ea269fe221FEa6b";
-const WALLET_B = "0x2541eED685B7677e721A185d8612fA792468577d";
+/* ── Constants — pending redeployment from clean wallet ──────────── */
+const FACTORY_V3 = "";
+const VAULT_IMPL_V3 = "";
+const FACTORY_V2 = "";
+const VAULT_IMPL_V2 = "";
+const QUSDC_V2 = "";
+const FACTORY_V1 = "";
+const QUSDC_V1 = "";
+const VAULT_A = "";
+const WALLET_A = "";
+const WALLET_B = "";
 
-const TX_DEPLOY  = "0x5499d371d8a3c5100dd43e28d82c62332dad12b6063403eb2e9229479fa339c5";
-const TX_SHIELD  = "0x77250e9b7f3b8d0e4c4226fc342c0de21eef5ca9b2ea19357537073c967aa724";
-const TX_COMMIT  = "0x1019744d944086e743ea598b141875b91e315bc98e46e52c9cf691584822d6b0";
-const TX_REVEAL  = "0xf07cfd0e13a449950d4cda0712c48ea7d97724806909f2455280b396a74aaf3f";
-const TX_UNSHIELD = "0x6675e171a2d97ff19f97dd4fc6825a86ba7d7f58619c64961b2495d3373ef7f5";
+/* ── TX hashes — pending redeployment from clean wallet ─────── */
+const TX_DEPLOY   = "";
+const TX_SHIELD   = "";
+const TX_COMMIT   = "";
+const TX_REVEAL   = "";
+const TX_UNSHIELD = "";
 
 const ETHERSCAN = "https://sepolia.etherscan.io";
 
@@ -51,7 +55,7 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
     );
 }
 
-function AddrRow({ label, value, verified, dim }: { label: string; value: string; verified?: boolean; dim?: boolean }) {
+function AddrRow({ label, value, verified, dim, link }: { label: string; value: string; verified?: boolean; dim?: boolean; link?: string }) {
     const { t } = useLanguage();
     return (
         <div style={{ padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -62,7 +66,7 @@ function AddrRow({ label, value, verified, dim }: { label: string; value: string
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                 <CopySpan value={value} display={short(value)} />
-                <ExtLink href={`${ETHERSCAN}/address/${value}`}>Etherscan</ExtLink>
+                <ExtLink href={link ?? `${ETHERSCAN}/address/${value}`}>Etherscan</ExtLink>
             </div>
         </div>
     );
@@ -145,6 +149,9 @@ function Tag({ text, color = "#627EEA" }: { text: string; color?: string }) {
 
 /* ── Page ──────────────────────────────────────────────────────── */
 export default function SepoliaVerifiedPage() {
+    const { t } = useLanguage();
+    const sr = (t.sepoliaRecord as SR).v2;
+    const srV3 = (t.sepoliaRecord as SR).v3;
     const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" ? window.innerWidth < 900 : false);
     useEffect(() => {
         const fn = () => setIsMobile(window.innerWidth < 900);
@@ -170,7 +177,7 @@ export default function SepoliaVerifiedPage() {
             <div style={{ position: "relative", overflow: "hidden" }}>
                 {/* generated image as background strip */}
                 <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                    <img src="/sepolia-vault-hero.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.22) saturate(1.4)" }} />
+                    <img src="/sepolia-v2-hero.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.22) saturate(1.4)" }} />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(5,7,16,0.1) 0%, rgba(5,7,16,0.65) 70%, #050710 100%)" }} />
                 </div>
 
@@ -180,23 +187,28 @@ export default function SepoliaVerifiedPage() {
                         <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 400px", gap: 60, alignItems: "center" }}>
                             {/* left */}
                             <div>
-                                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.22)", borderRadius: 20, padding: "4px 14px 4px 9px", marginBottom: 22 }}>
-                                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px rgba(34,197,94,0.7)" }} />
-                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#22C55E", textTransform: "uppercase" }}>Live on Sepolia</span>
+                                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 20, padding: "4px 14px 4px 9px", marginBottom: 22 }}>
+                                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#EF4444", boxShadow: "0 0 8px rgba(239,68,68,0.5)" }} />
+                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#EF4444", textTransform: "uppercase" }}>{sr.heroBadge}</span>
                                 </div>
                                 <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 36 : 56, letterSpacing: "-0.03em", lineHeight: 1.04, margin: "0 0 20px", color: "#fff" }}>
-                                    Verified on Sepolia
+                                    {sr.heroTitle}
                                 </h1>
-                                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 36px", maxWidth: 520 }}>
-                                    Full end-to-end deployment, verification, and test record for the Qryptum protocol on Ethereum Sepolia. All contracts verified on Etherscan. Every transaction is publicly auditable.
+                                <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 20px", maxWidth: 520 }}>
+                                    {sr.heroBody}
                                 </p>
+                                <Link href="/sepolia-verified-v3" style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.22)", borderRadius: 10, padding: "8px 16px", marginBottom: 28, textDecoration: "none" }}>
+                                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 6px rgba(34,197,94,0.7)" }} />
+                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 700, color: "#22C55E" }}>{sr.activeDeployLink}</span>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                                </Link>
                                 {/* stat pills */}
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                                     {[
-                                        { val: "84/84", label: "Unit tests", color: "#22C55E" },
-                                        { val: "8/8", label: "Live scenarios", color: "#627EEA" },
-                                        { val: "v2", label: "Active deploy", color: "#8B5CF6" },
-                                        { val: "3/3", label: "Verified on Etherscan", color: "#06B6D4" },
+                                        { val: "84/84", label: sr.statLabels[0], color: "#22C55E" },
+                                        { val: "8/8", label: sr.statLabels[1], color: "#627EEA" },
+                                        { val: "v2", label: sr.statLabels[2], color: "#EF4444" },
+                                        { val: "3/3", label: sr.statLabels[3], color: "#06B6D4" },
                                     ].map(s => (
                                         <div key={s.val} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${s.color}28`, borderRadius: 12, padding: "12px 18px", textAlign: "center", minWidth: 100 }}>
                                             <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: s.color }}>{s.val}</div>
@@ -209,7 +221,7 @@ export default function SepoliaVerifiedPage() {
                             {/* right: hero image panel */}
                             {!isMobile && (
                                 <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}>
-                                    <img src="/sepolia-vault-hero.png" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
+                                    <img src="/sepolia-v2-hero.png" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
                                 </div>
                             )}
                         </div>
@@ -222,9 +234,9 @@ export default function SepoliaVerifiedPage() {
 
                 {/* ── Protocol Flow (full width) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 20 }) }}>
-                    <Tag text="Protocol Lifecycle" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>How a shielded transfer works</h2>
-                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.6 }}>Six steps from raw ERC-20 to vault-protected transfer and back. Each step requires keccak256 vault proof authentication.</p>
+                    <Tag text={sr.flowLabel} />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.flowHeading}</h2>
+                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.6 }}>{sr.flowBody}</p>
                     <FlowDiagram />
                 </div>
 
@@ -232,17 +244,17 @@ export default function SepoliaVerifiedPage() {
                 <div style={{ ...card({ marginBottom: 20, overflow: "hidden" }) }}>
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 380px" }}>
                         <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
-                            <Tag text="Active Contracts (v3)" color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>QryptSafe v3 + PersonalQryptSafe impl v3</h2>
+                            <Tag text={sr.activeContractsLabel} color="#22C55E" />
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.activeContractsHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
-                                Redeployed to remove all admin keys. No Ownable, no Pausable, no privileged functions. The factory is fully immutable: no one can pause vault creation or access user funds.
+                                {sr.activeContractsBody}
                             </p>
-                            <AddrRow label="QryptSafe v3 (factory)" value={FACTORY_V3} verified />
-                            <AddrRow label="PersonalQryptSafe Implementation v3" value={VAULT_IMPL_V3} verified />
+                            <AddrRow label="QryptSafe v3 (factory)" value={FACTORY_V3} verified link={`${ETHERSCAN}/address/${FACTORY_V3}#code`} />
+                            <AddrRow label="PersonalQryptSafe Implementation v3" value={VAULT_IMPL_V3} verified link={`${ETHERSCAN}/address/${VAULT_IMPL_V3}#code`} />
                         </div>
                         {!isMobile && (
                             <div style={{ position: "relative", minHeight: 280 }}>
-                                <img src="/sepolia-contracts.png" alt="Contract architecture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) saturate(1.2)" }} />
+                                <img src="/sepolia-v2-contracts.png" alt="Contract architecture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) saturate(1.2)" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(255,255,255,0.03) 0%, transparent 40%)" }} />
                             </div>
                         )}
@@ -252,13 +264,13 @@ export default function SepoliaVerifiedPage() {
                 {/* ── Contract Architecture v2: previous ─── */}
                 <div style={{ ...card({ marginBottom: 20, overflow: "hidden", borderColor: "rgba(98,126,234,0.14)" }) }}>
                     <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
-                        <Tag text="Previous Version (v2)" color="#627EEA" />
-                        <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>ShieldFactory v2 + PersonalVault impl v2</h2>
+                        <Tag text={sr.prevVersionLabel} color="#627EEA" />
+                        <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.prevVersionHeading}</h2>
                         <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
-                            Redeployed after qToken decimal precision fix. Superseded by v3 which removes Ownable and Pausable admin keys. E2E tests below were run against v2 factory.
+                            {sr.prevVersionBody}
                         </p>
-                        <AddrRow label="ShieldFactory v2" value={FACTORY_V2} dim />
-                        <AddrRow label="PersonalVault Implementation v2" value={VAULT_IMPL_V2} dim />
+                        <AddrRow label="ShieldFactory v2" value={FACTORY_V2} dim link={`${ETHERSCAN}/address/${FACTORY_V2}#code`} />
+                        <AddrRow label="PersonalVault Implementation v2" value={VAULT_IMPL_V2} dim link={`${ETHERSCAN}/address/${VAULT_IMPL_V2}#code`} />
                         <AddrRow label="qUSDC ShieldToken v2 (6 decimals)" value={QUSDC_V2} dim />
                     </div>
                 </div>
@@ -267,22 +279,22 @@ export default function SepoliaVerifiedPage() {
                 <div style={{ ...card({ marginBottom: 20, borderColor: "rgba(239,68,68,0.14)", padding: isMobile ? "28px 18px" : "36px 40px" }) }}>
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "flex-start" }}>
                         <div>
-                            <Tag text="Superseded (v1)" color="#EF4444" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>Why v1 was replaced</h2>
+                            <Tag text={sr.supersededLabel} color="#EF4444" />
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.supersededHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
-                                ShieldToken v1 hardcoded 18 decimals for all tokens. USDC has 6 decimals, so 9.5 qUSDC displayed as 0.0000000000095 in Etherscan and wallets. v2 reads decimals() from the underlying ERC-20 at qToken deploy time and stores it permanently.
+                                {sr.supersededBody}
                             </p>
-                            <AddrRow label="ShieldFactory v1" value={FACTORY_V1} verified dim />
+                            <AddrRow label="ShieldFactory v1" value={FACTORY_V1} verified dim link={`${ETHERSCAN}/address/${FACTORY_V1}#code`} />
                             <AddrRow label="qUSDC v1 (18 decimals bug)" value={QUSDC_V1} verified dim />
                         </div>
                         <div>
-                            <Tag text="The Fix" color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>How v2 solves it</h2>
+                            <Tag text={sr.fixLabel} color="#22C55E" />
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.fixHeading}</h2>
                             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 20 }}>
                                 {[
-                                    { label: "At deploy time", desc: "ShieldToken constructor calls decimals() on the underlying ERC-20 and stores the result permanently." },
-                                    { label: "USDC: 6 decimals", desc: "9.5 qUSDC correctly shows as 9.5 in all wallets and Etherscan. Not 0.0000000000095." },
-                                    { label: "Immutable after deploy", desc: "The decimal value is stored in the qToken contract and cannot be changed post-deployment." },
+                                    sr.fixes[0],
+                                    sr.fixes[1],
+                                    sr.fixes[2],
                                 ].map(r => (
                                     <div key={r.label} style={{ display: "flex", gap: 12 }}>
                                         <div style={{ flexShrink: 0, width: 20, height: 20, marginTop: 2, borderRadius: "50%", background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -304,15 +316,15 @@ export default function SepoliaVerifiedPage() {
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "340px 1fr" }}>
                         {!isMobile && (
                             <div style={{ position: "relative", minHeight: 320 }}>
-                                <img src="/sepolia-tests.png" alt="Test results" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.7) saturate(1.3)" }} />
+                                <img src="/sepolia-v2-tests.png" alt="Test results" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.7) saturate(1.3)" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to left, rgba(5,7,16,0.1) 0%, transparent 50%)" }} />
                             </div>
                         )}
                         <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
-                            <Tag text="Unit Tests" color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>84 / 84 Passing</h2>
+                            <Tag text={srV3.unitTestsLabel} color="#22C55E" />
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{srV3.unitTestsHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 22px", lineHeight: 1.65 }}>
-                                Run via Hardhat against local fork. Four suites covering all contract logic, security invariants, and edge cases.
+                                {srV3.unitTestsBody}
                             </p>
                             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                 {[
@@ -342,8 +354,8 @@ export default function SepoliaVerifiedPage() {
 
                 {/* ── Test wallets (3-col grid) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 20 }) }}>
-                    <Tag text="Test Wallets" color="#8B5CF6" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 20px", color: "#fff" }}>On-Chain Test Accounts</h2>
+                    <Tag text={srV3.testWalletsLabel} color="#8B5CF6" />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 20px", color: "#fff" }}>{srV3.testWalletsHeading}</h2>
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                         {[
                             { label: "Wallet A", sub: "vault owner", value: WALLET_A, color: "#627EEA" },
@@ -364,10 +376,10 @@ export default function SepoliaVerifiedPage() {
 
                 {/* ── Live on-chain tests (full width) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 60 }) }}>
-                    <Tag text="Live On-Chain Tests" color="#F59E0B" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>8 Scenarios, All Executed on Sepolia</h2>
+                    <Tag text={sr.testResultsLabel} color="#F59E0B" />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.testResultsHeading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 4px", lineHeight: 1.6 }}>
-                        Real contracts, real Sepolia USDC, real wallets. Every transaction hash is verifiable on Etherscan.
+                        {sr.testResultsBody}
                     </p>
                     <TestRow pass n={1} title="Deploy Qrypt-Safe"
                         desc="Wallet A created a personal vault via ShieldFactory v2. Vault clone deployed at the address above."

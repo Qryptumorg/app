@@ -1,38 +1,22 @@
 {
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "jsx": "preserve",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
+    "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
-  "exclude": [
-    "node_modules",
-    "src/pages/features",
-    "src/pages/SepoliaVerifiedPage.tsx",
-    "src/pages/SepoliaVerifiedV3Page.tsx",
-    "src/pages/SepoliaVerifiedV5Page.tsx",
-    "src/pages/SepoliaVerifiedV6Page.tsx",
-    "src/pages/LandingPage.tsx",
-    "src/pages/FeatureBentoPage.tsx",
-    "src/pages/PrivacyPage.tsx",
-    "src/pages/TermsPage.tsx",
-    "src/pages/QuantumDesignPage.tsx"
+  "references": [
+    {
+      "path": "../../lib/api-client-react"
+    }
   ]
 }

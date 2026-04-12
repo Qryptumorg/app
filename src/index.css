@@ -227,6 +227,16 @@
   50% { transform: translateY(-10px) translateX(-3px); }
 }
 
+@keyframes splashFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.splash-item-0 { animation: splashFadeUp 0.5s ease 0s both; }
+.splash-item-1 { animation: splashFadeUp 0.5s ease 0.1s both; }
+.splash-item-2 { animation: splashFadeUp 0.5s ease 0.35s both; }
+.splash-item-3 { animation: splashFadeUp 0.5s ease 0.6s both; }
+.splash-item-4 { animation: splashFadeUp 0.5s ease 0.8s both; }
+
 @keyframes badge-float-3 {
   0%, 100% { transform: translateY(0px) translateX(0px); }
   50% { transform: translateY(-6px) translateX(3px); }
@@ -290,6 +300,35 @@
 @keyframes connectorSlide {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+/* ─── Pill group traveling border light ────────────────── */
+
+@keyframes pill-scan-lr {
+  0%   { left: -90px; }
+  100% { left: calc(100% + 0px); }
+}
+
+.pill-scan-top,
+.pill-scan-bottom {
+  position: absolute;
+  width: 90px;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.82) 50%, transparent 100%);
+  filter: blur(1px);
+}
+
+.pill-scan-top {
+  top: 0px;
+  height: 1.5px;
+  animation: pill-scan-lr 3s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+.pill-scan-bottom {
+  bottom: 0px;
+  height: 1.5px;
+  animation: pill-scan-lr 3s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate-reverse;
 }
 
 /* ─── Utility classes ────────────────────────────────── */

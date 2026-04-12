@@ -26,8 +26,8 @@ if (projectId) {
     _appKitModal = createAppKit({
         adapters: [wagmiAdapter],
         projectId,
-        networks: [sepolia, mainnet],
-        defaultNetwork: sepolia,
+        networks: [mainnet, sepolia],
+        defaultNetwork: mainnet,
         metadata: {
             name: "Qryptum",
             description: "Privacy-first DeFi protocol on Ethereum",
@@ -62,18 +62,18 @@ if (projectId) {
 export const wagmiConfig = _wagmiConfig;
 export const appKitModal = _appKitModal;
 
-/** V5 factory addresses — kept for backward compat with existing vaults */
+/** V5 factory addresses (historical — pending redeployment from clean wallet) */
 export const SHIELD_FACTORY_ADDRESSES: Record<number, string> = {
-    11155111: "0x291295B88fC35dcA3208f7cCC3DFc1a2921167E8",
+    11155111: import.meta.env.VITE_SHIELD_FACTORY_V5_SEPOLIA || "",
     1: import.meta.env.VITE_SHIELD_FACTORY_MAINNET || "",
-    31337: import.meta.env.VITE_SHIELD_FACTORY_LOCAL || "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    31337: import.meta.env.VITE_SHIELD_FACTORY_LOCAL || "",
 };
 
 /** V6 factory addresses — OTP chain + airBudget isolation */
 export const SHIELD_FACTORY_V6_ADDRESSES: Record<number, string> = {
-    11155111: "0x04E4d410646a6c5268E003121023111e6328DA59",
-    1: import.meta.env.VITE_SHIELD_FACTORY_V6_MAINNET || "",
-    31337: import.meta.env.VITE_SHIELD_FACTORY_V6_LOCAL || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    11155111: import.meta.env.VITE_SHIELD_FACTORY_SEPOLIA || "",
+    1: import.meta.env.VITE_SHIELD_FACTORY_MAINNET || "",
+    31337: import.meta.env.VITE_SHIELD_FACTORY_V6_LOCAL || "",
 };
 
 export const SUPPORTED_CHAIN_IDS = [11155111, 1, 31337];

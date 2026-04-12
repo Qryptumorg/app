@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useAccount, useChainId, useDisconnect, useConnect, useBalance, useReadContracts } from "wagmi";
+import { useAccount, useChainId, useDisconnect, useConnect, useBalance, useReadContracts, useSwitchChain } from "wagmi";
 import type { Connector } from "wagmi";
 import { formatUnits } from "viem";
 import { useQuery } from "@tanstack/react-query";
@@ -798,29 +798,85 @@ function MobileLayout(p: SharedProps) {
     );
 }
 
+const NETWORKS = [
+    { chainId: 1,        name: "Ethereum", dot: "#4ade80" },
+    { chainId: 11155111, name: "Sepolia",  dot: "#a78bfa" },
+] as const;
+
 function TopBarWallet(p: SharedProps) {
     const [showPortfolio, setShowPortfolio] = useState(false);
+    const [showNetworks, setShowNetworks] = useState(false);
     const portfolioRef = useRef<HTMLDivElement>(null);
+    const networkRef = useRef<HTMLDivElement>(null);
+    const { switchChain, isPending: isSwitching } = useSwitchChain();
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (portfolioRef.current && !portfolioRef.current.contains(e.target as Node)) {
                 setShowPortfolio(false);
             }
+            if (networkRef.current && !networkRef.current.contains(e.target as Node)) {
+                setShowNetworks(false);
+            }
         };
-        if (showPortfolio) document.addEventListener("mousedown", handler);
+        if (showPortfolio || showNetworks) document.addEventListener("mousedown", handler);
         return () => document.removeEventListener("mousedown", handler);
-    }, [showPortfolio]);
+    }, [showPortfolio, showNetworks]);
+
+    const currentNet = NETWORKS.find(n => n.chainId === p.chainId) ?? { name: p.networkName, dot: "#f59e0b" };
 
     return (
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-                display: "flex", alignItems: "center", gap: 5,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
-                borderRadius: 20, padding: "5px 12px",
-            }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{p.networkName}</span>
+            {/* Network selector */}
+            <div style={{ position: "relative" }} ref={networkRef}>
+                <button
+                    onClick={() => { setShowNetworks(v => !v); setShowPortfolio(false); }}
+                    style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
+                        borderRadius: 20, padding: "5px 12px", cursor: "pointer",
+                    }}
+                    title="Switch network"
+                >
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: currentNet.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+                        {isSwitching ? "Switching..." : currentNet.name}
+                    </span>
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ opacity: 0.4, transform: showNetworks ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                        <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </button>
+                {showNetworks && (
+                    <div style={{
+                        position: "absolute", top: "calc(100% + 8px)", left: 0,
+                        background: "#111", border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 12, overflow: "hidden", minWidth: 140,
+                        boxShadow: "0 16px 48px rgba(0,0,0,0.7)", zIndex: 60,
+                    }}>
+                        {NETWORKS.map(net => (
+                            <button
+                                key={net.chainId}
+                                onClick={() => { switchChain({ chainId: net.chainId }); setShowNetworks(false); }}
+                                style={{
+                                    display: "flex", alignItems: "center", gap: 8,
+                                    width: "100%", padding: "10px 14px", border: "none",
+                                    background: p.chainId === net.chainId ? "rgba(255,255,255,0.06)" : "transparent",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <div style={{ width: 7, height: 7, borderRadius: "50%", background: net.dot, flexShrink: 0 }} />
+                                <span style={{ fontSize: 13, color: p.chainId === net.chainId ? "#fff" : "rgba(255,255,255,0.6)", fontWeight: p.chainId === net.chainId ? 600 : 400 }}>
+                                    {net.name}
+                                </span>
+                                {p.chainId === net.chainId && (
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" style={{ marginLeft: "auto" }}>
+                                        <path d="M20 6L9 17l-5-5" />
+                                    </svg>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div style={{ position: "relative" }} ref={portfolioRef}>

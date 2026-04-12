@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { config } from "@/lib/wagmi";
 import AppRouter from "@/pages/AppRouter";
+import { TxStatusProvider } from "@/lib/txStatusContext";
+import TxStatusBanner from "@/components/TxStatusBanner";
 
 const queryClient = new QueryClient();
 
@@ -12,12 +14,15 @@ function App() {
     return (
         <WagmiProvider config={config}>
             <QueryClientProvider client={queryClient}>
-                <TooltipProvider>
-                    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                        <AppRouter />
-                    </WouterRouter>
-                    <Toaster />
-                </TooltipProvider>
+                <TxStatusProvider>
+                    <TooltipProvider>
+                        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                            <AppRouter />
+                        </WouterRouter>
+                        <Toaster />
+                        <TxStatusBanner />
+                    </TooltipProvider>
+                </TxStatusProvider>
             </QueryClientProvider>
         </WagmiProvider>
     );

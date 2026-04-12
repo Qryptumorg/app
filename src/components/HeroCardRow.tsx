@@ -139,7 +139,7 @@ export const NEWS_CARDS: NewsCard[] = [
         tag: "v4 Decommissioned",
         title: "QryptSafe v4 Deployed",
         body: "v4 added QryptAir EIP-712 vouchers and QryptShield Railgun integration. Superseded by v5 (bytes32 proofHash upgrade).",
-        link: { text: "View contract", href: "https://sepolia.etherscan.io/address/0x12896A9a0918929136F38Da84d36241772b55D27#code" },
+        link: { text: "Pending redeployment", href: "/sepolia-verified-v6" },
         decommissioned: true,
     },
     {
@@ -159,7 +159,7 @@ export const NEWS_CARDS: NewsCard[] = [
         tag: "Deployment",
         title: "QryptSafe v3 Deployed",
         body: "QryptSafe and PersonalQryptSafe v3 live on Sepolia. No admin keys, no pause function. Both verified on Etherscan.",
-        link: { text: "View contract", href: "https://sepolia.etherscan.io/address/0xD778C6f4F85Da972a373bA7A4e3B01476F3F6364#code" },
+        link: { text: "Pending redeployment", href: "/sepolia-verified-v3" },
         decommissioned: true,
     },
     {
@@ -179,7 +179,7 @@ export const NEWS_CARDS: NewsCard[] = [
         tag: "v2 Deployment",
         title: "Shield v2 Deployed",
         body: "ShieldFactory v2 with qToken decimal precision fix. Reads decimals() from the underlying ERC-20 at deploy time.",
-        link: { text: "View contract", href: "https://sepolia.etherscan.io/address/0x0c060e880A405B1231Ce1263c6a52a272cC1cE05#code" },
+        link: { text: "Pending redeployment", href: "/sepolia-verified" },
         decommissioned: true,
     },
     {
@@ -189,7 +189,7 @@ export const NEWS_CARDS: NewsCard[] = [
         tag: "v1 Superseded",
         title: "Shield v1 Deployed",
         body: "First deployment on Sepolia. ShieldToken hardcoded 18 decimals causing USDC display error. Superseded by v2.",
-        link: { text: "View contract", href: "https://sepolia.etherscan.io/address/0x9a66500886344cbcce882137f263CB0c61aa99b1#code" },
+        link: { text: "Pending redeployment", href: "/sepolia-verified" },
         decommissioned: true,
     },
 ];
