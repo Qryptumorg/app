@@ -13,6 +13,19 @@ const PASS       = "#22C55E";
 const W          = 1200;
 const GITHUB_TEST = "https://github.com/Qryptumorg/contracts/blob/main/test/QryptSafeV1.test.js";
 
+// On-chain live test data (Test Wallet A, Sepolia)
+const WALLET_A       = "0x2459A9B3D481Bb02e6844Cf28314b2c3eaC431e4";
+const VAULT_A        = "0x184765A9f694F4bb311c3886c4495ac824D204B2";
+const TX_CREATE_VAULT = "0x62b94b8b0547fb3ccd5eb036ad1194a2a947f663cf72a39602c7983adee4ae2c";
+const TX_SHIELD      = "0x75cfdeba7c9f2461ba216c1e9acf9ad10f234d7e65596e5dee8c3b6cca956526";
+const TX_UNSHIELD    = "0x1b20536e007968d0e0e6b47c7a245cb9d2c29e998544b471104ce695bf1b0792";
+
+const LIVE_TXS = [
+    { label: "createVault()", detail: "Deploy proxy vault for Wallet A", tx: TX_CREATE_VAULT, status: "PASS" },
+    { label: "shield(USDC, 1e6, password)", detail: "Shield 1 USDC — confirms 18-dec qToken bug", tx: TX_SHIELD, status: "PASS" },
+    { label: "unshield(USDC, 1e6, password)", detail: "Unshield 1 USDC back to Wallet A", tx: TX_UNSHIELD, status: "PASS" },
+];
+
 const short = (v: string, h = 8, t = 6) => `${v.slice(0, h)}...${v.slice(-t)}`;
 
 /* ── Shared UI ──────────────────────────────────────────────────── */
@@ -240,6 +253,64 @@ export default function SepoliaVerifiedV1Page() {
                     <div>
                         {sr.tests.map((test, i) => (
                             <TestRow key={i} n={i + 1} title={test.title} desc={test.desc} isMobile={isMobile} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* ── Live On-chain Tests ── */}
+                <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 20 }) }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                        <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: PASS, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.18)", borderRadius: 6, padding: "4px 10px" }}>LIVE ON-CHAIN</span>
+                        <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Sepolia Testnet</span>
+                        <a href={`${ETHERSCAN}/address/${WALLET_A}`} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 600, color: "#627EEA", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, border: "1px solid rgba(98,126,234,0.2)", borderRadius: 7, padding: "4px 10px" }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                            Test Wallet A
+                        </a>
+                    </div>
+
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em", margin: "0 0 4px", color: "#fff" }}>
+                        3 / 3 live transactions verified
+                    </h2>
+                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.38)", margin: "0 0 22px", lineHeight: 1.6 }}>
+                        Executed on Sepolia with Test Wallet A. Each TX is publicly verifiable on Etherscan.
+                    </p>
+
+                    {/* Addresses */}
+                    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12, marginBottom: 22 }}>
+                        {[
+                            { label: "Test Wallet A", addr: WALLET_A, link: `${ETHERSCAN}/address/${WALLET_A}` },
+                            { label: "Vault (proxy)", addr: VAULT_A, link: `${ETHERSCAN}/address/${VAULT_A}` },
+                        ].map(({ label, addr, link }) => (
+                            <div key={addr} style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 5 }}>{label}</div>
+                                    <CopySpan value={addr} display={short(addr, 10, 8)} />
+                                </div>
+                                <a href={link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, color: "#627EEA", textDecoration: "none", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                    Etherscan
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                </a>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* TX rows */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {LIVE_TXS.map((row, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: "rgba(34,197,94,0.03)", border: "1px solid rgba(34,197,94,0.10)", borderRadius: 10, padding: isMobile ? "14px 14px" : "14px 20px", flexWrap: isMobile ? "wrap" : "nowrap" }}>
+                                <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 800, color: PASS, background: "rgba(34,197,94,0.1)", borderRadius: 5, padding: "3px 8px", whiteSpace: "nowrap" }}>PASS</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontFamily: "'JetBrains Mono','Courier New',monospace", fontSize: 12, color: "rgba(255,255,255,0.8)", marginBottom: 2 }}>{row.label}</div>
+                                    <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.4 }}>{row.detail}</div>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                                    <CopySpan value={row.tx} display={short(row.tx, 10, 6)} />
+                                    <a href={`${ETHERSCAN}/tx/${row.tx}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 600, color: "#627EEA", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3, border: "1px solid rgba(98,126,234,0.2)", borderRadius: 7, padding: "4px 10px", whiteSpace: "nowrap" }}>
+                                        Etherscan
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    </a>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>
