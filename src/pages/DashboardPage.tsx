@@ -723,26 +723,7 @@ function MobileLayout(p: SharedProps) {
                         </button>
                     </div>
                 ) : !p.isConnected ? (
-                    <div style={{ position: "relative" }}>
-                        <button onClick={() => {
-                            p.setConnectError(null);
-                            if (hasAppKit && appKitModal) { appKitModal.open(); }
-                            else { p.setShowConnectMenu(!p.showConnectMenu); }
-                        }} style={{
-                            background: "#2563eb", border: "none", borderRadius: 20,
-                            padding: "7px 14px", cursor: "pointer",
-                            fontSize: 12, fontWeight: 600, color: "#d4d6e2",
-                            display: "flex", alignItems: "center", gap: 6,
-                        }}>
-                            <WalletIcon size={13} /> Connect Wallet
-                        </button>
-                        {!hasAppKit && p.showConnectMenu && !p.connectError && (
-                            <ConnectorMenu connectors={p.availableConnectors} onConnect={p.handleConnectWith} />
-                        )}
-                        {!hasAppKit && p.connectError === "iframe" && (
-                            <IframeErrorPopup onOpen={() => { window.open(window.location.href, "_blank"); p.setConnectError(null); }} onDismiss={() => p.setConnectError(null)} />
-                        )}
-                    </div>
+                    <appkit-button label="Connect Wallet" size="sm" />
                 ) : null}
             </header>
 
@@ -1055,34 +1036,8 @@ function IframeErrorPopup({ onOpen, onDismiss }: { onOpen: () => void; onDismiss
     );
 }
 
-function ConnectButton(p: SharedProps) {
-    const handleClick = () => {
-        p.setConnectError(null);
-        if (hasAppKit && appKitModal) {
-            appKitModal.open();
-        } else {
-            p.setShowConnectMenu(!p.showConnectMenu);
-        }
-    };
-    return (
-        <div style={{ position: "relative" }}>
-            <button onClick={handleClick} style={{
-                display: "flex", alignItems: "center", gap: 8,
-                padding: "8px 14px", borderRadius: 10,
-                border: "1px solid rgba(37,99,235,0.4)", cursor: "pointer",
-                background: "rgba(37,99,235,0.1)", color: "#60a5fa",
-                fontSize: 13, fontWeight: 600,
-            }}>
-                <WalletIcon size={15} /> Connect Wallet
-            </button>
-            {!hasAppKit && p.showConnectMenu && !p.connectError && (
-                <ConnectorMenu connectors={p.availableConnectors} onConnect={p.handleConnectWith} />
-            )}
-            {!hasAppKit && p.connectError === "iframe" && (
-                <IframeErrorPopup onOpen={() => { window.open(window.location.href, "_blank"); p.setConnectError(null); }} onDismiss={() => p.setConnectError(null)} />
-            )}
-        </div>
-    );
+function ConnectButton(_p: SharedProps) {
+    return <appkit-button label="Connect Wallet" />;
 }
 
 const panelBase: React.CSSProperties = {
