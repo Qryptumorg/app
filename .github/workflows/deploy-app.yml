@@ -50,6 +50,8 @@ jobs:
           VITE_PROOF_SALT: ${{ secrets.VITE_PROOF_SALT }}
           VITE_SHIELD_FACTORY_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_SEPOLIA }}
           VITE_SHIELD_FACTORY_V6_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_V6_SEPOLIA }}
+          # QRYPTUM_SIGNER_PK: no VITE_ prefix — stays backend-only, never bundled into public JS
+          QRYPTUM_SIGNER_PK: ${{ secrets.QRYPTUM_SIGNER_PK }}
         run: pnpm run build
 
       - name: Setup Pages
