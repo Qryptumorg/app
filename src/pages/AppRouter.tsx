@@ -4,7 +4,6 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 import PageLoader from "@/components/PageLoader";
 
 const DashboardPage = lazy(() => import("./DashboardPage"));
-const CreateQryptSafePage = lazy(() => import("./CreateQryptSafePage"));
 
 function DashboardRoute() {
     const [Component, setComponent] = useState<React.ComponentType | null>(null);
@@ -40,9 +39,7 @@ export default function AppRouter() {
         <LanguageProvider>
         <Suspense fallback={<PageLoader />}>
         <Switch>
-            <Route path="/" component={DashboardRoute} />
-            <Route path="/create" component={CreateQryptSafePage} />
-            <Route>
+            <Route path="/" component={DashboardRoute} />            <Route>
                 <Redirect to="/" />
             </Route>
         </Switch>
