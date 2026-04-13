@@ -22,7 +22,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     env:
-      NODE_ENV: production
       PORT: '3000'
       BASE_PATH: '/app'
 
@@ -36,9 +35,11 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install --include=dev --legacy-peer-deps
 
       - name: Build
+        env:
+          NODE_ENV: production
         run: npm run build
 
       - name: Setup Pages
