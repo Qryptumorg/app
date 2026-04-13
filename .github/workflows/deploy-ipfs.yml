@@ -79,8 +79,10 @@ jobs:
             form.append('file', new Blob([bytes]), rel);
           }
 
+          // wrapWithDirectory: true is required when uploading multiple files.
+          // The returned CID is the directory root — index.html is served at ipfs://<CID>/
           form.append('pinataMetadata', JSON.stringify({ name: 'qryptum-app-' + sha }));
-          form.append('pinataOptions', JSON.stringify({ wrapWithDirectory: false }));
+          form.append('pinataOptions', JSON.stringify({ wrapWithDirectory: true }));
 
           console.log('Files  :', files.length, '(source maps excluded)');
           console.log('Size   :', (totalBytes / 1024 / 1024).toFixed(2), 'MB');
