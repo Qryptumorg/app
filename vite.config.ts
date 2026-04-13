@@ -55,6 +55,9 @@ if (!basePath) {
   );
 }
 
+// Ensure basePath always ends with / so %BASE_URL% substitution works correctly
+const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+
 // esbuild plugin: inlines .wasm imports as data URLs and patches pkg-esm JS wrappers
 // that use fetch(new URL('*_bg.wasm', import.meta.url)) so the pre-bundle resolves correctly
 const wasmDataUrlPlugin = {
@@ -82,7 +85,7 @@ const wasmDataUrlPlugin = {
 };
 
 export default defineConfig({
-  base: basePath,
+  base: normalizedBase,
   plugins: [
     inlineWasmPlugin,
     nodePolyfills({
@@ -111,6 +114,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
+      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
     dedupe: ["react", "react-dom", "wagmi", "viem", "@wagmi/core"],
   },
