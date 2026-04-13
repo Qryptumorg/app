@@ -102,7 +102,7 @@ function ProductsBento() {
                     <div style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
                     <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color, textTransform: "uppercase" }}>{badge}</span>
                 </div>
-                <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: gridColumn === "1 / 2" ? (isMobile ? 22 : 26) : 19, fontWeight: 800, color: "#fff", lineHeight: 1.2, margin: "0 0 10px" }}>{title}</h3>
+                <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: gridColumn === "1 / 2" ? (isMobile ? 22 : 26) : 19, fontWeight: 800, color: "#d4d6e2", lineHeight: 1.2, margin: "0 0 10px" }}>{title}</h3>
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.52)", lineHeight: 1.65, margin: "0 0 20px" }}>{desc}</p>
 
                 {/* Feature bullet list ,  fills empty space on large cards */}
@@ -122,7 +122,7 @@ function ProductsBento() {
                                     <path d="M5 8l2 2 4-4" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                                 <div>
-                                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 2 }}>{f.label}</div>
+                                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: "#d4d6e2", marginBottom: 2 }}>{f.label}</div>
                                     <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>{f.detail}</div>
                                 </div>
                             </div>
@@ -156,7 +156,7 @@ function ProductsBento() {
                 <h2 style={{
                     fontFamily: "'Inter', sans-serif",
                     fontSize: isMobile ? 30 : 44, fontWeight: 800,
-                    color: "#fff", lineHeight: 1.1, margin: "0 0 18px",
+                    color: "#d4d6e2", lineHeight: 1.1, margin: "0 0 18px",
                 }}>{L.productsBentoHeading.split("\n").map((line, i, arr) => (
                     <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
                 ))}</h2>
@@ -168,7 +168,7 @@ function ProductsBento() {
 
             {/* Bento grid */}
             <div style={{
-                maxWidth: 1200, margin: "0 auto",
+                maxWidth: 1300, margin: "0 auto",
                 display: "grid",
                 gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
                 gridTemplateRows: isMobile ? "auto" : "1fr 1fr",
@@ -444,7 +444,7 @@ function HowItWorks() {
                         fontSize: isMobile ? 30 : 46,
                         fontWeight: 800,
                         lineHeight: 1.1,
-                        color: "#fff",
+                        color: "#d4d6e2",
                         letterSpacing: "-0.02em",
                         marginBottom: 28,
                     }}>
@@ -700,7 +700,7 @@ function FinalCTA({ onConnect, isConnecting }: { onConnect: () => void; isConnec
                 fontSize: isMobile ? 34 : 62,
                 fontWeight: 800,
                 lineHeight: 1.08,
-                color: "#fff",
+                color: "#d4d6e2",
                 letterSpacing: "-0.03em",
                 marginBottom: 20,
                 maxWidth: 700,
@@ -814,7 +814,7 @@ function Footer() {
             heading: L.footerColProduct,
             links: [
                 { label: L.footerLinkLaunchApp, href: "/app" },
-                { label: L.footerLinkTestnet, href: "/sepolia-verified-v6" },
+                { label: L.footerLinkTestnet, href: "/docs/developer/join-testnet" },
                 { label: L.footerLinkMainnet, href: "https://etherscan.io", external: true },
             ],
         },
@@ -872,7 +872,7 @@ function Footer() {
                 <div style={{ flex: 1.4, paddingRight: isMobile ? 0 : 48 }}>
                     <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, marginBottom: 16 }}>
                         <img src="/qryptum-logo.png" alt="Qryptum" style={{ height: 36, width: 36, objectFit: "contain", display: "block" }} />
-                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", marginLeft: -4 }}>QRYPTUM</span>
+                        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 16, fontWeight: 800, color: "#d4d6e2", letterSpacing: "-0.01em", marginLeft: -4 }}>QRYPTUM</span>
                     </a>
                     <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.35)", maxWidth: 260 }}>
                         {L.footerTagline}
@@ -976,9 +976,9 @@ function UseCases() {
     }, []);
 
     const cardMeta = [
-        { img: "/usecase-shield.png",      bg: "rgba(20,24,60,0.9)",  border: "rgba(98,126,234,0.15)", href: "/vault-proof-security"  },
-        { img: "/usecase-inheritance.png", bg: "rgba(35,18,55,0.9)",  border: "rgba(150,80,220,0.15)", href: "/making-transfers"       },
-        { img: "/usecase-coldwallet.png",  bg: "rgba(12,32,24,0.9)",  border: "rgba(30,180,100,0.15)", href: "/app"                   },
+        { img: "/usecase-shield.jpg",      bg: "rgba(20,24,60,0.9)",  border: "rgba(98,126,234,0.15)", href: "/vault-proof-security"  },
+        { img: "/usecase-inheritance.jpg", bg: "rgba(35,18,55,0.9)",  border: "rgba(150,80,220,0.15)", href: "/making-transfers"       },
+        { img: "/usecase-coldwallet.jpg",  bg: "rgba(12,32,24,0.9)",  border: "rgba(30,180,100,0.15)", href: "/app"                   },
     ];
     const cards = L.useCasesCards.map((c, i) => ({ ...cardMeta[i], ...c }));
 
@@ -1004,7 +1004,7 @@ function UseCases() {
                     fontSize: isMobile ? 32 : 46,
                     fontWeight: 800,
                     lineHeight: 1.1,
-                    color: "#fff",
+                    color: "#d4d6e2",
                     letterSpacing: "-0.02em",
                     maxWidth: 520,
                     whiteSpace: "pre-line",
@@ -1022,12 +1022,12 @@ function UseCases() {
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(79,70,229,0.55) 0%, rgba(0,0,0,0.75) 100%)" }} />
                         <div style={{ position: "relative", padding: "32px 28px" }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(79,70,229,0.18)", border: "1px solid rgba(79,70,229,0.35)", borderRadius: 14, padding: "3px 12px", marginBottom: 16 }}>
-                                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#06b6d4" }} />
-                                <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, color: "#06b6d4", letterSpacing: "0.1em", textTransform: "uppercase" }}>Post-Quantum</span>
+                                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,255,255,0.22)" }} />
+                                <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.38)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Post-Quantum</span>
                             </div>
-                            <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.015em", lineHeight: 1.15 }}>{L.useCasesQuantumTitle}</h3>
+                            <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 22, fontWeight: 800, color: "#d4d6e2", marginBottom: 10, letterSpacing: "-0.015em", lineHeight: 1.15 }}>{L.useCasesQuantumTitle}</h3>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: "rgba(255,255,255,0.55)", marginBottom: 20 }}>{L.useCasesQuantumDesc}</p>
-                            <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: "#06b6d4", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.52)", display: "inline-flex", alignItems: "center", gap: 6 }}>
                                 {L.useCasesQuantumCta}
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                             </span>
@@ -1042,7 +1042,7 @@ function UseCases() {
                         }}>
                             <img src={card.img} alt={card.title} style={{ width: "100%", height: 200, objectFit: "cover", objectPosition: "center top" }} />
                             <div style={{ padding: "24px 24px 28px" }}>
-                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.01em" }}>{card.title}</h3>
+                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 20, fontWeight: 800, color: "#d4d6e2", marginBottom: 10, letterSpacing: "-0.01em" }}>{card.title}</h3>
                                 <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.48)", marginBottom: 20 }}>{card.desc}</p>
                                 <a href={card.href} style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 2 }}>
                                     {card.cta}
@@ -1065,12 +1065,12 @@ function UseCases() {
                         <div style={{ position: "relative", padding: "52px 56px", display: "flex", alignItems: "center", gap: 60 }}>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.28)", borderRadius: 16, padding: "4px 14px", marginBottom: 20 }}>
-                                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#06b6d4", boxShadow: "0 0 8px #06b6d4" }} />
-                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, color: "#06b6d4", letterSpacing: "0.12em", textTransform: "uppercase" }}>Post-Quantum Security</span>
+                                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.22)",  }} />
+                                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.38)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Post-Quantum Security</span>
                                 </div>
-                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 32, fontWeight: 900, color: "#fff", marginBottom: 16, letterSpacing: "-0.025em", lineHeight: 1.1 }}>{L.useCasesQuantumTitle}</h3>
+                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 32, fontWeight: 900, color: "#d4d6e2", marginBottom: 16, letterSpacing: "-0.025em", lineHeight: 1.1 }}>{L.useCasesQuantumTitle}</h3>
                                 <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 16, lineHeight: 1.7, color: "rgba(255,255,255,0.52)", maxWidth: 480, marginBottom: 28 }}>{L.useCasesQuantumDesc}</p>
-                                <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 600, color: "#06b6d4", display: "inline-flex", alignItems: "center", gap: 7 }}>
+                                <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.52)", display: "inline-flex", alignItems: "center", gap: 7 }}>
                                     {L.useCasesQuantumCta}
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                                 </span>
@@ -1098,7 +1098,7 @@ function UseCases() {
                             flexDirection: "row",
                         }}>
                             <div style={{ flex: 1, padding: "42px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 14, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{cards[0].title}</h3>
+                                <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 22, fontWeight: 800, color: "#d4d6e2", marginBottom: 14, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{cards[0].title}</h3>
                                 <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.48)", marginBottom: 28, flex: 1 }}>{cards[0].desc}</p>
                                 <a href={cards[0].href} style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 2, alignSelf: "flex-start" }}>
                                     {cards[0].cta}
@@ -1123,7 +1123,7 @@ function UseCases() {
                                     flexDirection: "row",
                                 }}>
                                     <div style={{ flex: 1, padding: "28px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                                        <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{card.title}</h3>
+                                        <h3 style={{ fontFamily: "'Inter',sans-serif", fontSize: 19, fontWeight: 800, color: "#d4d6e2", marginBottom: 10, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{card.title}</h3>
                                         <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13.5, lineHeight: 1.65, color: "rgba(255,255,255,0.46)", marginBottom: 18, flex: 1 }}>{card.desc}</p>
                                         <a href={card.href} style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 2, alignSelf: "flex-start" }}>
                                             {card.cta}
@@ -1193,7 +1193,7 @@ function StatsSplit() {
                         fontSize: isMobile ? 32 : 48,
                         fontWeight: 800,
                         lineHeight: 1.15,
-                        color: "#fff",
+                        color: "#d4d6e2",
                         letterSpacing: "-0.02em",
                         marginBottom: isMobile ? 16 : 24,
                     }}>
@@ -1295,7 +1295,7 @@ function StatsSplit() {
                                             fontFamily: "'Inter', sans-serif",
                                             fontSize: 13,
                                             fontWeight: 700,
-                                            color: "#fff",
+                                            color: "#d4d6e2",
                                             marginBottom: 4,
                                             lineHeight: 1,
                                             paddingTop: 7,
@@ -1559,7 +1559,7 @@ function HeroSection({ onConnect, isConnecting }: { onConnect: () => void; isCon
                                 }}
                             >
                                 <div>
-                                    <div style={{ fontWeight: 800, fontSize: 15, color: "#fff", marginBottom: 2, letterSpacing: "-0.01em" }}>{pill.name}</div>
+                                    <div style={{ fontWeight: 800, fontSize: 15, color: "#d4d6e2", marginBottom: 2, letterSpacing: "-0.01em" }}>{pill.name}</div>
                                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{pill.tag}</div>
                                 </div>
                                 <span style={{ fontSize: 14, color: pill.color, fontWeight: 400, flexShrink: 0 }}>→</span>
