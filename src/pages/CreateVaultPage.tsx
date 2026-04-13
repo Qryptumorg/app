@@ -38,7 +38,7 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
     const { data: realVaultAddress } = useReadContract({
         address: factoryAddress,
         abi: SHIELD_FACTORY_V6_ABI,
-        functionName: "getVault",
+        functionName: "getQryptSafe",
         args: address ? [address] : undefined,
         query: {
             enabled: isSuccess && !!address && !!factoryAddress,
@@ -82,7 +82,7 @@ export default function CreateVaultPage({ onVaultCreated }: CreateVaultPageProps
             writeContract({
                 address: factoryAddress!,
                 abi: SHIELD_FACTORY_V6_ABI,
-                functionName: "createVault",
+                functionName: "createQryptSafe",
                 args: [initialChainHead],
             }, {
                 onSuccess: async (hash) => {
