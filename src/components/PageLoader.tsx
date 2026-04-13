@@ -48,7 +48,7 @@ export default function PageLoader() {
 
                 {/* logo center */}
                 <img
-                    src="/qryptum-logo.png"
+                    src={`${import.meta.env.BASE_URL}qryptum-logo.png`}
                     alt=""
                     width={38}
                     height={38}
