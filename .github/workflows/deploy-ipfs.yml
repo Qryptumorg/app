@@ -38,18 +38,24 @@ jobs:
           VITE_SHIELD_FACTORY_V6_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_V6_SEPOLIA }}
         run: |
           pnpm run build
-          echo "=== Build output ==="
-          du -sh dist/public
-          find dist/public -not -name "*.map" -type f | wc -l
+          echo "=== Build size (excl .map) ==="
+          du -sh --exclude='*.map' dist/public
 
       - name: Upload to Pinata IPFS
         env:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          cat > /tmp/pinata-upload.mjs << 'NODEEOF'
-          import fs from 'fs';
-          import path from 'path';
+          # Install form-data to isolated /tmp dir — avoids pnpm workspace conflict
+          mkdir -p /tmp/fd-pkg
+          cd /tmp/fd-pkg && npm init -y --quiet && npm install form-data 2>&1 | tail -3
+          cd "$GITHUB_WORKSPACE"
+
+          cat > /tmp/pinata-upload.cjs << 'NODEEOF'
+          const FormData = require('/tmp/fd-pkg/node_modules/form-data');
+          const fs = require('fs');
+          const path = require('path');
+          const https = require('https');
 
           function getFiles(dir, base) {
             if (!base) base = dir;
@@ -57,30 +63,31 @@ jobs:
             for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
               const full = path.join(dir, entry.name);
               if (entry.isDirectory()) {
-                results.push(...getFiles(full, base));
+                results.push.apply(results, getFiles(full, base));
               } else {
                 const rel = path.relative(base, full);
-                if (!rel.endsWith('.map')) results.push({ full, rel });
+                if (!rel.endsWith('.map')) results.push({ full: full, rel: rel });
               }
             }
             return results;
           }
 
-          const files = getFiles('./dist/public');
-          const jwt = process.env.PINATA_JWT;
-          const sha = (process.env.COMMIT_SHA || 'unknown').slice(0, 7);
+          var files = getFiles('./dist/public');
+          var jwt = process.env.PINATA_JWT;
+          var sha = (process.env.COMMIT_SHA || 'unknown').slice(0, 7);
 
-          let totalBytes = 0;
-          const form = new FormData();
+          var form = new FormData();
+          var totalBytes = 0;
 
-          for (const { full, rel } of files) {
-            const bytes = fs.readFileSync(full);
-            totalBytes += bytes.length;
-            form.append('file', new Blob([bytes]), rel);
+          for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            totalBytes += fs.statSync(f.full).size;
+            // Pinata docs: use filepath option (not filename) for directory structure
+            form.append('file', fs.createReadStream(f.full), {
+              filepath: f.rel,
+            });
           }
 
-          // wrapWithDirectory: true is required when uploading multiple files.
-          // The returned CID is the directory root — index.html is served at ipfs://<CID>/
           form.append('pinataMetadata', JSON.stringify({ name: 'qryptum-app-' + sha }));
           form.append('pinataOptions', JSON.stringify({ wrapWithDirectory: true }));
 
@@ -88,57 +95,74 @@ jobs:
           console.log('Size   :', (totalBytes / 1024 / 1024).toFixed(2), 'MB');
           console.log('Uploading to Pinata...');
 
-          const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+          var headers = form.getHeaders();
+          headers['Authorization'] = 'Bearer ' + jwt;
+
+          var request = https.request({
             method: 'POST',
-            headers: { Authorization: 'Bearer ' + jwt },
-            body: form,
+            hostname: 'api.pinata.cloud',
+            path: '/pinning/pinFileToIPFS',
+            headers: headers,
+            timeout: 600000,
+          }, function(res) {
+            var data = '';
+            res.on('data', function(chunk) { data += chunk; });
+            res.on('end', function() {
+              console.log('HTTP   :', res.statusCode);
+              var result;
+              try { result = JSON.parse(data); } catch(e) { console.error('Bad response:', data.slice(0,500)); process.exit(1); }
+
+              if (!result.IpfsHash) {
+                console.error('Pinata error:', JSON.stringify(result));
+                process.exit(1);
+              }
+
+              var cid = result.IpfsHash;
+              console.log('');
+              console.log('===== IPFS Upload Success =====');
+              console.log('CID    :', cid);
+              console.log('URL    : https://' + cid + '.ipfs.cf-ipfs.com');
+              console.log('Pinata : https://gateway.pinata.cloud/ipfs/' + cid);
+              console.log('');
+              console.log('Set ENS contenthash on qryptum.eth:');
+              console.log('  1. https://app.ens.domains/qryptum.eth');
+              console.log('  2. Edit Records -> Content Hash');
+              console.log('  3. Enter: ipfs://' + cid);
+              console.log('  4. Save (ETH gas required)');
+              console.log('===============================');
+
+              var summary = [
+                '## IPFS Deploy',
+                '',
+                '| | |',
+                '|---|---|',
+                '| **CID** | `' + cid + '` |',
+                '| **Commit** | ' + sha + ' |',
+                '| **CF Gateway** | https://' + cid + '.ipfs.cf-ipfs.com |',
+                '| **Pinata Gateway** | https://gateway.pinata.cloud/ipfs/' + cid + ' |',
+                '',
+                '### Set contenthash on qryptum.eth',
+                '1. https://app.ens.domains/qryptum.eth',
+                '2. Edit Records -> Content Hash',
+                '3. Enter: `ipfs://' + cid + '`',
+                '4. Save (gas required on Ethereum mainnet)',
+                '',
+                'After ENS update: https://qryptum.eth.limo serves this build.',
+              ].join('\n');
+
+              fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+            });
           });
 
-          const text = await res.text();
-          console.log('HTTP   :', res.status);
-
-          let result;
-          try { result = JSON.parse(text); } catch { console.error('Response:', text.slice(0, 500)); process.exit(1); }
-
-          if (!result.IpfsHash) {
-            console.error('Pinata error:', JSON.stringify(result));
+          request.on('error', function(err) {
+            console.error('Request error:', err.message);
             process.exit(1);
-          }
+          });
+          request.on('timeout', function() {
+            request.destroy(new Error('Request timed out after 10 min'));
+          });
 
-          const cid = result.IpfsHash;
-          console.log('');
-          console.log('===== IPFS Upload Success =====');
-          console.log('CID    :', cid);
-          console.log('URL    : https://' + cid + '.ipfs.cf-ipfs.com');
-          console.log('Pinata : https://gateway.pinata.cloud/ipfs/' + cid);
-          console.log('');
-          console.log('Set ENS contenthash on qryptum.eth:');
-          console.log('  1. https://app.ens.domains/qryptum.eth');
-          console.log('  2. Edit Records -> Content Hash');
-          console.log('  3. Enter: ipfs://' + cid);
-          console.log('  4. Save (ETH gas required)');
-          console.log('===============================');
-
-          const summary = [
-            '## IPFS Deploy',
-            '',
-            '| | |',
-            '|---|---|',
-            '| **CID** | `' + cid + '` |',
-            '| **Commit** | ' + sha + ' |',
-            '| **CF Gateway** | https://' + cid + '.ipfs.cf-ipfs.com |',
-            '| **Pinata Gateway** | https://gateway.pinata.cloud/ipfs/' + cid + ' |',
-            '',
-            '### Set contenthash on qryptum.eth',
-            '1. https://app.ens.domains/qryptum.eth',
-            '2. Edit Records -> Content Hash',
-            '3. Enter: `ipfs://' + cid + '`',
-            '4. Save (gas required on Ethereum mainnet)',
-            '',
-            'After ENS update: https://qryptum.eth.limo serves this build.',
-          ].join('\n');
-
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          form.pipe(request);
           NODEEOF
 
-          node /tmp/pinata-upload.mjs
+          node /tmp/pinata-upload.cjs
