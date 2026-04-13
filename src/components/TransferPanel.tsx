@@ -167,7 +167,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                     args: [commitHash],
                 }, {
                     onSuccess: (hash) => {
-                        pushTx(hash, "Committing transfer");
+                        pushTx(hash, "Initiating transfer");
                         setPendingProof(proof);
                         setPendingProofPos(position);
                         commitLockRef.current = false;
@@ -254,7 +254,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
             }, {
                 onSuccess: async (hash) => {
                     revealLockRef.current = false;
-                    pushTx(hash, `Revealing transfer of ${amount} ${tokenSymbol || "tokens"}`);
+                    pushTx(hash, `Finalizing transfer of ${amount} ${tokenSymbol || "tokens"}`);
                     setTransferStep("revealing");
                     try {
                         await recordTransaction({
@@ -291,7 +291,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
             }, {
                 onSuccess: async (hash) => {
                     revealLockRef.current = false;
-                    pushTx(hash, `Revealing transfer of ${amount} ${tokenSymbol || "tokens"}`);
+                    pushTx(hash, `Finalizing transfer of ${amount} ${tokenSymbol || "tokens"}`);
                     setTransferStep("revealing");
                     try {
                         await recordTransaction({
@@ -350,7 +350,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
         <div className="space-y-6">
             <SectionHeader icon={<SendIcon className="w-6 h-6 text-primary" />} title="Transfer" />
             <p className="text-muted-foreground text-sm">
-                Transfer shielded tokens securely using the commit-reveal scheme.
+                Transfer shielded tokens securely using the init-finalize scheme.
                 Your vault proof is never exposed on-chain.
             </p>
 
@@ -375,8 +375,8 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
             {transferStep === "commit_confirmed" && (
                 <div className={`border rounded-xl p-4 text-sm ${waitingNextBlock ? "bg-amber-950/20 border-amber-500/30 text-amber-300" : "bg-primary/10 border-primary/30 text-primary"}`}>
                     {waitingNextBlock
-                        ? "Commit confirmed. Waiting for the next block before reveal is allowed..."
-                        : "Commit confirmed on-chain. Click Reveal Transfer to complete the send."}
+                        ? "Init confirmed. Waiting for the next block before finalize is allowed..."
+                        : "Init confirmed on-chain. Click Finalize Transfer to complete the send."}
                 </div>
             )}
 
@@ -492,7 +492,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                     >
                         {isPendingCommit ? (
                             <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Confirm in wallet...</>
-                        ) : "Step 1: Commit Transfer"}
+                        ) : "Step 1: Init Transfer"}
                     </Button>
                 )}
 
@@ -507,12 +507,12 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                     <>
                         <Button className="w-full" size="lg" disabled style={{ pointerEvents: "none", opacity: 0.7 }}>
                             <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
-                            Waiting for commit confirmation...
+                            Waiting for init confirmation...
                         </Button>
                         {commitTxHash && (
                             <div style={{ textAlign: "center", marginTop: 8 }}>
                                 <a href={getTxEtherscanUrl(commitTxHash, chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#60a5fa" }}>
-                                    View commit on explorer ↗
+                                    View init on explorer ↗
                                 </a>
                             </div>
                         )}
@@ -525,7 +525,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                             <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "12px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)" }}>
                                 <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
                                     <AlertTriangleIcon size={14} color="#f87171" style={{ flexShrink: 0, marginTop: 2 }} />
-                                    <p style={{ fontSize: 12, color: "#f87171", margin: 0, lineHeight: 1.5, fontWeight: 600 }}>Reveal simulation failed</p>
+                                    <p style={{ fontSize: 12, color: "#f87171", margin: 0, lineHeight: 1.5, fontWeight: 600 }}>Finalize simulation failed</p>
                                 </div>
                                 <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.5, fontFamily: "monospace", wordBreak: "break-all" }}>{simulateError}</p>
                                 <button
@@ -547,12 +547,12 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                                 <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Confirm in wallet...</>
                             ) : waitingNextBlock ? (
                                 <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Waiting for next block...</>
-                            ) : "Step 2: Reveal Transfer"}
+                            ) : "Step 2: Finalize Transfer"}
                         </Button>
                         {commitTxHash && (
                             <div style={{ textAlign: "center", marginTop: 8 }}>
                                 <a href={getTxEtherscanUrl(commitTxHash, chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#60a5fa" }}>
-                                    View commit on explorer ↗
+                                    View init on explorer ↗
                                 </a>
                             </div>
                         )}
@@ -568,7 +568,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                         {revealTxHash && (
                             <div style={{ textAlign: "center", marginTop: 8 }}>
                                 <a href={getTxEtherscanUrl(revealTxHash, chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#60a5fa" }}>
-                                    View reveal on explorer ↗
+                                    View finalize on explorer ↗
                                 </a>
                             </div>
                         )}
@@ -576,7 +576,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                 )}
 
                 <p className="text-xs text-muted-foreground text-center">
-                    Two-step process: commit protects your vault proof from mempool exposure.
+                    Two-step process: init step protects your vault proof from mempool exposure.
                 </p>
 
             </div>
