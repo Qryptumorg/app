@@ -205,7 +205,7 @@ export default function DashboardPage() {
         return shieldedTokenAddresses.map(t => ({
             address: vaultAddress,
             abi: PERSONAL_VAULT_ABI,
-            functionName: "getShieldedBalance" as const,
+            functionName: "getQryptedBalance" as const,
             args: [t.tokenAddress as `0x${string}`],
         }));
     }, [vaultAddress, shieldedTokenAddresses]);

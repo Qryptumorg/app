@@ -42,7 +42,7 @@ export function useVault() {
     const { data: hasV5Vault, refetch: refetchV5 } = useReadContract({
         address: v5FactoryAddress,
         abi: SHIELD_FACTORY_ABI,
-        functionName: "hasVault",
+        functionName: "hasQryptSafe",
         args: address ? [address] : undefined,
         query: {
             enabled: !!address && !!v5FactoryAddress,
@@ -56,7 +56,7 @@ export function useVault() {
     const { data: v5VaultAddress, refetch: refetchV5Addr } = useReadContract({
         address: v5FactoryAddress,
         abi: SHIELD_FACTORY_ABI,
-        functionName: "getVault",
+        functionName: "getQryptSafe",
         args: address ? [address] : undefined,
         query: {
             enabled: !!address && !!v5FactoryAddress && hasV5Vault === true && hasV6Vault !== true,

@@ -69,7 +69,7 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
     const { data: existingShieldedBalance } = useReadContract({
         address: vaultAddress,
         abi: vaultAbi,
-        functionName: "getShieldedBalance",
+        functionName: "getQryptedBalance",
         args: isValidToken ? [tokenAddress as `0x${string}`] : undefined,
         query: { enabled: isValidToken },
     });

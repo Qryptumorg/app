@@ -84,7 +84,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
     const { data: shieldedBalance } = useReadContract({
         address: vaultAddress,
         abi: vaultAbi,
-        functionName: "getShieldedBalance",
+        functionName: "getQryptedBalance",
         args: isValidToken ? [tokenAddress as `0x${string}`] : undefined,
         query: { enabled: isValidToken },
     });
@@ -92,7 +92,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
     const { data: recipientHasVault } = useReadContract({
         address: factoryAddress,
         abi: factoryAbi,
-        functionName: "hasVault",
+        functionName: "hasQryptSafe",
         args: isValidRecipient ? [recipientAddress as `0x${string}`] : undefined,
         query: { enabled: isValidRecipient && !!factoryAddress },
     });
