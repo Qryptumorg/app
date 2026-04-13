@@ -22,25 +22,35 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     env:
+      NODE_ENV: production
       PORT: '3000'
       BASE_PATH: '/app'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
-        run: npm install --include=dev --legacy-peer-deps
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
         env:
-          NODE_ENV: production
-        run: npm run build
+          VITE_PROOF_SALT: ${{ secrets.VITE_PROOF_SALT }}
+          VITE_SHIELD_FACTORY_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_SEPOLIA }}
+          VITE_SHIELD_FACTORY_V6_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_V6_SEPOLIA }}
+        run: pnpm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -53,3 +63,41 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "QryptSafe dApp ${{ steps.tag.outputs.tag }}"
+          generate_release_notes: true
+          body: |
+            ## QryptSafe dApp: Privacy Dashboard
+
+            Live: https://qryptumorg.github.io/app/
+
+            ### Panels
+            - QryptSafe: create vault, shield/unshield tokens via OTP chain
+            - QryptShield: private transfer via RAILGUN + QryptumSigner broadcaster
+            - QryptAir: voucher-based air budget distribution
+
+            ### Wallet Support
+            - MetaMask (primary), injected providers
+
+            ### Active Contract (V6 Sepolia)
+            - Factory: `0xeaa722e996888b662E71aBf63d08729c6B6802F4`
+            - Implementation: `0x3E03f768476a763A48f2E00B73e4dC69f9E8A7E3`
+
+            ### Networks
+            - Sepolia testnet (primary)
+            - Ethereum mainnet (V6)
+
+            ---
+            Commit: ${{ github.sha }}
+          draft: false
+          prerelease: false
