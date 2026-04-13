@@ -34,7 +34,7 @@ export default function QuantumDesignPage() {
     const simSteps = L.simSteps as unknown as { n: string; color: string; title: string; desc: string }[];
 
     return (
-        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter',sans-serif", color: "#fff" }}>
+        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter',sans-serif", color: "#d4d6e2" }}>
             <SharedNavBar />
 
             {/* ══════════ HERO ══════════════════════════════════════════════ */}
@@ -62,7 +62,7 @@ export default function QuantumDesignPage() {
                     <h1 style={{
                         fontSize: "clamp(38px, 6.5vw, 80px)",
                         fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1.04,
-                        color: "#fff", marginBottom: 24,
+                        color: "#d4d6e2", marginBottom: 24,
                     }}>
                         {L.heroTitle.split("Post-Quantum Era").map((part, i) => (
                             i === 0
@@ -78,11 +78,11 @@ export default function QuantumDesignPage() {
                     <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                         <a href="/app" style={{
                             textDecoration: "none", padding: "13px 32px", borderRadius: 10, fontWeight: 700, fontSize: 14,
-                            background: `linear-gradient(135deg, ${INDIGO}, ${VIOLET})`, color: "#fff",
+                            background: `linear-gradient(135deg, ${INDIGO}, ${VIOLET})`, color: "#d4d6e2",
                         }}>{t.common.openApp}</a>
                         <a href="/vault-proof-hashing" style={{
                             textDecoration: "none", padding: "13px 32px", borderRadius: 10, fontWeight: 700, fontSize: 14,
-                            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff",
+                            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#d4d6e2",
                         }}>{t.common.readDocs}</a>
                     </div>
                 </div>
@@ -106,7 +106,7 @@ export default function QuantumDesignPage() {
                             <div style={{ width: 20, height: 2, background: RED, borderRadius: 1 }} />
                             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: RED, textTransform: "uppercase" }}>{L.threatLabel}</span>
                         </div>
-                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", lineHeight: 1.12, color: "#fff", marginBottom: 28 }}>
+                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", lineHeight: 1.12, color: "#d4d6e2", marginBottom: 28 }}>
                             {L.threatHeading}
                         </h2>
                         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.52)", lineHeight: 1.8, marginBottom: 20 }}>{L.threatP1}</p>
@@ -157,7 +157,7 @@ export default function QuantumDesignPage() {
                             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: CYAN, textTransform: "uppercase" }}>{L.keccakLabel}</span>
                             <div style={{ width: 20, height: 2, background: CYAN, borderRadius: 1 }} />
                         </div>
-                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 44px)", fontWeight: 900, letterSpacing: "-0.025em", lineHeight: 1.1, color: "#fff", maxWidth: 700, margin: "0 auto 20px" }}>
+                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 44px)", fontWeight: 900, letterSpacing: "-0.025em", lineHeight: 1.1, color: "#d4d6e2", maxWidth: 700, margin: "0 auto 20px" }}>
                             {L.keccakHeading}
                         </h2>
                         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, maxWidth: 600, margin: "0 auto" }}>{L.keccakBody}</p>
@@ -210,7 +210,7 @@ export default function QuantumDesignPage() {
                             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: VIOLET, textTransform: "uppercase" }}>Defense Architecture</span>
                             <div style={{ width: 20, height: 2, background: VIOLET, borderRadius: 1 }} />
                         </div>
-                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", color: "#fff", marginBottom: 14 }}>
+                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", color: "#d4d6e2", marginBottom: 14 }}>
                             Three Independent Layers
                         </h2>
                         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 560, margin: "0 auto" }}>
@@ -234,7 +234,7 @@ export default function QuantumDesignPage() {
                                     <span style={{ fontSize: 10, fontWeight: 700, color: INDIGO, letterSpacing: "0.1em", textTransform: "uppercase" }}>{L.pillar1Label}</span>
                                 </div>
                             </div>
-                            <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: 14, lineHeight: 1.2 }}>{L.pillar1Title}</h3>
+                            <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#d4d6e2", letterSpacing: "-0.02em", marginBottom: 14, lineHeight: 1.2 }}>{L.pillar1Title}</h3>
                             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.52)", lineHeight: 1.75, marginBottom: 20 }}>{L.pillar1Body}</p>
                             <div style={{
                                 background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.2)",
@@ -256,7 +256,7 @@ export default function QuantumDesignPage() {
                                     <span style={{ fontSize: 10, fontWeight: 700, color: VIOLET, letterSpacing: "0.1em", textTransform: "uppercase" }}>{L.pillar2Label}</span>
                                 </div>
                             </div>
-                            <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: 14, lineHeight: 1.2 }}>{L.pillar2Title}</h3>
+                            <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#d4d6e2", letterSpacing: "-0.02em", marginBottom: 14, lineHeight: 1.2 }}>{L.pillar2Title}</h3>
                             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.52)", lineHeight: 1.75, marginBottom: 20 }}>{L.pillar2Body}</p>
                             <div style={{
                                 background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
@@ -286,7 +286,7 @@ export default function QuantumDesignPage() {
                                         <span style={{ fontSize: 10, fontWeight: 700, color: EMERALD, letterSpacing: "0.1em", textTransform: "uppercase" }}>{L.pillar3Label}</span>
                                     </div>
                                 </div>
-                                <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: 12, lineHeight: 1.2 }}>{L.pillar3Title}</h3>
+                                <h3 style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 900, color: "#d4d6e2", letterSpacing: "-0.02em", marginBottom: 12, lineHeight: 1.2 }}>{L.pillar3Title}</h3>
                                 <p style={{ fontSize: 14, color: "rgba(255,255,255,0.52)", lineHeight: 1.75 }}>{L.pillar3Body}</p>
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
@@ -309,7 +309,7 @@ export default function QuantumDesignPage() {
                             <div style={{ width: 20, height: 2, background: CYAN, borderRadius: 1 }} />
                             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: CYAN, textTransform: "uppercase" }}>{L.simLabel}</span>
                         </div>
-                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", color: "#fff", lineHeight: 1.12, marginBottom: 16 }}>
+                        <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, letterSpacing: "-0.025em", color: "#d4d6e2", lineHeight: 1.12, marginBottom: 16 }}>
                             {L.simHeading}
                         </h2>
                         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.48)", lineHeight: 1.75, maxWidth: 620 }}>{L.simBody}</p>
@@ -357,7 +357,7 @@ export default function QuantumDesignPage() {
                                         } : { paddingTop: 6 }),
                                     }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                                            <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>{step.title}</span>
+                                            <span style={{ fontSize: 15, fontWeight: 800, color: "#d4d6e2", letterSpacing: "-0.01em" }}>{step.title}</span>
                                             {i < 2 && (
                                                 <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#ef4444", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 4, padding: "2px 6px" }}>COMPROMISED</span>
                                             )}
@@ -389,18 +389,18 @@ export default function QuantumDesignPage() {
                         <div style={{ width: 7, height: 7, borderRadius: "50%", background: EMERALD, boxShadow: `0 0 8px ${EMERALD}` }} />
                         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: EMERALD, textTransform: "uppercase" }}>{L.ctaLabel}</span>
                     </div>
-                    <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", lineHeight: 1.1, maxWidth: 640, margin: "0 auto 20px" }}>
+                    <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#d4d6e2", lineHeight: 1.1, maxWidth: 640, margin: "0 auto 20px" }}>
                         {L.ctaHeading}
                     </h2>
                     <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, maxWidth: 520, margin: "0 auto 40px" }}>{L.ctaBody}</p>
                     <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
                         <a href="/app" style={{
                             textDecoration: "none", padding: "15px 40px", borderRadius: 12, fontWeight: 800, fontSize: 15,
-                            background: `linear-gradient(135deg, ${INDIGO}, ${VIOLET})`, color: "#fff",
+                            background: `linear-gradient(135deg, ${INDIGO}, ${VIOLET})`, color: "#d4d6e2",
                         }}>{L.ctaPrimary}</a>
                         <a href="/vault-proof-hashing" style={{
                             textDecoration: "none", padding: "15px 40px", borderRadius: 12, fontWeight: 700, fontSize: 15,
-                            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "#fff",
+                            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "#d4d6e2",
                         }}>{L.ctaSecondary}</a>
                     </div>
                 </div>

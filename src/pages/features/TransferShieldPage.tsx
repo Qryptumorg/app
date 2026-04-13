@@ -13,6 +13,7 @@ export default function TransferShieldPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#f59e0b"
             secondaryColor="#7c3aed"
+            heroImg="/images/feat-shield-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/qtoken-system" },
             ]}

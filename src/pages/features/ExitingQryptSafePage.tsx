@@ -13,6 +13,7 @@ export default function ExitingQryptSafePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#10b981"
             secondaryColor="#f59e0b"
+            heroImg="/images/feat-guide-docs.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
             ]}

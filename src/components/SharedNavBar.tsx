@@ -116,8 +116,8 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                     gap: 0,
                 }}>
                     {/* Logo */}
-                    <a href={import.meta.env.BASE_URL} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, marginRight: 32 }}>
-                        <img src={import.meta.env.BASE_URL + 'qryptum-logo.png'} alt="Qryptum" style={{ height: 38, width: 38, objectFit: "contain", display: "block" }} />
+                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, marginRight: 32 }}>
+                        <img src="/qryptum-logo.png" alt="Qryptum" style={{ height: 38, width: 38, objectFit: "contain", display: "block" }} />
                         <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#d4d6e2", marginLeft: -4 }}>
                             QRYPTUM
                         </span>
@@ -255,8 +255,8 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                         padding: "0 20px", height: 64, flexShrink: 0,
                         borderBottom: "1px solid rgba(255,255,255,0.07)",
                     }}>
-                        <a href={import.meta.env.BASE_URL} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, flex: 1 }}>
-                            <img src={import.meta.env.BASE_URL + 'qryptum-logo.png'} alt="Qryptum" style={{ height: 36, width: 36, objectFit: "contain" }} />
+                        <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, flex: 1 }}>
+                            <img src="/qryptum-logo.png" alt="Qryptum" style={{ height: 36, width: 36, objectFit: "contain" }} />
                             <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#d4d6e2", marginLeft: -4 }}>QRYPTUM</span>
                         </a>
                         <button onClick={() => setMobileOpen(false)}

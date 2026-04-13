@@ -13,6 +13,7 @@ export default function ShieldTokensPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#00C896"
             secondaryColor="#00D4FF"
+            heroImg="/images/feat-shield-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/supported-tokens" },

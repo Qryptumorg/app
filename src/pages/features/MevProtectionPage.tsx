@@ -13,6 +13,7 @@ export default function MevProtectionPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#06b6d4"
             secondaryColor="#7c3aed"
+            heroImg="/images/feat-mev-protection.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/transfer-engine" },
             ]}

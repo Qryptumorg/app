@@ -40,7 +40,7 @@ import {
 
 export { NetworkName, TXIDVersion };
 
-// ─── Network config ───────────────────────────��───────────────────────────────
+// ─── Network config ───────────────────────────────────────────────────────────
 
 export const RAILGUN_CHAIN_MAP: Partial<Record<number, NetworkName>> = {
     1: NetworkName.Ethereum,
@@ -176,7 +176,7 @@ function createArtifactStore(): ArtifactStore {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new ArtifactStore(getFile as any, storeFile as any, fileExists as any);
+    return new ArtifactStore(getFile as any, storeFile, fileExists);
 }
 
 /**
@@ -625,14 +625,14 @@ export async function waitForRailgunBalance(
     if (tokenAddress && networkName) {
         const immediate = await checkRailgunBalance(walletID, networkName, tokenAddress, true);
         if (immediate > 0n) {
-            onProgress?.("Pool balance confirmed — proceeding to proof.");
+            onProgress?.("Pool balance confirmed: proceeding to proof.");
             return;
         }
         // Also check non-spendable fast path (already committed, just waiting for Spendable)
         const anyBucket = await checkRailgunBalance(walletID, networkName, tokenAddress, false);
         if (anyBucket > 0n) {
             committedAt = Date.now();
-            onProgress?.("Deposit indexed — waiting for Spendable confirmation...");
+            onProgress?.("Deposit indexed: waiting for Spendable confirmation...");
         }
     }
 
@@ -646,13 +646,13 @@ export async function waitForRailgunBalance(
             if (committedAt !== null) {
                 reject(new Error(
                     "Your UTXO is in the Railgun pool but not yet Spendable after 12 minutes. " +
-                    "This is a shield maturity / POI delay — your tokens are safe. " +
+                    "This is a shield maturity / POI delay: your tokens are safe. " +
                     "Close this dialog and try QryptShield again in 5–10 minutes."
                 ));
             } else {
                 reject(new Error(
-                    "Railgun pool sync timed out — UTXO not indexed after 12 minutes. " +
-                    "Your tokens are safe in the Railgun pool — do not retry the deposit. " +
+                    "Railgun pool sync timed out: UTXO not indexed after 12 minutes. " +
+                    "Your tokens are safe in the Railgun pool: do not retry the deposit. " +
                     "Close this dialog and try QryptShield again (it will resume from Step 3)."
                 ));
             }
@@ -678,7 +678,7 @@ export async function waitForRailgunBalance(
                 Date.now() - committedAt > FULL_RESCAN_AFTER_MS
             ) {
                 fullRescanTriggered = true;
-                onProgress?.("UTXO stuck in ShieldPending — triggering full index rescan...");
+                onProgress?.("UTXO stuck in ShieldPending: triggering full index rescan...");
                 rescanFullUTXOMerkletreesAndWallets(chain, [walletID])
                     .catch(() => { /* best effort */ });
             } else {
@@ -712,14 +712,14 @@ export async function waitForRailgunBalance(
             // Record when we first found it
             if (committedAt === null) {
                 committedAt = Date.now();
-                onProgress?.(`Deposit indexed in pool (${elapsed()}) — waiting for Spendable...`);
+                onProgress?.(`Deposit indexed in pool (${elapsed()}): waiting for Spendable...`);
             }
 
             // Check Spendable bucket
             const spendable = await checkRailgunBalance(walletID, networkName, tokenAddress, true);
             if (spendable > 0n) {
                 cleanup();
-                onProgress?.("Pool balance spendable — proceeding to proof.");
+                onProgress?.("Pool balance spendable: proceeding to proof.");
                 resolve();
                 return;
             }

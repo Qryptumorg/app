@@ -13,6 +13,7 @@ export default function ConnectWalletPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#F59E0B"
             secondaryColor="#EF4444"
+            heroImg="/images/feat-transfer-wallet.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/create-qrypt-safe" },

@@ -193,7 +193,7 @@ function ChallengeCardContent() {
     return (
         <div style={{ ...CARD_STYLE, position: "relative", padding: "16px 90px 16px 20px" }}>
             <div style={{ position: "absolute", top: 10, right: 12, zIndex: 2, width: 68, height: 68, filter: "drop-shadow(0 6px 24px rgba(98,126,234,0.6))" }}>
-                <img src="/hacker-challenge-small.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                <img src="/hacker-challenge-small.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.22)", flexShrink: 0 }} />

@@ -13,6 +13,7 @@ export default function ShieldFactoryPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#00D4FF"
             secondaryColor="#6366F1"
+            heroImg="/images/feat-shield-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/personal-qrypt-safe", primary: false },
                 { label: p.heroButtons[1].label, href: "/abi-and-addresses", primary: false },

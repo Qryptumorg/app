@@ -80,7 +80,7 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
 
             <p style={{
                 margin: "0 0 6px",
-                color: "#fff",
+                color: "#d4d6e2",
                 fontSize: 17,
                 fontWeight: 600,
                 textAlign: "center",
@@ -159,7 +159,7 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
                         borderRadius: 12,
                         background: PRIMARY,
                         border: "none",
-                        color: "#fff",
+                        color: "#d4d6e2",
                         fontSize: 14,
                         fontWeight: 700,
                         cursor: "pointer",

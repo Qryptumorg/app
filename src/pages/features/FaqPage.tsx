@@ -13,6 +13,7 @@ export default function FaqPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#0EA5E9"
             secondaryColor="#6366F1"
+            heroImg="/images/feat-guide-docs.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/quick-start-guide", primary: true },
             ]}

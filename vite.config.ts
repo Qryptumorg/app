@@ -33,16 +33,34 @@ const inlineWasmPlugin = {
   },
 };
 
-const port = Number(process.env.PORT ?? "3000");
+const rawPort = process.env.PORT;
 
-const basePath = process.env.BASE_PATH ?? "/app/";
+if (!rawPort) {
+  throw new Error(
+    "PORT environment variable is required but was not provided.",
+  );
+}
+
+const port = Number(rawPort);
+
+if (Number.isNaN(port) || port <= 0) {
+  throw new Error(`Invalid PORT value: "${rawPort}"`);
+}
+
+const basePath = process.env.BASE_PATH;
+
+if (!basePath) {
+  throw new Error(
+    "BASE_PATH environment variable is required but was not provided.",
+  );
+}
 
 // esbuild plugin: inlines .wasm imports as data URLs and patches pkg-esm JS wrappers
 // that use fetch(new URL('*_bg.wasm', import.meta.url)) so the pre-bundle resolves correctly
 const wasmDataUrlPlugin = {
   name: "wasm-data-url",
-  setup(build: any) {
-    build.onLoad({ filter: /\.wasm$/ }, (args: any) => {
+  setup(build: import("esbuild").PluginBuild) {
+    build.onLoad({ filter: /\.wasm$/ }, (args) => {
       const data = fs.readFileSync(args.path);
       const base64 = data.toString("base64");
       return {
@@ -51,7 +69,7 @@ const wasmDataUrlPlugin = {
       };
     });
     // Generic: patch any pkg-esm JS file that references _bg.wasm via new URL(...)
-    build.onLoad({ filter: /pkg-esm[/\\][^/\\]+\.js$/ }, (args: any) => {
+    build.onLoad({ filter: /pkg-esm[/\\][^/\\]+\.js$/ }, (args) => {
       const code = fs.readFileSync(args.path, "utf8");
       if (!code.includes("_bg.wasm")) return null as any;
       const patched = inlineWasmUrls(code, path.dirname(args.path));
@@ -124,6 +142,12 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

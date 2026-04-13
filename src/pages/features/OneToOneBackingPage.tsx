@@ -13,6 +13,7 @@ export default function OneToOneBackingPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7C3AED"
             secondaryColor="#4F46E5"
+            heroImg="/images/feat-token-economics.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/qtoken-system", primary: true },
                 { label: p.heroButtons[1].label, href: "/shield-erc20-tokens" },

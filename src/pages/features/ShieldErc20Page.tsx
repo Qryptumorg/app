@@ -13,6 +13,7 @@ export default function ShieldErc20Page() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#06b6d4"
             secondaryColor="#7c3aed"
+            heroImg="/images/feat-shield-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/docs/introduction/overview" },

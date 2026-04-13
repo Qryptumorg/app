@@ -13,6 +13,7 @@ export default function BurnQtokensPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#F97316"
             secondaryColor="#EF4444"
+            heroImg="/images/feat-burn-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
             ]}

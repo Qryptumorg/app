@@ -13,6 +13,7 @@ export default function SupportedTokensPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#10B981"
             secondaryColor="#00D4FF"
+            heroImg="/images/feat-token-economics.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/shield-tokens", primary: true },
                 { label: p.heroButtons[1].label, href: "/shield-erc20-tokens" },

@@ -13,6 +13,7 @@ export default function GettingShieldedPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#06b6d4"
             secondaryColor="#10b981"
+            heroImg="/images/feat-shield-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/quick-start-guide" },

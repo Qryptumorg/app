@@ -13,6 +13,7 @@ export default function OnchainVerificationPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#F59E0B"
             secondaryColor="#EF4444"
+            heroImg="/images/feat-network-onchain.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/vault-proof-hashing", primary: false },
                 { label: p.heroButtons[1].label, href: "/immutable-contracts", primary: false },

@@ -178,7 +178,7 @@ export default function SepoliaVerifiedV2Page() {
                 </div>
 
                 <div style={{ position: "relative", zIndex: 1, maxWidth: W, margin: "0 auto", padding: pad }}>
-                    <div style={{ padding: isMobile ? "120px 0 72px" : "160px 0 110px" }}>
+                    <div style={{ padding: isMobile ? "160px 0 100px" : "200px 0 140px" }}>
                         <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 400px", gap: 56, alignItems: "center" }}>
                             <div>
                                 {/* Badge */}

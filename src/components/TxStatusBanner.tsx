@@ -91,7 +91,7 @@ function TxToast({ entry, onDismiss }: { entry: TxEntry; onDismiss: () => void }
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                    fontSize: 13, fontWeight: 700, color: "#fff",
+                    fontSize: 13, fontWeight: 700, color: "#d4d6e2",
                     marginBottom: 2, letterSpacing: "-0.01em",
                 }}>
                     {entry.label}

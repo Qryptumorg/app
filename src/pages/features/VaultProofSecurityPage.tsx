@@ -13,6 +13,7 @@ export default function VaultProofSecurityPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7c3aed"
             secondaryColor="#10b981"
+            heroImg="/images/feat-vault-security.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/vault-proof-hashing" },
                 { label: p.heroButtons[1].label, href: "/no-server-storage" },

@@ -13,6 +13,7 @@ export default function NoAdminKeysPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#22C55E"
             secondaryColor="#10B981"
+            heroImg="/images/feat-vault-security.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/immutable-contracts", primary: false },
                 { label: p.heroButtons[1].label, href: "/vault-proof-security", primary: false },

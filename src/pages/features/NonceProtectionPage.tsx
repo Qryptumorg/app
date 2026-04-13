@@ -13,6 +13,7 @@ export default function NonceProtectionPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7C3AED"
             secondaryColor="#6366F1"
+            heroImg="/images/feat-mev-protection.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/commit-reveal-scheme", primary: false },
                 { label: p.heroButtons[1].label, href: "/time-locked-reveals", primary: false },

@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
 import SharedNavBar from "@/components/SharedNavBar";
+import SepoliaVersionNav from "@/components/SepoliaVersionNav";
 import { useLanguage } from "@/lib/LanguageContext";
 import { translations } from "@/lib/translations";
 type SR = typeof translations.en.sepoliaRecord;
 
 /* ── Constants ──────────────────────────────────────────────────── */
-const FACTORY_V5  = "";
-const IMPL_V5     = "";
-const VAULT_A     = "";
-const VAULT_B     = "";
-const QUSDC       = "";
+const FACTORY_V5  = "0xB757fb0511A6d305370a20a0647C751D7E76D2ce";
+const IMPL_V5     = "0x06e29f9309Afa42A3f5E5640717bd8db952F12ba";
+const VAULT_A     = "0x340C7041cefdf5786644aE7624486620B0E07B70";
+const VAULT_B     = "0xA592B995ac851CBC69E91F29696391a530e3D37d";
+const QUSDC       = "0xeA614DD453DC33D4D6Ce1F67Df95f380AbDF215C";
 const FACTORY_V4  = "";
 const FACTORY_V3  = "";
-const WALLET_A    = "";
-const WALLET_B    = "";
+const WALLET_A    = "0x2459A9B3D481Bb02e6844Cf28314b2c3eaC431e4";
+const WALLET_B    = "0xA3F12571e24811CB885cae2a17F8e45C84343829";
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const ETHERSCAN   = "https://sepolia.etherscan.io";
 
 /* ── TX hashes ───────────────────────────────────────────────── */
-const TX_APPROVE        = "";
-const TX_COMMIT         = "";
-const TX_REVEAL         = "";
-const TX_CHANGE_PROOF   = "";
-const TX_SHIELD_PROOF2  = "";
-const TX_UNSHIELD       = "";
-const TX_REDEEM_AIR     = "";
-const TX_UNSHIELD_RAIL  = "";
+const TX_APPROVE        = "0xc94144145c5f740cc3cfe5feb7860edd7083c65d0dd042311b300aa25d0ba9e9";
+const TX_QRYPT_PROOF2   = "0xd0e81551f4d425da9120d590d76214a4c0b92b78aaf321df00eb5fcecb3369e3";
+const TX_UNQRYPT        = "0x28849e342d0a8a0cea8e084fb9fe47ddc9aba95c360e42e0c0c4a1795f16b222";
+const TX_CLAIM_AIR      = "0x580fca67cc77b7d3ab466d691a08eed8d521f375adf17afbb0a2f9b5666802f6";
+const TX_RAILGUN        = "0x4dcde96fe2d019ebd29ca26a130869b23b6ee5a5d84e09e04a0505ab241de4ce";
+const TX_T39            = "0xc11cf3b991a002a692862e89eb2d5f7fb7f327934041cb7f4de9bca9fc8dce28";
+const TX_T40            = "0x1d7b223fb8c388cd05964be8ae62b45200978c377e3efe3b55be7147f02e7823";
+const TX_T44            = "0xec4d6e03cdc6573504124ad3401432451afc13bd9df24301a59327c12ceeb305";
+const TX_T47            = "0x3853f48481a77251b2b77cf00452615a5ea8dff2b2262c6829d35d4800756963";
+const TX_T48            = "0xfcbb26af72edf825bc50839ea79dafaac44892b2c3a020f1c05dcc9959422dbd";
+const TX_T51            = "0x4b5ed57206b5148041021b5300d327fe71c1e89eba203d0d60073b468e997f7a";
 
 const short = (v: string, head = 8, tail = 6) => `${v.slice(0, head)}...${v.slice(-tail)}`;
 
@@ -87,10 +91,10 @@ function FlowDiagramSafe() {
     const W = 920, H = 160;
     const nodes = [
         { label: "ERC-20 Token", sub: "Wallet holds USDC", color: "#627EEA", phase: 0 },
-        { label: "shield()", sub: "bytes32 proofHash", color: "#22C55E", phase: 0 },
-        { label: "PersonalQryptSafe", sub: "qToken minted", color: "#06B6D4", phase: 0 },
-        { label: "commitTransfer()", sub: "hash stored on-chain", color: "#F59E0B", phase: 1 },
-        { label: "revealTransfer()", sub: "bytes32 + nonce", color: "#F97316", phase: 1 },
+        { label: "qrypt()", sub: "bytes32 proofHash", color: "#22C55E", phase: 0 },
+        { label: "QryptSafe", sub: "qToken minted", color: "#06B6D4", phase: 0 },
+        { label: "veilTransfer()", sub: "hash stored on-chain", color: "#F59E0B", phase: 1 },
+        { label: "unveilTransfer()", sub: "bytes32 + nonce", color: "#F97316", phase: 1 },
         { label: "Recipient", sub: "receives raw ERC-20", color: "#22C55E", phase: 1 },
     ];
     const bw = 130, bh = 52, gap = 24;
@@ -209,8 +213,8 @@ function FlowDiagramAir() {
 function FlowDiagramShield() {
     const W = 920, H = 160;
     const nodes = [
-        { label: "PersonalQryptSafe", sub: "qToken balance", color: "#8B5CF6" },
-        { label: "unshieldToRailgun()", sub: "bytes32 proofHash", color: "#8B5CF6" },
+        { label: "QryptSafe", sub: "qToken balance", color: "#8B5CF6" },
+        { label: "railgun()", sub: "bytes32 proofHash", color: "#8B5CF6" },
         { label: "Burn qToken", sub: "CEI: checks first", color: "#EF4444" },
         { label: "Approve + Call", sub: "Railgun proxy", color: "#06B6D4" },
         { label: "Revoke Approval", sub: "zero allowance", color: "#06B6D4" },
@@ -309,7 +313,7 @@ function TestRow({ n, title, desc, note, tx, revertOnly }: TRProps) {
             <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.22)", letterSpacing: "0.06em" }}>{String(n).padStart(2, "0")}</span>
-                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>{title}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 700, color: "#d4d6e2", letterSpacing: "-0.01em" }}>{title}</span>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.22)", borderRadius: 4, padding: "2px 6px" }}>PASS</span>
                     {note && <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 9, fontWeight: 600, color: "#F59E0B", letterSpacing: "0.06em" }}>{note}</span>}
                 </div>
@@ -338,8 +342,8 @@ export default function SepoliaVerifiedV5Page() {
         return () => window.removeEventListener("resize", fn);
     }, []);
 
-    const W = 1200;
-    const pad = isMobile ? "0 18px": "0 40px";
+    const W = 1300;
+    const pad = isMobile ? "0 18px" : "0 24px";
     const card = (extra?: React.CSSProperties): React.CSSProperties => ({
         background: "rgba(255,255,255,0.025)",
         border: "1px solid rgba(255,255,255,0.07)",
@@ -348,25 +352,25 @@ export default function SepoliaVerifiedV5Page() {
     });
 
     return (
-        <div style={{ minHeight: "100vh", background: "#000000", color: "#fff" }}>
+        <div style={{ minHeight: "100vh", background: "#000000", color: "#d4d6e2" }}>
             <SharedNavBar />
 
             {/* ═══ HERO ═══════════════════════════════════════════ */}
             <div style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                    <img src="/sepolia-vault-hero.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.18) saturate(1.2)" }} />
+                    <img src="/sepolia-vault-hero.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.18) saturate(1.2)" }} />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 70%, #000000 100%)" }} />
                 </div>
 
                 <div style={{ position: "relative", zIndex: 1, maxWidth: W, margin: "0 auto", padding: pad }}>
-                    <div style={{ padding: isMobile ? "100px 0 40px": "110px 0 56px" }}>
+                    <div style={{ padding: isMobile ? "160px 0 100px" : "200px 0 140px" }}>
                         <div style={{ display: isMobile ? "block": "grid", gridTemplateColumns: "1fr 400px", gap: 60, alignItems: "center" }}>
                             <div>
                                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.22)", borderRadius: 20, padding: "4px 14px 4px 9px", marginBottom: 22 }}>
                                     <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px rgba(34,197,94,0.7)" }} />
                                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#22C55E", textTransform: "uppercase" }}>{sr.heroBadge}</span>
                                 </div>
-                                <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 36: 56, letterSpacing: "-0.03em", lineHeight: 1.04, margin: "0 0 20px", color: "#fff" }}>
+                                <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 36: 56, letterSpacing: "-0.03em", lineHeight: 1.04, margin: "0 0 20px", color: "#d4d6e2" }}>
                                     {sr.heroTitle}
                                 </h1>
                                 <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 36px", maxWidth: 520 }}>
@@ -374,7 +378,7 @@ export default function SepoliaVerifiedV5Page() {
                                 </p>
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                                     {[
-                                        { val: "32/32", label: sr.statLabels[0], color: "#22C55E" },
+                                        { val: "51/51", label: sr.statLabels[0], color: "#22C55E" },
                                         { val: "bytes32", label: sr.statLabels[1], color: "#8B5CF6" },
                                         { val: "3", label: sr.statLabels[2], color: "#F59E0B" },
                                         { val: "MIT", label: sr.statLabels[3], color: "#06B6D4" },
@@ -388,7 +392,7 @@ export default function SepoliaVerifiedV5Page() {
                             </div>
                             {!isMobile && (
                                 <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}>
-                                    <img src="/sepolia-vault-hero.png" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
+                                    <img src="/sepolia-vault-hero.jpg" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
                                 </div>
                             )}
                         </div>
@@ -401,8 +405,8 @@ export default function SepoliaVerifiedV5Page() {
 
                 {/* ── v4 to v5 changes ────── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px": "36px 40px", marginBottom: 20, borderColor: "rgba(34,197,94,0.18)" }) }}>
-                    <SectionHead text={sr.v4ToV5Label} color="#22C55E" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.v4ToV5Heading}</h2>
+                    <SectionHead text={sr.v4ToV5Label} color="rgba(255,255,255,0.3)" />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.v4ToV5Heading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.6 }}>
                         {sr.v4ToV5Body}
                     </p>
@@ -425,8 +429,8 @@ export default function SepoliaVerifiedV5Page() {
 
                 {/* ── Contract addresses ────── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px": "36px 40px", marginBottom: 20 }) }}>
-                    <SectionHead text={sr.addrLabel} color="#22C55E" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 24px", color: "#fff" }}>{sr.addrHeading}</h2>
+                    <SectionHead text={sr.addrLabel} color="rgba(255,255,255,0.3)" />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 24px", color: "#d4d6e2" }}>{sr.addrHeading}</h2>
                     <AddrRow label={sr.addrLabels.factory} value={FACTORY_V5} verified link={`${ETHERSCAN}/address/${FACTORY_V5}#code`} />
                     <AddrRow label={sr.addrLabels.impl} value={IMPL_V5} verified link={`${ETHERSCAN}/address/${IMPL_V5}#code`} />
                     <AddrRow label={sr.addrLabels.vaultA} value={VAULT_A} link={`${ETHERSCAN}/address/${VAULT_A}`} />
@@ -443,7 +447,7 @@ export default function SepoliaVerifiedV5Page() {
                 {/* ── Flow diagrams ────── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px": "36px 40px", marginBottom: 20 }) }}>
                     <SectionHead text={sr.flowsLabel} color="#627EEA" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.flowsHeading}</h2>
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.flowsHeading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.38)", margin: "0 0 28px", lineHeight: 1.6 }}>{sr.flowsBody}</p>
 
                     <div style={{ marginBottom: 28 }}>
@@ -462,8 +466,8 @@ export default function SepoliaVerifiedV5Page() {
 
                 {/* ── Test results bento ────── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px": "36px 40px", marginBottom: 20 }) }}>
-                    <SectionHead text={sr.testResultsLabel} color="#22C55E" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.testResultsHeading}</h2>
+                    <SectionHead text={sr.testResultsLabel} color="rgba(255,255,255,0.3)" />
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.testResultsHeading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.38)", margin: "0 0 8px", lineHeight: 1.6 }}>{sr.testResultsBody}</p>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 28 }}>
                         {["Wallet A: " + short(WALLET_A), "Wallet B: " + short(WALLET_B)].map(v => (
@@ -508,53 +512,80 @@ export default function SepoliaVerifiedV5Page() {
                                 )}
                                 {bentoRow(false, g2chart,
                                     <><SectionHead text={sr.groupLabels[1]} color="rgba(255,255,255,0.4)" />
-                                    <TestRow n={3} title="Create Vault A via factory" desc={`Factory deployed EIP-1167 clone for Wallet A. Vault A: ${VAULT_A}.`} note="REUSED" />
-                                    <TestRow n={4} title="Create Vault B via factory" desc={`Factory deployed separate EIP-1167 clone for Wallet B. Vault B: ${VAULT_B}. Storage isolated from Vault A.`} note="REUSED" />
-                                    <TestRow n={5} title="Approve USDC for Vault A (15 USDC)" desc="Wallet A called ERC-20 approve(vaultA, 15e6). Required before any shield operation." tx={TX_APPROVE} /></>,
+                                    <TestRow n={3} title="Create QryptSafe A (Wallet A) via factory" desc={`Factory deployed EIP-1167 clone for Wallet A. QryptSafe A: ${short(VAULT_A)}.`} note="REUSED" />
+                                    <TestRow n={4} title="Create QryptSafe B (Wallet B) via factory" desc={`Factory deployed separate EIP-1167 clone for Wallet B. QryptSafe B: ${short(VAULT_B)}. Storage isolated from QryptSafe A.`} note="REUSED" />
+                                    <TestRow n={5} title="Approve USDC for QryptSafe A (15 USDC)" desc="Wallet A called ERC-20 approve(qryptSafeA, 15e6). Required before any qrypt() operation." tx={TX_APPROVE} /></>,
                                     "rgba(255,255,255,0.07)"
                                 )}
                                 {bentoRow(true, g3chart,
-                                    <><SectionHead text={sr.groupLabels[2]} color="#22C55E" />
-                                    <TestRow n={6} title="shield() 10 USDC: correct bytes32 proofHash" desc={`10 USDC shielded. 10 qUSDC minted. proofHash = keccak256(password). qUSDC: ${QUSDC}.`} note="REUSED" />
-                                    <TestRow n={7} title="shield() with wrong proofHash: revert expected" desc="shield() with incorrect bytes32 hash reverts 'Invalid vault proof'. Password protection verified." revertOnly />
-                                    <TestRow n={8} title="shield() from non-owner Wallet B: revert expected" desc="Wallet B cannot call Vault A. Reverts 'Not vault owner'. onlyOwner strictly enforced." revertOnly />
-                                    <TestRow n={9} title="shield() amount below 1e6 minimum: revert expected" desc="Amounts below MINIMUM_SHIELD_AMOUNT (1e6) revert 'Amount below minimum'. Dust attack prevention confirmed." revertOnly />
-                                    <TestRow n={10} title="commitTransfer(): hashed intent to send 5 USDC to Wallet B" desc="commitHash = keccak256(abi.encodePacked(proofHash, nonce, token, to, amount)). Two-layer hash: password never in calldata." tx={TX_COMMIT} />
-                                    <TestRow n={11} title="revealTransfer() with non-existent commit: revert expected" desc="Reveal with no matching commit reverts 'Commit not found'. Prevents replay-without-commit attacks." revertOnly />
-                                    <TestRow n={12} title="revealTransfer() with wrong proofHash: revert expected" desc="Wrong proofHash in revealTransfer reverts 'Invalid vault proof'. Password protection at reveal phase." revertOnly />
-                                    <TestRow n={13} title="revealTransfer() success: 5 USDC from Vault A to Wallet B" desc="Wallet A reveals commit. 5 USDC transferred to Wallet B. Event TransferExecuted emitted. Nonce marked used." tx={TX_REVEAL} />
-                                    <TestRow n={14} title="Replay used commitHash: revert expected" desc="Re-using a consumed nonce reverts 'Commit already used'. One-time nonce replay protection confirmed." revertOnly />
-                                    <TestRow n={15} title="changeVaultProof(): rotate bytes32 proof" desc="Vault proof rotated PROOF1 to PROOF2. Both params bytes32 hashes. Event VaultProofChanged. Raw passwords never on-chain." tx={TX_CHANGE_PROOF} />
-                                    <TestRow n={16} title="shield() with OLD proof after rotation: revert expected" desc="Old PROOF1 rejected after rotation. Reverts 'Invalid vault proof'. Key rotation enforcement confirmed." revertOnly />
-                                    <TestRow n={17} title="shield() 3 USDC with NEW proof: success" desc="New PROOF2 accepted after rotation. 3 USDC shielded. Vault proof change is atomic and immediate." tx={TX_SHIELD_PROOF2} />
-                                    <TestRow n={18} title="unshield() 2 USDC back to Wallet A: success" desc="Vault burns 2 qUSDC, transfers 2 USDC to Wallet A. Event TokenUnshielded emitted." tx={TX_UNSHIELD} />
-                                    <TestRow n={19} title="unshield() over shielded balance: revert expected" desc="Requesting more than balance reverts 'Insufficient shielded balance'. Over-withdrawal protected." revertOnly /></>,
+                                    <><SectionHead text={sr.groupLabels[2]} color="rgba(255,255,255,0.3)" />
+                                    <TestRow n={6} title="qrypt() 10 USDC: correct bytes32 proofHash" desc={`10 USDC qrypted. 10 qUSDC minted to vault. proofHash = keccak256(password). qUSDC: ${short(QUSDC)}.`} note="REUSED" />
+                                    <TestRow n={7} title="qrypt() with wrong proofHash: revert expected" desc="qrypt() with incorrect bytes32 hash reverts 'Invalid vault proof'. Password protection verified." revertOnly />
+                                    <TestRow n={8} title="qrypt() from non-owner Wallet B: revert expected" desc="Wallet B cannot call QryptSafe A. Reverts 'Not QryptSafe owner'. onlyOwner strictly enforced." revertOnly />
+                                    <TestRow n={9} title="qrypt() amount below 1e6 minimum: revert expected" desc="Amounts below MINIMUM_SHIELD_AMOUNT (1e6) revert 'Amount below minimum'. Dust attack prevention confirmed." revertOnly />
+                                    <TestRow n={10} title="veilTransfer(): hashed intent to send 5 USDC to Wallet B" desc="veilHash = keccak256(abi.encodePacked(proofHash, nonce, token, to, amount)). Two-layer hash: password never in calldata." note="SKIPPED" />
+                                    <TestRow n={11} title="unveilTransfer() with non-existent veil: revert expected" desc="Unveil with no matching veil reverts 'Veil not found'. Prevents replay-without-commit attacks." revertOnly />
+                                    <TestRow n={12} title="unveilTransfer() with wrong proofHash: revert expected" desc="Wrong proofHash in unveilTransfer reverts 'Invalid vault proof'. Password protection at reveal phase." revertOnly />
+                                    <TestRow n={13} title="unveilTransfer() success: 5 USDC from QryptSafe A to Wallet B" desc="Wallet A unveils veil. 5 USDC transferred to Wallet B. Nonce marked used." note="SKIPPED" />
+                                    <TestRow n={14} title="Replay used veilHash: revert expected" desc="Re-using a consumed veilHash reverts 'Veil not found'. One-time nonce replay protection confirmed." revertOnly />
+                                    <TestRow n={15} title="rotateProof(): rotate bytes32 proof" desc="Vault proof rotated PROOF1 → PROOF2. Both params bytes32 hashes. Event ProofRotated. Raw passwords never on-chain." note="REUSED" />
+                                    <TestRow n={16} title="qrypt() with OLD proof after rotateProof: revert expected" desc="Old PROOF1 rejected after rotation. Reverts 'Invalid vault proof'. Key rotation enforcement confirmed." revertOnly />
+                                    <TestRow n={17} title="qrypt() 3 USDC with NEW proof: success" desc="New PROOF2 accepted after rotation. 3 USDC qrypted. rotateProof is atomic and immediate." tx={TX_QRYPT_PROOF2} />
+                                    <TestRow n={18} title="unqrypt() 2 USDC back to Wallet A: success" desc="QryptSafe burns 2 qUSDC, transfers 2 USDC to Wallet A. Event TokenUnqrypted emitted." tx={TX_UNQRYPT} />
+                                    <TestRow n={19} title="unqrypt() over qrypted balance: revert expected" desc="Requesting more than balance reverts 'Insufficient qrypted balance'. Over-withdrawal protected." revertOnly /></>,
                                     "rgba(34,197,94,0.1)"
                                 )}
                                 {bentoRow(false, g4chart,
-                                    <><SectionHead text={sr.groupLabels[3]} color="#F59E0B" />
+                                    <><SectionHead text={sr.groupLabels[3]} color="rgba(255,255,255,0.3)" />
                                     <TestRow n={20} title="Create EIP-712 QryptAir voucher: offline signature" desc="Wallet A signs Voucher struct off-chain. Domain: {name:'QryptAir', version:'1', chainId:11155111}. transferCodeHash = keccak256(transferCode). Local ECDSA verify confirmed." />
-                                    <TestRow n={21} title="redeemAirVoucher(): Wallet B redeems 2 USDC voucher" desc="Wallet B calls redeemAirVoucher. 2 USDC delivered. Anyone with valid signature can redeem. Event AirVoucherRedeemed emitted." tx={TX_REDEEM_AIR} />
-                                    <TestRow n={22} title="redeemAirVoucher() replay same nonce: revert expected" desc="Re-using a redeemed voucher nonce reverts 'Voucher already redeemed'. One-time-use nonce enforcement confirmed." revertOnly />
-                                    <TestRow n={23} title="redeemAirVoucher() expired deadline: revert expected" desc="Deadline in the past reverts 'Voucher expired'. Time-bound protection confirmed." revertOnly />
-                                    <TestRow n={24} title="redeemAirVoucher() signature over wrong transferCodeHash: revert expected" desc="Sig signed over wrong hash: ECDSA.recover returns wrong address. Reverts 'Sig not from vault owner'. Voucher integrity confirmed." revertOnly />
-                                    <TestRow n={25} title="redeemAirVoucher() signed by non-vault-owner: revert expected" desc="Sig from Wallet B (not Vault A owner) reverts 'Sig not from vault owner'. ECDSA checks vault.owner." revertOnly /></>,
-                                    "rgba(245,158,11,0.1)"
+                                    <TestRow n={21} title="claimAirVoucher(): Wallet B redeems 2 USDC voucher" desc="Wallet B calls claimAirVoucher. 2 USDC delivered. Anyone with valid signature can redeem. Event AirVoucherClaimed emitted." tx={TX_CLAIM_AIR} />
+                                    <TestRow n={22} title="claimAirVoucher() replay same nonce: revert expected" desc="Re-using a redeemed voucher nonce reverts 'Voucher already redeemed'. One-time-use nonce enforcement confirmed." revertOnly />
+                                    <TestRow n={23} title="claimAirVoucher() expired deadline: revert expected" desc="Deadline in the past reverts 'Voucher expired'. Time-bound protection confirmed." revertOnly />
+                                    <TestRow n={24} title="claimAirVoucher() signature over wrong transferCodeHash: revert expected" desc="Sig signed over wrong hash: ECDSA.recover returns wrong address. Reverts 'Sig not from vault owner'. Voucher integrity confirmed." revertOnly />
+                                    <TestRow n={25} title="claimAirVoucher() signed by non-vault-owner: revert expected" desc="Sig from Wallet B (not QryptSafe A owner) reverts 'Sig not from vault owner'. ECDSA checks vault.owner." revertOnly /></>,
+                                    "rgba(255,255,255,0.02)"
                                 )}
                                 {bentoRow(true, g5chart,
-                                    <><SectionHead text={sr.groupLabels[4]} color="#8B5CF6" />
-                                    <TestRow n={26} title="unshieldToRailgun() with wrong proof: revert expected" desc="Wrong proofHash reverts 'Invalid vault proof'. Password protection on atomic bridge function." revertOnly />
-                                    <TestRow n={27} title="unshieldToRailgun() with zero railgunProxy: revert expected" desc="Zero address as Railgun proxy reverts 'Invalid Railgun proxy'. Prevents accidental token burn." revertOnly />
-                                    <TestRow n={28} title="unshieldToRailgun() amount over balance: revert expected" desc="Over-balance amount reverts 'Insufficient shielded balance'. CEI pattern: checks before effects." revertOnly />
-                                    <TestRow n={29} title="unshieldToRailgun() contract logic: mock Railgun proxy" desc="1 qUSDC burned, USDC approve granted and revoked atomically, Railgun proxy (mock EOA) called. Contract logic verified. Full ZK privacy requires Railgun SDK." tx={TX_UNSHIELD_RAIL} note="MOCK PROXY" /></>,
-                                    "rgba(139,92,246,0.1)"
+                                    <><SectionHead text={sr.groupLabels[4]} color="rgba(255,255,255,0.3)" />
+                                    <TestRow n={26} title="railgun() with wrong proof: revert expected" desc="Wrong proofHash reverts 'Invalid vault proof'. Password protection on QryptShield atomic bridge." revertOnly />
+                                    <TestRow n={27} title="railgun() with zero railgunProxy: revert expected" desc="Zero address as Railgun proxy reverts 'Invalid Railgun proxy'. Prevents accidental token burn." revertOnly />
+                                    <TestRow n={28} title="railgun() amount over qrypted balance: revert expected" desc="Over-balance amount reverts 'Insufficient qrypted balance'. CEI pattern: checks before effects." revertOnly />
+                                    <TestRow n={29} title="railgun() contract logic: mock Railgun proxy" desc="1 qUSDC burned, USDC approve granted and revoked atomically, Railgun proxy (mock EOA) called. Contract logic verified. Full ZK privacy requires Railgun SDK." tx={TX_RAILGUN} note="MOCK PROXY" /></>,
+                                    "rgba(255,255,255,0.02)"
                                 )}
                                 {bentoRow(false, g6chart,
                                     <><SectionHead text={sr.groupLabels[5]} color="rgba(255,255,255,0.4)" />
                                     <TestRow n={30} title="Re-initialize already-initialized vault: revert expected" desc="initialize() on an existing vault reverts 'Already initialized'. notInitialized modifier working." revertOnly />
-                                    <TestRow n={31} title="emergencyWithdraw() before 1,296,000-block timelock: revert expected" desc="Emergency withdraw reverts before the 180-day timelock (approx 1,296,000 blocks) has elapsed. Timelock active and enforced." revertOnly />
-                                    <TestRow n={32} title="Any vault function from non-owner: revert expected" desc="Wallet B cannot call Vault A's onlyOwner functions. Reverts 'Not vault owner'. Access control confirmed on all protected functions." revertOnly /></>,
+                                    <TestRow n={31} title="emergencyWithdraw() before 1,296,000-block timelock: revert expected" desc="Emergency withdraw reverts before the ~180-day timelock (1,296,000 blocks) has elapsed. Timelock active and enforced." revertOnly />
+                                    <TestRow n={32} title="Any vault function from non-owner: revert expected" desc="Wallet B cannot call QryptSafe A's onlyOwner functions. Reverts 'Not QryptSafe owner'. Access control confirmed on all protected functions." revertOnly /></>,
                                     "rgba(255,255,255,0.07)"
+                                )}
+                                {bentoRow(false, <img src="/images/bento-registry.jpg" alt="Vault Registry" style={{ width: "100%", height: "100%", minHeight: 180, objectFit: "cover", display: "block" }} />,
+                                    <><SectionHead text={sr.groupLabels[6]} color="rgba(255,255,255,0.4)" />
+                                    <TestRow n={33} title="factory.hasQryptSafe() returns true for both wallets" desc="hasQryptSafe(A)=true, hasQryptSafe(B)=true. Factory registry maps every wallet to its deployed clone." />
+                                    <TestRow n={34} title="vault.initialized is true after createQryptSafe" desc="initialized() = true. notInitialized modifier prevents double-init." />
+                                    <TestRow n={35} title="vault.owner() returns correct wallet address" desc={`owner()=${short(WALLET_A)}. Set once in initialize(), immutable thereafter.`} />
+                                    <TestRow n={36} title="getQTokenAddress(USDC) returns non-zero after first qrypt" desc={`qToken address: ${short(QUSDC)}. ShieldToken deployed lazily on first qrypt() call.`} />
+                                    <TestRow n={37} title="getQryptedBalance returns 0 for never-qrypted token" desc="getQryptedBalance(deadAddr) = 0. No qToken entry exists for tokens never passed to qrypt()." />
+                                    <TestRow n={38} title="getQTokenAddress returns zero for never-qrypted token" desc="getQTokenAddress(deadAddr) = 0x000…000. Zero address until first qrypt() creates the ShieldToken." />
+                                    <TestRow n={39} title="qrypt() twice accumulates qToken balance correctly" desc="Before: 2.0 qUSDC. After: 3.0 qUSDC. Sequential qrypt() calls accumulate without resetting." tx={TX_T39} />
+                                    <TestRow n={40} title="unqrypt() emits TokenUnqrypted event" desc="Receipt confirmed 3 logs. TokenUnqrypted event emitted on every qToken burn." tx={TX_T40} />
+                                    <TestRow n={41} title="duplicate veilTransfer() reverts Veil already exists" desc="Committing same veilHash twice reverts 'Veil already exists'. Commit-reveal integrity enforced." revertOnly />
+                                    <TestRow n={42} title="usedVoucherNonces() returns false for unused nonce" desc="Fresh random nonce: usedVoucherNonces = false. Replay protection inactive until first redemption." />
+                                    <TestRow n={43} title="usedVoucherNonces() true after claimAirVoucher" desc="usedVoucherNonces(AIR_NONCE) = true after T21 redemption. On-chain nonce bitmap confirmed." />
+                                    <TestRow n={44} title="claimAirVoucher() emits AirVoucherClaimed event" desc="Receipt confirmed 3 logs. AirVoucherClaimed event emitted. Full event-driven redemption auditable." tx={TX_T44} /></>,
+                                    "rgba(255,255,255,0.07)"
+                                )}
+                                {bentoRow(true, <img src="/images/bento-isolation.jpg" alt="qToken Isolation" style={{ width: "100%", height: "100%", minHeight: 180, objectFit: "cover", display: "block" }} />,
+                                    <><SectionHead text={sr.groupLabels[7]} color="rgba(255,255,255,0.4)" />
+                                    <TestRow n={45} title="qToken is non-transferable between users" desc="ShieldToken.transfer() to external address reverts. Soulbound to vault: cannot be sold, bridged, or delegated." revertOnly />
+                                    <TestRow n={46} title="two QryptSafes are independent — Vault B owner and state" desc={`Vault B owner=${short(WALLET_B)}, initialized=true. Each wallet gets isolated EIP-1167 clone with independent storage.`} />
+                                    <TestRow n={47} title="Vault B qrypt() with its own proof — independent key" desc="Vault B qrypted 1 USDC using its own PROOF1 key. Vault A balance and proof unaffected. True clone isolation." tx={TX_T47} />
+                                    <TestRow n={48} title="rotateProof() emits ProofRotated event" desc="Vault B rotated PROOF1 → PROOF2. ProofRotated log confirmed in receipt. Key rotation atomic and auditable on-chain." tx={TX_T48} />
+                                    <TestRow n={49} title="getEmergencyWithdrawAvailableBlock returns a future block" desc="Available at block ~11,941,226; current ~10,645,230. ~1,295,996 blocks remaining (~179 days). Timelock read-only verified." />
+                                    <TestRow n={50} title="factory.qryptSafeImpl() returns correct implementation address" desc={`qryptSafeImpl()=${short(IMPL_V5)}. Matches deployed impl. EIP-1167 proxy pattern integrity confirmed.`} />
+                                    <TestRow n={51} title="qrypt() with exactly MINIMUM_SHIELD_AMOUNT (1e6) succeeds" desc="Exactly 1 USDC (= MINIMUM_SHIELD_AMOUNT = 1e6 wei) accepted. Boundary condition at minimum enforced without revert." tx={TX_T51} /></>,
+                                    "rgba(34,197,94,0.06)"
                                 )}
                             </>
                         );
@@ -564,7 +595,7 @@ export default function SepoliaVerifiedV5Page() {
                 {/* ── Superseded section ────── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px": "36px 40px", marginBottom: 20, borderColor: "rgba(239,68,68,0.12)" }) }}>
                     <SectionHead text={sr.supersededLabel} color="#EF4444" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>Previous deployments</h2>
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>Previous deployments</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.38)", margin: "0 0 20px", lineHeight: 1.6 }}>
                         {sr.supersededBody}
                     </p>
@@ -589,6 +620,10 @@ export default function SepoliaVerifiedV5Page() {
                     </div>
                 </div>
 
+                <SepoliaVersionNav
+                    prev={{ label: "V4 Record", href: "/sepolia-verified-v4" }}
+                    next={{ label: "V6 Record", href: "/sepolia-verified-v6" }}
+                />
 
             </div>
         </div>

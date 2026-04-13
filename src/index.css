@@ -87,21 +87,21 @@
   --elevate-2: rgba(0,0,0, .08);
 
   --background: 235 30% 5%;
-  --foreground: 0 0% 100%;
+  --foreground: 220 14% 80%;
   --border: 230 20% 14%;
   --card: 235 27% 8%;
-  --card-foreground: 0 0% 100%;
+  --card-foreground: 220 14% 80%;
   --card-border: 230 20% 16%;
   --sidebar: 235 27% 7%;
-  --sidebar-foreground: 0 0% 90%;
+  --sidebar-foreground: 0 0% 78%;
   --sidebar-border: 230 20% 13%;
   --sidebar-primary: 227 77% 65%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 235 27% 13%;
-  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-accent-foreground: 0 0% 78%;
   --sidebar-ring: 227 77% 65%;
   --popover: 235 27% 8%;
-  --popover-foreground: 0 0% 100%;
+  --popover-foreground: 220 14% 80%;
   --popover-border: 230 20% 16%;
   --primary: 227 77% 65%;
   --primary-foreground: 0 0% 100%;
@@ -160,21 +160,21 @@
   --elevate-2: rgba(255,255,255, .09);
 
   --background: 235 30% 5%;
-  --foreground: 0 0% 100%;
+  --foreground: 220 14% 80%;
   --border: 230 20% 14%;
   --card: 235 27% 8%;
-  --card-foreground: 0 0% 100%;
+  --card-foreground: 220 14% 80%;
   --card-border: 230 20% 16%;
   --sidebar: 235 27% 7%;
-  --sidebar-foreground: 0 0% 90%;
+  --sidebar-foreground: 0 0% 78%;
   --sidebar-border: 230 20% 13%;
   --sidebar-primary: 227 77% 65%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 235 27% 13%;
-  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-accent-foreground: 0 0% 78%;
   --sidebar-ring: 227 77% 65%;
   --popover: 235 27% 8%;
-  --popover-foreground: 0 0% 100%;
+  --popover-foreground: 220 14% 80%;
   --popover-border: 230 20% 16%;
   --primary: 227 77% 65%;
   --primary-foreground: 0 0% 100%;
@@ -198,6 +198,11 @@
 @layer base {
   * {
     @apply border-border;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   body {

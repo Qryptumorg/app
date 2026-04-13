@@ -13,6 +13,7 @@ export default function MakingTransfersPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7c3aed"
             secondaryColor="#06b6d4"
+            heroImg="/images/feat-transfer-wallet.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/transfer-engine" },

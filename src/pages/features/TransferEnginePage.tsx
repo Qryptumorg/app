@@ -13,6 +13,7 @@ export default function TransferEnginePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#10b981"
             secondaryColor="#7c3aed"
+            heroImg="/images/feat-transfer-wallet.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/mev-protection" },

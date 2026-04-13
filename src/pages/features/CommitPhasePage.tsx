@@ -13,6 +13,7 @@ export default function CommitPhasePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#0EA5E9"
             secondaryColor="#6366F1"
+            heroImg="/images/feat-commit-reveal.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/reveal-phase", primary: true },
                 { label: p.heroButtons[1].label, href: "/mev-protection" },

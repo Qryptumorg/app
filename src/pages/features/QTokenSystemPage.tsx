@@ -13,6 +13,7 @@ export default function QTokenSystemPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7c3aed"
             secondaryColor="#06b6d4"
+            heroImg="/images/feat-token-economics.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
             ]}

@@ -13,6 +13,7 @@ export default function InactivityRulePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#EF4444"
             secondaryColor="#F97316"
+            heroImg="/images/feat-time-lock.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/emergency-recovery", primary: false },
                 { label: p.heroButtons[1].label, href: "/no-admin-keys", primary: false },

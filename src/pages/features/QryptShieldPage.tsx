@@ -23,7 +23,7 @@ export default function QryptShieldPage() {
     const SECONDARY = "#6d28d9";
 
     return (
-        <div style={{ background: "#000", minHeight: "100vh", color: "#fff", fontFamily: "'Inter',sans-serif" }}>
+        <div style={{ background: "#000", minHeight: "100vh", color: "#d4d6e2", fontFamily: "'Inter',sans-serif" }}>
             <SharedNavBar onConnect={() => navigate("/app")} isConnecting={false} />
 
             {/* HERO */}
@@ -44,7 +44,7 @@ export default function QryptShieldPage() {
                         <a
                             key={i}
                             href={i === 0 ? "/transfer-engine" : "/mev-protection"}
-                            style={{ padding: "10px 20px", borderRadius: 10, border: `1px solid ${i === 0 ? PRIMARY : "rgba(255,255,255,0.15)"}`, background: i === 0 ? "rgba(139,92,246,0.15)" : "transparent", color: "#fff", fontWeight: 600, fontSize: 14, textDecoration: "none" }}
+                            style={{ padding: "10px 20px", borderRadius: 10, border: `1px solid ${i === 0 ? PRIMARY : "rgba(255,255,255,0.15)"}`, background: i === 0 ? "rgba(139,92,246,0.15)" : "transparent", color: "#d4d6e2", fontWeight: 600, fontSize: 14, textDecoration: "none" }}
                         >
                             {b.label}
                         </a>
@@ -243,7 +243,7 @@ export default function QryptShieldPage() {
                     <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", marginBottom: 32 }}>{p.cta.body}</p>
                     <button
                         onClick={() => navigate("/app")}
-                        style={{ padding: "14px 32px", borderRadius: 12, background: PRIMARY, color: "#fff", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
+                        style={{ padding: "14px 32px", borderRadius: 12, background: PRIMARY, color: "#d4d6e2", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
                     >
                         {p.cta.button}
                     </button>

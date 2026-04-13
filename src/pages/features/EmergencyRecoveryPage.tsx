@@ -13,6 +13,7 @@ export default function EmergencyRecoveryPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#EF4444"
             secondaryColor="#F97316"
+            heroImg="/images/feat-vault-security.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/180-day-inactivity", primary: false },
                 { label: p.heroButtons[1].label, href: "/no-admin-keys", primary: false },

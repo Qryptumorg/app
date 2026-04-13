@@ -13,6 +13,7 @@ export default function CreateQryptSafeGuidePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#00D4FF"
             secondaryColor="#7C3AED"
+            heroImg="/images/feat-guide-docs.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/app", primary: true },
                 { label: p.heroButtons[1].label, href: "/shield-factory" },

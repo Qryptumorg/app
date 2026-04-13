@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { formatUnits, keccak256, toBytes } from "viem";
 import {
@@ -7,7 +6,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useChainId, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { PERSONAL_VAULT_ABI, ERC20_ABI } from "@/lib/abi";
+import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI } from "@/lib/abi";
 import { useToast } from "@/hooks/use-toast";
 import { getTxEtherscanUrl } from "@/lib/utils";
 import { recordTransaction } from "@/lib/api";
@@ -26,7 +25,7 @@ interface VoucherData {
 const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 12px", borderRadius: 10,
     background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-    color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 13,
+    color: "#d4d6e2", fontFamily: "'Inter', sans-serif", fontSize: 13,
     outline: "none", boxSizing: "border-box",
 };
 
@@ -34,7 +33,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
     return (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: "0.04em" }}>{label}</span>
-            <span style={{ fontSize: mono ? 11 : 13, color: "#fff", fontFamily: mono ? "monospace" : "'Inter', sans-serif", fontWeight: 600 }}>{value}</span>
+            <span style={{ fontSize: mono ? 11 : 13, color: "#d4d6e2", fontFamily: mono ? "monospace" : "'Inter', sans-serif", fontWeight: 600 }}>{value}</span>
         </div>
     );
 }
@@ -143,8 +142,8 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
 
         writeContract({
             address: senderVaultAddress as `0x${string}`,
-            abi: PERSONAL_VAULT_ABI,
-            functionName: "redeemAirVoucher",
+            abi: PERSONAL_VAULT_V6_ABI,
+            functionName: "claimAirVoucher",
             args: [
                 voucher.token      as `0x${string}`,
                 BigInt(voucher.amount),
@@ -365,7 +364,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                     <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <CheckCircle2Icon size={24} color="#F59E0B" />
                     </div>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: "#fff", margin: 0 }}>Voucher Redeemed</p>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: "#d4d6e2", margin: 0 }}>Voucher Redeemed</p>
                     <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, textAlign: "center" }}>
                         {formatUnits(BigInt(voucher.amount), decimals)} {(tokenSymbol as string) ?? ""} has been sent to your wallet.
                     </p>

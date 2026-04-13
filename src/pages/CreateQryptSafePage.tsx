@@ -33,7 +33,7 @@ function HeroSection() {
         }}>
             <div style={{
                 position: "absolute", inset: 0,
-                backgroundImage: "url(/images/create-qrypt-safe-hero.jpg)",
+                backgroundImage: "url(/images/create-qryptank-hero.jpg)",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 opacity: 0.35,
@@ -51,19 +51,19 @@ function HeroSection() {
                     marginBottom: 28,
                 }}>
                     <ShieldIcon color={CYAN} size={13} />
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: CYAN, textTransform: "uppercase" }}>{p.hero.badge}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.42)", textTransform: "uppercase" }}>{p.hero.badge}</span>
                 </div>
                 <h1 style={{
                     fontFamily: "'Inter',sans-serif",
                     fontSize: "clamp(36px, 6vw, 72px)",
                     fontWeight: 900,
-                    color: "#fff",
+                    color: "#d4d6e2",
                     lineHeight: 1.05,
                     letterSpacing: "-0.03em",
                     marginBottom: 20,
                 }}>
                     {p.hero.headline}<br />
-                    <span style={{ color: CYAN }}>
+                    <span style={{ color: "rgba(255,255,255,0.85)" }}>
                         {p.hero.highlight}
                     </span>
                 </h1>
@@ -83,7 +83,7 @@ function HeroSection() {
                         background: `linear-gradient(135deg, ${CYAN}, ${PURPLE})`,
                         borderRadius: 10,
                         fontWeight: 700, fontSize: 14,
-                        color: "#fff",
+                        color: "#d4d6e2",
                     }}>{p.hero.btn1}</a>
                     <a href="/docs/introduction/how-it-works" style={{
                         textDecoration: "none",
@@ -92,7 +92,7 @@ function HeroSection() {
                         border: "1px solid rgba(255,255,255,0.12)",
                         borderRadius: 10,
                         fontWeight: 700, fontSize: 14,
-                        color: "#fff",
+                        color: "#d4d6e2",
                     }}>{p.hero.btn2}</a>
                 </div>
             </div>
@@ -105,8 +105,8 @@ function HeroSection() {
             }}>
                 {p.hero.stats.map((s, i) => (
                     <div key={i} style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>{STAT_VALUES[i]}</div>
-                        <div style={{ fontSize: 12, color: CYAN, fontWeight: 600, marginTop: 2 }}>{s.label}</div>
+                        <div style={{ fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 900, color: "#d4d6e2", letterSpacing: "-0.02em" }}>{STAT_VALUES[i]}</div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 600, marginTop: 2 }}>{s.label}</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{s.note}</div>
                     </div>
                 ))}
@@ -121,15 +121,15 @@ function WhatSection() {
     const isMobile = useIsMobile();
     return (
         <section style={{ background: "#050810", padding: isMobile ? "64px 16px" : "96px 24px" }}>
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                <SectionLabel color={CYAN} text={p.what.sectionLabel} />
+            <div style={{ maxWidth: 1300, margin: "0 auto" }}>
+                <SectionLabel text={p.what.sectionLabel} />
                 <h2 style={headingStyle}>{p.what.heading}</h2>
                 <p style={subStyle}>{p.what.body}</p>
 
                 {isMobile ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 36 }}>
                         {[
-                            { img: "/images/card-smart-contract.jpg", color: CYAN, bg: "#0a0f1e", title: p.what.card1.title, body: p.what.card1.body, link: { href: "/docs/introduction/overview", text: p.what.card1.link } },
+                            { img: "/images/card-smart-contract.jpg", color: "rgba(255,255,255,0.12)", bg: "#0a0f1e", title: p.what.card1.title, body: p.what.card1.body, link: { href: "/docs/introduction/overview", text: p.what.card1.link } },
                             { img: "/images/card-dual-factor.jpg", color: PURPLE, bg: "#080b14", title: p.what.card2.title, body: p.what.card2.body },
                             { img: "/images/card-on-chain.jpg", color: GREEN, bg: "#060c10", title: p.what.card3.title, body: p.what.card3.body },
                             { img: "/images/card-non-custodial.jpg", color: "#f59e0b", bg: "#100a04", title: p.what.card4.title, body: p.what.card4.body, link: { href: "/docs/introduction/overview", text: p.what.card4.link } },
@@ -141,7 +141,7 @@ function WhatSection() {
                                 </div>
                                 <div style={{ padding: "20px 20px 24px" }}>
                                     <div style={{ width: 28, height: 2, background: card.color, borderRadius: 1, marginBottom: 12 }} />
-                                    <div style={{ fontWeight: 800, fontSize: 16, color: "#fff", lineHeight: 1.25, marginBottom: 10 }}>{card.title}</div>
+                                    <div style={{ fontWeight: 800, fontSize: 16, color: "#d4d6e2", lineHeight: 1.25, marginBottom: 10 }}>{card.title}</div>
                                     <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, marginBottom: card.link ? 16 : 0 }}>{card.body}</div>
                                     {card.link && (
                                         <a href={card.link.href} style={{ textDecoration: "none", fontSize: 12, fontWeight: 700, color: card.color, display: "flex", alignItems: "center", gap: 5 }}>
@@ -165,12 +165,12 @@ function WhatSection() {
                         display: "flex", alignItems: "stretch",
                     }}>
                         <div style={{ flex: "0 0 52%", padding: "36px 32px", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
-                            <div style={{ width: 32, height: 2, background: CYAN, borderRadius: 1, marginBottom: 14 }} />
-                            <div style={{ fontWeight: 900, fontSize: 20, color: "#fff", lineHeight: 1.2, marginBottom: 12 }}>{p.what.card1.title}</div>
+                            <div style={{ width: 32, height: 2, background: "rgba(255,255,255,0.18)", borderRadius: 1, marginBottom: 14 }} />
+                            <div style={{ fontWeight: 900, fontSize: 20, color: "#d4d6e2", lineHeight: 1.2, marginBottom: 12 }}>{p.what.card1.title}</div>
                             <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, marginBottom: 20 }}>
                                 {p.what.card1.body}
                             </div>
-                            <a href="/docs/introduction/overview" style={{ textDecoration: "none", fontSize: 12, fontWeight: 700, color: CYAN, display: "flex", alignItems: "center", gap: 5 }}>
+                            <a href="/docs/introduction/overview" style={{ textDecoration: "none", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.52)", display: "flex", alignItems: "center", gap: 5 }}>
                                 {p.what.card1.link} <span style={{ fontSize: 14 }}>→</span>
                             </a>
                         </div>
@@ -194,7 +194,7 @@ function WhatSection() {
                         </div>
                         <div style={{ padding: "0 22px 24px" }}>
                             <div style={{ width: 24, height: 2, background: PURPLE, borderRadius: 1, marginBottom: 10 }} />
-                            <div style={{ fontWeight: 800, fontSize: 15, color: "#fff", marginBottom: 8 }}>{p.what.card2.title}</div>
+                            <div style={{ fontWeight: 800, fontSize: 15, color: "#d4d6e2", marginBottom: 8 }}>{p.what.card2.title}</div>
                             <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{p.what.card2.body}</div>
                         </div>
                     </div>
@@ -213,7 +213,7 @@ function WhatSection() {
                         </div>
                         <div style={{ padding: "0 22px 24px" }}>
                             <div style={{ width: 24, height: 2, background: GREEN, borderRadius: 1, marginBottom: 10 }} />
-                            <div style={{ fontWeight: 800, fontSize: 15, color: "#fff", marginBottom: 8 }}>{p.what.card3.title}</div>
+                            <div style={{ fontWeight: 800, fontSize: 15, color: "#d4d6e2", marginBottom: 8 }}>{p.what.card3.title}</div>
                             <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{p.what.card3.body}</div>
                         </div>
                     </div>
@@ -233,7 +233,7 @@ function WhatSection() {
                         </div>
                         <div style={{ flex: "0 0 52%", padding: "36px 32px", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
                             <div style={{ width: 32, height: 2, background: "#f59e0b", borderRadius: 1, marginBottom: 14 }} />
-                            <div style={{ fontWeight: 900, fontSize: 20, color: "#fff", lineHeight: 1.2, marginBottom: 12 }}>{p.what.card4.title}</div>
+                            <div style={{ fontWeight: 900, fontSize: 20, color: "#d4d6e2", lineHeight: 1.2, marginBottom: 12 }}>{p.what.card4.title}</div>
                             <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.75, marginBottom: 20 }}>
                                 {p.what.card4.body}
                             </div>
@@ -253,7 +253,7 @@ function WhatSection() {
 function DeploySection() {
     const { t } = useLanguage();
     const p = t.createQryptSafe;
-    const STEP_COLORS = [CYAN, PURPLE, GREEN, "#f59e0b"];
+    const STEP_COLORS = ["rgba(255,255,255,0.18)","rgba(255,255,255,0.18)","rgba(255,255,255,0.18)","rgba(255,255,255,0.18)"];
     const STEP_NUMS = ["01", "02", "03", "04"];
     const STEP_DETAILS = [
         "The onlyOwner modifier in PersonalVault.sol is bound to msg.sender at deployment. This is immutable.",
@@ -265,7 +265,7 @@ function DeploySection() {
     return (
         <section style={{ background: "#000", padding: "96px 24px" }}>
             <div style={{ maxWidth: 900, margin: "0 auto" }}>
-                <SectionLabel color={PURPLE} text={p.deploy.sectionLabel} />
+                <SectionLabel text={p.deploy.sectionLabel} />
                 <h2 style={headingStyle}>{p.deploy.heading}</h2>
                 <p style={subStyle}>{p.deploy.body}</p>
 
@@ -288,7 +288,7 @@ function DeploySection() {
                                 )}
                             </div>
                             <div style={{ paddingBottom: 40 }}>
-                                <div style={{ fontWeight: 800, fontSize: 18, color: "#fff", marginBottom: 8 }}>{s.title}</div>
+                                <div style={{ fontWeight: 800, fontSize: 18, color: "#d4d6e2", marginBottom: 8 }}>{s.title}</div>
                                 <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: 12 }}>{s.desc}</div>
                                 <div style={{
                                     background: `rgba(${hexToRgb(color)}, 0.06)`,
@@ -311,17 +311,17 @@ function TechSection() {
     const { t } = useLanguage();
     const p = t.createQryptSafe;
     const SPEC_VALUES = ["EIP-1167 Minimal Proxy", "OpenZeppelin v5", "keccak256 (SHA-3)", "1,000,000 token units", "600 seconds (10 min)", "83/83 tests passing"];
-    const SPEC_COLORS = [CYAN, PURPLE, GREEN, "#f59e0b", CYAN, GREEN];
+    const SPEC_COLORS = ["rgba(255,255,255,0.5)","rgba(255,255,255,0.5)","rgba(255,255,255,0.5)","rgba(255,255,255,0.5)","rgba(255,255,255,0.5)","rgba(255,255,255,0.5)"];
     return (
         <section style={{ background: "#060a12", padding: "96px 24px" }}>
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                <SectionLabel color={CYAN} text={p.tech.sectionLabel} />
+            <div style={{ maxWidth: 1300, margin: "0 auto" }}>
+                <SectionLabel text={p.tech.sectionLabel} />
                 <h2 style={headingStyle}>{p.tech.heading}</h2>
                 <p style={subStyle}>{p.tech.body}</p>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginTop: 52 }}>
                     <div style={codeCardStyle}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: CYAN, letterSpacing: "0.08em", marginBottom: 14 }}>SHIELDFACTORY.SOL</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: "0.08em", marginBottom: 14 }}>SHIELDFACTORY.SOL</div>
                         <pre style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, margin: 0, overflowX: "auto", whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{`// EIP-1167 minimal proxy deploy
 function deployVault(
     bytes32 passwordHash
@@ -337,7 +337,7 @@ function deployVault(
                     </div>
 
                     <div style={codeCardStyle}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: PURPLE, letterSpacing: "0.08em", marginBottom: 14 }}>PERSONALVAULT.SOL</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: "0.08em", marginBottom: 14 }}>PERSONALVAULT.SOL</div>
                         <pre style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, margin: 0, overflowX: "auto", whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{`// Dual-factor authentication
 modifier onlyOwner() {
     require(msg.sender == owner, "Not vault owner");
@@ -394,7 +394,7 @@ function ImageCard({ img, accentColor, label, title, body }: { img: string; acce
             <div style={{ padding: "18px 20px 22px", flex: 1 }}>
                 <div style={{ display: "inline-block", width: 28, height: 2, background: accentColor, borderRadius: 1, marginBottom: 10 }} />
                 <div style={{ fontSize: 10, fontWeight: 800, color: accentColor, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{label}</div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: "#fff", marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
+                <div style={{ fontWeight: 800, fontSize: 14, color: "#d4d6e2", marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
                 <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{body}</div>
             </div>
         </div>
@@ -412,8 +412,8 @@ function SecuritySection() {
             borderBottom: "1px solid rgba(6,182,212,0.08)",
             padding: isMobile ? "64px 16px" : "96px 24px",
         }}>
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                <SectionLabel color={PURPLE} text={p.security.sectionLabel} />
+            <div style={{ maxWidth: 1300, margin: "0 auto" }}>
+                <SectionLabel text={p.security.sectionLabel} />
                 <h2 style={headingStyle}>{p.security.heading}</h2>
                 <p style={subStyle}>
                     {p.security.body}
@@ -423,7 +423,7 @@ function SecuritySection() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 36, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
                         <ImageCard img="/images/card-sec-private-key.jpg" accentColor="#f59e0b" label={p.security.factor1.label} title={p.security.factor1.title} body={p.security.factor1.body} />
                         <div style={{ textAlign: "center", fontSize: 24, color: "rgba(255,255,255,0.15)", fontWeight: 200, padding: "4px 0" }}>+</div>
-                        <ImageCard img="/images/card-sec-vault-proof.jpg" accentColor={CYAN} label={p.security.factor2.label} title={p.security.factor2.title} body={p.security.factor2.body} />
+                        <ImageCard img="/images/card-sec-vault-proof.jpg" accentColor="rgba(255,255,255,0.18)" label={p.security.factor2.label} title={p.security.factor2.title} body={p.security.factor2.body} />
                     </div>
                 ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 1fr", gap: 0, alignItems: "center", marginTop: 52, maxWidth: 860, margin: "52px auto 0" }}>
@@ -437,7 +437,7 @@ function SecuritySection() {
                     <div style={{ textAlign: "center", fontSize: 28, color: "rgba(255,255,255,0.15)", fontWeight: 200 }}>+</div>
                     <ImageCard
                         img="/images/card-sec-vault-proof.jpg"
-                        accentColor={CYAN}
+                        accentColor="rgba(255,255,255,0.18)"
                         label={p.security.factor2.label}
                         title={p.security.factor2.title}
                         body={p.security.factor2.body}
@@ -472,7 +472,7 @@ function SecuritySection() {
                             {[
                                 { img: "/images/card-sec-key-stolen.jpg", color: "#f59e0b", bg: "#10080a", title: p.security.attack1.title, body: p.security.attack1.body },
                                 { img: "/images/card-sec-brute-force.jpg", color: PURPLE, bg: "#080510", title: p.security.attack2.title, body: p.security.attack2.body },
-                                { img: "/images/card-sec-frontrun.jpg", color: CYAN, bg: "#040c0e", title: p.security.attack3.title, body: p.security.attack3.body },
+                                { img: "/images/card-sec-frontrun.jpg", color: "rgba(255,255,255,0.12)", bg: "#040c0e", title: p.security.attack3.title, body: p.security.attack3.body },
                                 { img: "/images/card-sec-reentrancy.jpg", color: GREEN, bg: "#050e08", title: p.security.attack4.title, body: p.security.attack4.body },
                             ].map((atk, i) => (
                                 <div key={i} style={{ borderRadius: 14, overflow: "hidden", border: `1px solid rgba(${hexToRgb(atk.color)},0.15)`, background: atk.bg }}>
@@ -483,7 +483,7 @@ function SecuritySection() {
                                     </div>
                                     <div style={{ padding: "14px 18px 18px" }}>
                                         <div style={{ width: 24, height: 2, background: atk.color, borderRadius: 1, marginBottom: 10 }} />
-                                        <div style={{ fontWeight: 700, fontSize: 14, color: "#fff", marginBottom: 6 }}>{atk.title}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 14, color: "#d4d6e2", marginBottom: 6 }}>{atk.title}</div>
                                         <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.48)", lineHeight: 1.65 }}>{atk.body}</div>
                                     </div>
                                 </div>
@@ -505,7 +505,7 @@ function SecuritySection() {
                                     <div style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)", borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: GREEN, letterSpacing: "0.08em" }}>{p.security.blockedBadge}</div>
                                 </div>
                                 <div style={{ width: 28, height: 2, background: "#f59e0b", borderRadius: 1, marginBottom: 12 }} />
-                                <div style={{ fontWeight: 800, fontSize: 17, color: "#fff", marginBottom: 10 }}>{p.security.attack1.title}</div>
+                                <div style={{ fontWeight: 800, fontSize: 17, color: "#d4d6e2", marginBottom: 10 }}>{p.security.attack1.title}</div>
                                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{p.security.attack1.body}</div>
                             </div>
                             <div style={{ flex: 1, position: "relative" }}>
@@ -528,7 +528,7 @@ function SecuritySection() {
                             </div>
                             <div style={{ padding: "0 18px 20px" }}>
                                 <div style={{ width: 20, height: 2, background: PURPLE, borderRadius: 1, marginBottom: 8 }} />
-                                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{p.security.attack2.title}</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "#d4d6e2", marginBottom: 6 }}>{p.security.attack2.title}</div>
                                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{p.security.attack2.body}</div>
                             </div>
                         </div>
@@ -546,8 +546,8 @@ function SecuritySection() {
                                 <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)", borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: GREEN, letterSpacing: "0.08em" }}>{p.security.blockedBadge}</div>
                             </div>
                             <div style={{ padding: "0 18px 20px" }}>
-                                <div style={{ width: 20, height: 2, background: CYAN, borderRadius: 1, marginBottom: 8 }} />
-                                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{p.security.attack3.title}</div>
+                                <div style={{ width: 20, height: 2, background: "rgba(255,255,255,0.18)", borderRadius: 1, marginBottom: 8 }} />
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "#d4d6e2", marginBottom: 6 }}>{p.security.attack3.title}</div>
                                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{p.security.attack3.body}</div>
                             </div>
                         </div>
@@ -569,7 +569,7 @@ function SecuritySection() {
                                     <div style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)", borderRadius: 6, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: GREEN, letterSpacing: "0.08em" }}>{p.security.blockedBadge}</div>
                                 </div>
                                 <div style={{ width: 28, height: 2, background: GREEN, borderRadius: 1, marginBottom: 12 }} />
-                                <div style={{ fontWeight: 800, fontSize: 17, color: "#fff", marginBottom: 10 }}>{p.security.attack4.title}</div>
+                                <div style={{ fontWeight: 800, fontSize: 17, color: "#d4d6e2", marginBottom: 10 }}>{p.security.attack4.title}</div>
                                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{p.security.attack4.body}</div>
                             </div>
                         </div>
@@ -589,7 +589,7 @@ function FaqSection() {
     return (
         <section style={{ background: "#000", padding: "96px 24px" }}>
             <div style={{ maxWidth: 780, margin: "0 auto" }}>
-                <SectionLabel color={CYAN} text={p.faq.sectionLabel} />
+                <SectionLabel text={p.faq.sectionLabel} />
                 <h2 style={headingStyle}>{p.faq.heading}</h2>
 
                 <div style={{ marginTop: 48, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -600,7 +600,7 @@ function FaqSection() {
                             borderRadius: 12,
                             padding: "20px 22px",
                         }}>
-                            <div style={{ fontWeight: 700, fontSize: 14.5, color: "#fff", marginBottom: 8 }}>{f.q}</div>
+                            <div style={{ fontWeight: 700, fontSize: 14.5, color: "#d4d6e2", marginBottom: 8 }}>{f.q}</div>
                             <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>{f.a}</div>
                         </div>
                     ))}
@@ -620,9 +620,8 @@ function CtaSection() {
             padding: "96px 24px",
             textAlign: "center",
         }}>
-            <div style={{ maxWidth: 600, margin: "0 auto" }}>
-                <ShieldIcon color={CYAN} size={40} />
-                <h2 style={{ ...headingStyle, marginTop: 20, marginBottom: 16 }}>{p.cta.heading}</h2>
+            <div style={{ maxWidth: 800, margin: "0 auto" }}>
+                <h2 style={{ ...headingStyle, marginBottom: 16, whiteSpace: "nowrap" }}>{p.cta.heading}</h2>
                 <p style={{ ...subStyle, marginBottom: 36 }}>
                     {p.cta.body}
                 </p>
@@ -633,7 +632,7 @@ function CtaSection() {
                     background: `linear-gradient(135deg, ${CYAN}, ${PURPLE})`,
                     borderRadius: 12,
                     fontWeight: 800, fontSize: 15,
-                    color: "#fff",
+                    color: "#d4d6e2",
                     letterSpacing: "-0.01em",
                 }}>{p.cta.button}</a>
                 <div style={{ marginTop: 20, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
@@ -668,7 +667,7 @@ export default function CreateQryptSafePage() {
     }, []);
 
     return (
-        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: "#fff" }}>
+        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: "#d4d6e2" }}>
             <SharedNavBar />
             <HeroSection />
             <WhatSection />
@@ -689,14 +688,14 @@ function hexToRgb(hex: string) {
     return `${r},${g},${b}`;
 }
 
-function SectionLabel({ color, text }: { color: string; text: string }) {
+function SectionLabel({ text }: { color?: string; text: string }) {
     return (
         <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             marginBottom: 16,
         }}>
-            <div style={{ width: 18, height: 2, background: color, borderRadius: 1 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: "0.1em", textTransform: "uppercase" }}>{text}</span>
+            <div style={{ width: 18, height: 1, background: "rgba(255,255,255,0.2)", borderRadius: 1 }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{text}</span>
         </div>
     );
 }
@@ -705,7 +704,7 @@ const headingStyle: React.CSSProperties = {
     fontFamily: "'Inter',sans-serif",
     fontSize: "clamp(28px, 4vw, 44px)",
     fontWeight: 900,
-    color: "#fff",
+    color: "#d4d6e2",
     lineHeight: 1.1,
     letterSpacing: "-0.025em",
     marginBottom: 16,

@@ -13,6 +13,7 @@ export default function CommitRevealSchemePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#EC4899"
             secondaryColor="#8B5CF6"
+            heroImg="/images/feat-commit-reveal.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/commit-phase", primary: false },
                 { label: p.heroButtons[1].label, href: "/reveal-phase", primary: false },

@@ -23,7 +23,7 @@ export default function QryptAirPage() {
     const SECONDARY = "#d97706";
 
     return (
-        <div style={{ background: "#000", minHeight: "100vh", color: "#fff", fontFamily: "'Inter',sans-serif" }}>
+        <div style={{ background: "#000", minHeight: "100vh", color: "#d4d6e2", fontFamily: "'Inter',sans-serif" }}>
             <SharedNavBar onConnect={() => navigate("/app")} isConnecting={false} />
 
             {/* HERO */}
@@ -44,7 +44,7 @@ export default function QryptAirPage() {
                         <a
                             key={i}
                             href={i === 0 ? "/making-transfers" : "/vault-proof-security"}
-                            style={{ padding: "10px 20px", borderRadius: 10, border: `1px solid ${i === 0 ? PRIMARY : "rgba(255,255,255,0.15)"}`, background: i === 0 ? "rgba(245,158,11,0.15)" : "transparent", color: "#fff", fontWeight: 600, fontSize: 14, textDecoration: "none" }}
+                            style={{ padding: "10px 20px", borderRadius: 10, border: `1px solid ${i === 0 ? PRIMARY : "rgba(255,255,255,0.15)"}`, background: i === 0 ? "rgba(245,158,11,0.15)" : "transparent", color: "#d4d6e2", fontWeight: 600, fontSize: 14, textDecoration: "none" }}
                         >
                             {b.label}
                         </a>

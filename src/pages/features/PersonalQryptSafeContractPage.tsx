@@ -13,6 +13,7 @@ export default function PersonalQryptSafeContractPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#7C3AED"
             secondaryColor="#00D4FF"
+            heroImg="/images/feat-vault-security.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/shield-factory", primary: false },
                 { label: p.heroButtons[1].label, href: "/abi-and-addresses", primary: false },

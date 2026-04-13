@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 18,
                 fontWeight: 700,
-                color: "#fff",
+                color: "#d4d6e2",
                 marginBottom: "0.75rem",
                 letterSpacing: "-0.01em",
             }}>{title}</h2>
@@ -48,7 +48,7 @@ export default function TermsPage() {
     const sections = L.sections as unknown as TermsSection[];
 
     return (
-        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: "#fff" }}>
+        <div style={{ background: "#000", minHeight: "100vh", fontFamily: "'Inter', sans-serif", color: "#d4d6e2" }}>
             <SharedNavBar />
 
             <main style={{
@@ -69,7 +69,7 @@ export default function TermsPage() {
                         fontSize: 40,
                         fontWeight: 800,
                         letterSpacing: "-0.03em",
-                        color: "#fff",
+                        color: "#d4d6e2",
                         marginBottom: "0.5rem",
                     }}>{L.title}</h1>
                     <p style={{ fontSize: 14, color: "rgba(255,255,255,0.35)" }}>{L.lastUpdated}</p>

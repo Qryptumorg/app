@@ -5,7 +5,7 @@ const PRIMARY = "#8B5CF6";
 const POINTS = [
     "This process takes around 5 minutes.",
     "Keep this tab open while it runs.",
-    "Your funds stay safe if interrupted — you can resume.",
+    "Your funds stay safe if interrupted: you can resume.",
     "Routes through a zero-knowledge privacy network.",
 ];
 
@@ -24,7 +24,7 @@ export default function QryptShieldApproval({ onApprove, onCancel }: QryptShield
         }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                 <EyeOffIcon size={20} color={PRIMARY} />
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#d4d6e2", letterSpacing: "-0.01em" }}>
                     QryptShield
                 </span>
                 <span style={{
@@ -94,7 +94,7 @@ export default function QryptShieldApproval({ onApprove, onCancel }: QryptShield
                     borderRadius: 12,
                     background: PRIMARY,
                     border: "none",
-                    color: "#fff",
+                    color: "#d4d6e2",
                     fontSize: 14,
                     fontWeight: 700,
                     cursor: "pointer",

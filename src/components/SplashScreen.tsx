@@ -64,7 +64,7 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
             }}
         >
             <img
-                src={import.meta.env.BASE_URL + 'qryptum-logo.png'}
+                src="/qryptum-logo.png"
                 width={80}
                 height={80}
                 alt="Qryptum"

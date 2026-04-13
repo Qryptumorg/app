@@ -13,6 +13,7 @@ export default function TimeLockedRevealsPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#F59E0B"
             secondaryColor="#EF4444"
+            heroImg="/images/feat-time-lock.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/commit-phase", primary: false },
                 { label: p.heroButtons[1].label, href: "/nonce-protection", primary: false },

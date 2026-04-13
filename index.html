@@ -16,14 +16,14 @@
     <meta name="theme-color" content="#08090F" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="64x64" href="%BASE_URL%favicon-tight.png" />
-    <link rel="apple-touch-icon" href="%BASE_URL%favicon-tight.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-tight.png" />
+    <link rel="apple-touch-icon" href="/favicon-tight.png" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="The Security Layer Beyond Your Private Key" />
     <meta property="og:description" content="The Security Layer Beyond Your Private Key. Quantum-Resistant, Private, and No Internet Required." />
-    <meta property="og:image" content="%BASE_URL%og-image.png" />
+    <meta property="og:image" content="/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
@@ -31,7 +31,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Security Layer Beyond Your Private Key" />
     <meta name="twitter:description" content="The Security Layer Beyond Your Private Key. Quantum-Resistant, Private, and No Internet Required." />
-    <meta name="twitter:image" content="%BASE_URL%og-image.png" />
+    <meta name="twitter:image" content="/og-image.jpg" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -167,24 +167,12 @@
         }
       }, true);
     </script>
-      <script>
-      (function(l) {
-        if (l.search[1] === '/') {
-          var decoded = l.search.slice(1).split('&').map(function(s) {
-            return s.replace(/~and~/g, '&');
-          }).join('?');
-          window.history.replaceState(null, null,
-            l.pathname.slice(0, -1) + decoded + l.hash
-          );
-        }
-      }(window.location));
-    </script>
   </head>
   <body style="background:#000">
     <div id="root"></div>
 
     <div id="splash-html">
-      <img src="%BASE_URL%qryptum-logo.png" width="68" height="68" alt="Qryptum" class="s0"
+      <img src="/qryptum-logo.png" width="68" height="68" alt="Qryptum" class="s0"
            style="display:block;margin-bottom:18px;" />
 
       <p class="s1"

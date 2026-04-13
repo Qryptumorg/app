@@ -13,6 +13,7 @@ export default function NetworkSupportPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#6366F1"
             secondaryColor="#8B5CF6"
+            heroImg="/images/feat-network-onchain.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/abi-and-addresses", primary: false },
                 { label: p.heroButtons[1].label, href: "/rest-api-reference", primary: false },

@@ -13,6 +13,7 @@ export default function ReceiveOriginalTokensPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#22C55E"
             secondaryColor="#10B981"
+            heroImg="/images/feat-token-economics.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/burn-qtokens", primary: false },
                 { label: p.heroButtons[1].label, href: "/exiting-qrypt-safe", primary: false },

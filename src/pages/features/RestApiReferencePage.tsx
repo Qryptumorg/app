@@ -13,6 +13,7 @@ export default function RestApiReferencePage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#F59E0B"
             secondaryColor="#EF4444"
+            heroImg="/images/feat-guide-docs.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/abi-and-addresses", primary: false },
                 { label: p.heroButtons[1].label, href: "/network-support", primary: false },

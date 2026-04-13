@@ -13,6 +13,7 @@ export default function BurnOnUnshieldPage() {
             heroSubtitle={p.heroSubtitle}
             primaryColor="#EF4444"
             secondaryColor="#F97316"
+            heroImg="/images/feat-burn-tokens.jpg"
             heroButtons={[
                 { label: p.heroButtons[0].label, href: "/exiting-qrypt-safe", primary: true },
                 { label: p.heroButtons[1].label, href: "/one-to-one-backing" },

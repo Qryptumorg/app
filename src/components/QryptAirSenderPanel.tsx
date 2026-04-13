@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useCallback, useRef, useEffect } from "react";
 import { keccak256, toBytes, parseUnits, formatUnits } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
@@ -52,7 +51,7 @@ function field(label: string, children: React.ReactNode, hint?: string) {
 const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 12px", borderRadius: 10,
     background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-    color: "#fff", fontFamily: "'Inter', sans-serif", fontSize: 13,
+    color: "#d4d6e2", fontFamily: "'Inter', sans-serif", fontSize: 13,
     outline: "none", boxSizing: "border-box",
 };
 
@@ -155,7 +154,7 @@ function AirBudgetManager({
         writeFund({
             address: vaultAddress,
             abi: PERSONAL_VAULT_V6_ABI,
-            functionName: "fundAirBudget",
+            functionName: "fundAirBags",
             args: [token.tokenAddress as `0x${string}`, parsed, peeked.proof],
         }, {
             onSuccess: (hash) => pushTx(hash, `Funding air budget with ${fundAmount} ${token.tokenSymbol}`),
@@ -180,7 +179,7 @@ function AirBudgetManager({
         writeReclaim({
             address: vaultAddress,
             abi: PERSONAL_VAULT_V6_ABI,
-            functionName: "reclaimAirBudget",
+            functionName: "reclaimAirBags",
             args: [token.tokenAddress as `0x${string}`, peeked.proof],
         }, {
             onSuccess: (hash) => pushTx(hash, `Reclaiming air budget for ${token.tokenSymbol}`),
@@ -445,7 +444,7 @@ export default function QryptAirSenderPanel({ walletAddress, chainId, tokensWith
     }, [qrValue, toast]);
 
     const downloadQr = useCallback(() => {
-        const svg = document.getElementById("qryptair-qr") as unknown as SVGElement | null;
+        const svg = document.getElementById("qryptair-qr") as SVGElement | null;
         if (!svg) return;
         const xml = new XMLSerializer().serializeToString(svg);
         const url = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml" }));

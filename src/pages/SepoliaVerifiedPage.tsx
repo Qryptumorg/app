@@ -76,7 +76,7 @@ function AddrRow({ label, value, verified, dim, link }: { label: string; value: 
 function FlowDiagram() {
     const steps = [
         { label: "ERC-20 Token", sub: "Wallet holds USDC", color: "#627EEA" },
-        { label: "shield()", sub: "vault proof required", color: "#8B5CF6" },
+        { label: "shield()", sub: "vault proof required", color: "rgba(255,255,255,0.55)" },
         { label: "Qrypt-Safe", sub: "qToken locked in vault", color: "#06B6D4" },
         { label: "commitTransfer()", sub: "hashed intent on-chain", color: "#F59E0B" },
         { label: "revealTransfer()", sub: "after timelock, unlock", color: "#F97316" },
@@ -123,7 +123,7 @@ function TestRow({ pass, n, title, desc, txLabel, txHash, txLabel2, txHash2 }: T
             <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5, flexWrap: "wrap" }}>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.22)", letterSpacing: "0.06em" }}>{String(n).padStart(2, "0")}</span>
-                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>{title}</span>
+                    <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 700, color: "#d4d6e2", letterSpacing: "-0.01em" }}>{title}</span>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: pass ? "#22C55E" : "#EF4444", background: pass ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", border: `1px solid ${pass ? "rgba(34,197,94,0.22)" : "rgba(239,68,68,0.22)"}`, borderRadius: 4, padding: "2px 6px" }}>{pass ? "PASS" : "SKIP"}</span>
                 </div>
                 <p style={{ margin: "0 0 6px", fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", lineHeight: 1.6 }}>{desc}</p>
@@ -159,8 +159,8 @@ export default function SepoliaVerifiedPage() {
         return () => window.removeEventListener("resize", fn);
     }, []);
 
-    const W = 1200;
-    const pad = isMobile ? "0 18px" : "0 40px";
+    const W = 1300;
+    const pad = isMobile ? "0 18px" : "0 24px";
 
     const card = (extra?: React.CSSProperties): React.CSSProperties => ({
         background: "rgba(255,255,255,0.025)",
@@ -170,19 +170,19 @@ export default function SepoliaVerifiedPage() {
     });
 
     return (
-        <div style={{ minHeight: "100vh", background: "#050710", color: "#fff" }}>
+        <div style={{ minHeight: "100vh", background: "#050710", color: "#d4d6e2" }}>
             <SharedNavBar />
 
             {/* ═══ HERO ═══════════════════════════════════════════ */}
             <div style={{ position: "relative", overflow: "hidden" }}>
                 {/* generated image as background strip */}
                 <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                    <img src="/sepolia-v2-hero.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.22) saturate(1.4)" }} />
+                    <img src="/sepolia-v2-hero.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", filter: "brightness(0.22) saturate(1.4)" }} />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(5,7,16,0.1) 0%, rgba(5,7,16,0.65) 70%, #050710 100%)" }} />
                 </div>
 
                 <div style={{ position: "relative", zIndex: 1, maxWidth: W, margin: "0 auto", padding: pad }}>
-                    <div style={{ padding: isMobile ? "100px 0 40px" : "110px 0 56px" }}>
+                    <div style={{ padding: isMobile ? "160px 0 100px" : "200px 0 140px" }}>
 
                         <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 400px", gap: 60, alignItems: "center" }}>
                             {/* left */}
@@ -191,7 +191,7 @@ export default function SepoliaVerifiedPage() {
                                     <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#EF4444", boxShadow: "0 0 8px rgba(239,68,68,0.5)" }} />
                                     <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#EF4444", textTransform: "uppercase" }}>{sr.heroBadge}</span>
                                 </div>
-                                <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 36 : 56, letterSpacing: "-0.03em", lineHeight: 1.04, margin: "0 0 20px", color: "#fff" }}>
+                                <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 36 : 56, letterSpacing: "-0.03em", lineHeight: 1.04, margin: "0 0 20px", color: "#d4d6e2" }}>
                                     {sr.heroTitle}
                                 </h1>
                                 <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 20px", maxWidth: 520 }}>
@@ -221,7 +221,7 @@ export default function SepoliaVerifiedPage() {
                             {/* right: hero image panel */}
                             {!isMobile && (
                                 <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}>
-                                    <img src="/sepolia-v2-hero.png" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
+                                    <img src="/sepolia-v2-hero.jpg" alt="Vault visualization" style={{ width: "100%", display: "block", aspectRatio: "16/9", objectFit: "cover" }} />
                                 </div>
                             )}
                         </div>
@@ -235,7 +235,7 @@ export default function SepoliaVerifiedPage() {
                 {/* ── Protocol Flow (full width) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 20 }) }}>
                     <Tag text={sr.flowLabel} />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.flowHeading}</h2>
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.flowHeading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.6 }}>{sr.flowBody}</p>
                     <FlowDiagram />
                 </div>
@@ -245,7 +245,7 @@ export default function SepoliaVerifiedPage() {
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 380px" }}>
                         <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
                             <Tag text={sr.activeContractsLabel} color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.activeContractsHeading}</h2>
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.activeContractsHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
                                 {sr.activeContractsBody}
                             </p>
@@ -254,7 +254,7 @@ export default function SepoliaVerifiedPage() {
                         </div>
                         {!isMobile && (
                             <div style={{ position: "relative", minHeight: 280 }}>
-                                <img src="/sepolia-v2-contracts.png" alt="Contract architecture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) saturate(1.2)" }} />
+                                <img src="/sepolia-v2-contracts.jpg" alt="Contract architecture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) saturate(1.2)" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(255,255,255,0.03) 0%, transparent 40%)" }} />
                             </div>
                         )}
@@ -265,7 +265,7 @@ export default function SepoliaVerifiedPage() {
                 <div style={{ ...card({ marginBottom: 20, overflow: "hidden", borderColor: "rgba(98,126,234,0.14)" }) }}>
                     <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
                         <Tag text={sr.prevVersionLabel} color="#627EEA" />
-                        <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.prevVersionHeading}</h2>
+                        <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.prevVersionHeading}</h2>
                         <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
                             {sr.prevVersionBody}
                         </p>
@@ -280,7 +280,7 @@ export default function SepoliaVerifiedPage() {
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "flex-start" }}>
                         <div>
                             <Tag text={sr.supersededLabel} color="#EF4444" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.supersededHeading}</h2>
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.supersededHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 20px", lineHeight: 1.65 }}>
                                 {sr.supersededBody}
                             </p>
@@ -289,7 +289,7 @@ export default function SepoliaVerifiedPage() {
                         </div>
                         <div>
                             <Tag text={sr.fixLabel} color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.fixHeading}</h2>
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.fixHeading}</h2>
                             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 20 }}>
                                 {[
                                     sr.fixes[0],
@@ -301,7 +301,7 @@ export default function SepoliaVerifiedPage() {
                                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.8"><path d="M20 6L9 17l-5-5" /></svg>
                                         </div>
                                         <div>
-                                            <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{r.label}</div>
+                                            <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, fontWeight: 700, color: "#d4d6e2", marginBottom: 2 }}>{r.label}</div>
                                             <div style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{r.desc}</div>
                                         </div>
                                     </div>
@@ -316,13 +316,13 @@ export default function SepoliaVerifiedPage() {
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "340px 1fr" }}>
                         {!isMobile && (
                             <div style={{ position: "relative", minHeight: 320 }}>
-                                <img src="/sepolia-v2-tests.png" alt="Test results" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.7) saturate(1.3)" }} />
+                                <img src="/sepolia-v2-tests.jpg" alt="Test results" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.7) saturate(1.3)" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to left, rgba(5,7,16,0.1) 0%, transparent 50%)" }} />
                             </div>
                         )}
                         <div style={{ padding: isMobile ? "28px 18px" : "36px 40px" }}>
                             <Tag text={srV3.unitTestsLabel} color="#22C55E" />
-                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{srV3.unitTestsHeading}</h2>
+                            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{srV3.unitTestsHeading}</h2>
                             <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 22px", lineHeight: 1.65 }}>
                                 {srV3.unitTestsBody}
                             </p>
@@ -355,11 +355,11 @@ export default function SepoliaVerifiedPage() {
                 {/* ── Test wallets (3-col grid) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 20 }) }}>
                     <Tag text={srV3.testWalletsLabel} color="#8B5CF6" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 20px", color: "#fff" }}>{srV3.testWalletsHeading}</h2>
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 20px", color: "#d4d6e2" }}>{srV3.testWalletsHeading}</h2>
                     <div style={{ display: isMobile ? "block" : "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                         {[
                             { label: "Wallet A", sub: "vault owner", value: WALLET_A, color: "#627EEA" },
-                            { label: "Wallet B", sub: "recipient", value: WALLET_B, color: "#8B5CF6" },
+                            { label: "Wallet B", sub: "recipient", value: WALLET_B, color: "rgba(255,255,255,0.55)" },
                             { label: "Vault A", sub: "Wallet A Qrypt-Safe", value: VAULT_A, color: "#06B6D4" },
                         ].map(w => (
                             <div key={w.label} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${w.color}22`, borderRadius: 14, padding: "18px 16px" }}>
@@ -377,7 +377,7 @@ export default function SepoliaVerifiedPage() {
                 {/* ── Live on-chain tests (full width) ─── */}
                 <div style={{ ...card({ padding: isMobile ? "28px 18px" : "36px 40px", marginBottom: 60 }) }}>
                     <Tag text={sr.testResultsLabel} color="#F59E0B" />
-                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#fff" }}>{sr.testResultsHeading}</h2>
+                    <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: "-0.02em", margin: "0 0 6px", color: "#d4d6e2" }}>{sr.testResultsHeading}</h2>
                     <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: "rgba(255,255,255,0.42)", margin: "0 0 4px", lineHeight: 1.6 }}>
                         {sr.testResultsBody}
                     </p>
