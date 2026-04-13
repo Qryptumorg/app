@@ -13,7 +13,7 @@ const MODES = [
         bg: "rgba(34,197,94,0.07)",
         border: "rgba(34,197,94,0.22)",
         icon: <ShieldIcon size={18} color="#22C55E" />,
-        description: "Commit-reveal vault proof. Private, on-chain, gas required for both steps.",
+        description: "Init-finalize vault proof. Private, on-chain, gas required for both steps.",
         badge: null,
         disabled: false,
         requiresVault: true,
