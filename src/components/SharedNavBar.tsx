@@ -118,7 +118,7 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                     {/* Logo */}
                     <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, marginRight: 32 }}>
                         <img src="/qryptum-logo.png" alt="Qryptum" style={{ height: 38, width: 38, objectFit: "contain", display: "block" }} />
-                        <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#fff", marginLeft: -4 }}>
+                        <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#d4d6e2", marginLeft: -4 }}>
                             QRYPTUM
                         </span>
                     </a>
@@ -257,10 +257,10 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                     }}>
                         <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0, flex: 1 }}>
                             <img src="/qryptum-logo.png" alt="Qryptum" style={{ height: 36, width: 36, objectFit: "contain" }} />
-                            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#fff", marginLeft: -4 }}>QRYPTUM</span>
+                            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "0.12em", color: "#d4d6e2", marginLeft: -4 }}>QRYPTUM</span>
                         </a>
                         <button onClick={() => setMobileOpen(false)}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#fff" }}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#d4d6e2" }}
                             aria-label="Close menu">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M18 6L6 18M6 6l12 12" />
@@ -280,7 +280,7 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                                         borderBottom: "1px solid rgba(255,255,255,0.06)",
                                     }}
                                 >
-                                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 17, color: "#fff" }}>{t.navMenus[key].label}</span>
+                                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 17, color: "#d4d6e2" }}>{t.navMenus[key].label}</span>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                                         stroke="rgba(255,255,255,0.45)" strokeWidth="2"
                                         style={{ transform: mobileExpanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }}>
@@ -404,19 +404,51 @@ export default function SharedNavBar({ onConnect, isConnecting = false }: Shared
                             ))}
                         </div>
 
-                        <div style={{ flex: 1, padding: "28px 40px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 40px", alignContent: "start" }}>
-                            {t.navMenus[NAV_MENU_KEYS[activeMenu]].categories[activeCategory].items.map((item, ii) => (
-                                <a
-                                    key={ii}
-                                    href={NAV_HREFS[NAV_MENU_KEYS[activeMenu]][activeCategory][ii]}
-                                    style={{ textDecoration: "none", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(98,126,234,0.3)"; }}
-                                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(255,255,255,0.05)"; }}
-                                >
-                                    <p style={{ margin: 0, fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, color: "#fff" }}>{item.title}</p>
-                                    <p style={{ margin: "4px 0 0", fontFamily: "'Inter',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{item.desc}</p>
-                                </a>
-                            ))}
+                        <div style={{ flex: 1, padding: "28px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 40px", alignContent: "start" }}>
+                                {t.navMenus[NAV_MENU_KEYS[activeMenu]].categories[activeCategory].items.map((item, ii) => (
+                                    <a
+                                        key={ii}
+                                        href={NAV_HREFS[NAV_MENU_KEYS[activeMenu]][activeCategory][ii]}
+                                        style={{ textDecoration: "none", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                                        onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(98,126,234,0.3)"; }}
+                                        onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "rgba(255,255,255,0.05)"; }}
+                                    >
+                                        <p style={{ margin: 0, fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, color: "#d4d6e2" }}>{item.title}</p>
+                                        <p style={{ margin: "4px 0 0", fontFamily: "'Inter',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{item.desc}</p>
+                                    </a>
+                                ))}
+                            </div>
+                            {NAV_MENU_KEYS[activeMenu] === "docs" && (
+                                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                                    <a
+                                        href="/docs"
+                                        style={{
+                                            display: "inline-flex", alignItems: "center", gap: 8,
+                                            padding: "11px 18px",
+                                            border: "1px solid rgba(98,126,234,0.35)",
+                                            borderRadius: 10, textDecoration: "none",
+                                            background: "rgba(98,126,234,0.07)",
+                                            fontFamily: "'Inter',sans-serif", fontWeight: 600,
+                                            fontSize: 13, color: "#627EEA",
+                                            transition: "background 0.15s, border-color 0.15s",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            (e.currentTarget as HTMLAnchorElement).style.background = "rgba(98,126,234,0.15)";
+                                            (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(98,126,234,0.6)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            (e.currentTarget as HTMLAnchorElement).style.background = "rgba(98,126,234,0.07)";
+                                            (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(98,126,234,0.35)";
+                                        }}
+                                    >
+                                        Documentation
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path d="M7 17L17 7M17 7H7M17 7v10" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
