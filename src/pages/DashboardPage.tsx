@@ -12,6 +12,7 @@ import {
 import { getTxEtherscanUrl } from "@/lib/utils";
 import { useVault } from "@/hooks/useVault";
 import type { VaultVersion } from "@/hooks/useVault";
+import CreateVaultPage from "@/pages/CreateVaultPage";
 import ShieldPanel from "@/components/ShieldPanel";
 import TransferPanel from "@/components/TransferPanel";
 import UnshieldPanel from "@/components/UnshieldPanel";
@@ -318,13 +319,6 @@ export default function DashboardPage() {
         return () => window.removeEventListener("keydown", onKey);
     }, [closeModal]);
 
-    useEffect(() => {
-        if (!address || !chainId) return;
-        import("@/lib/railgun").then(({ ensureRailgunEngine, loadRailgunProvider }) => {
-            ensureRailgunEngine().catch(() => {});
-            loadRailgunProvider(chainId).catch(() => {});
-        });
-    }, [address, chainId]);
 
     const copyAddress = () => {
         if (address) { navigator.clipboard.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 2000); }
@@ -596,9 +590,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                         <ModalSettingsNoVault p={p} />
                     )}
                     {id === "upgrade-v6" && p.address && (
-                        <div style={{ textAlign: "center", padding: "24px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                            Deploy a new V6 Qrypt-Safe via your wallet to upgrade.
-                        </div>
+                        <CreateVaultPage onVaultCreated={() => { p.closeModal(); p.refetchData(); }} />
                     )}
                     {id === "upgrade-v6" && !p.address && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
@@ -631,7 +623,10 @@ function DesktopLayout(p: SharedProps) {
             </header>
 
             <main style={{ marginTop: 58, flex: 1, minHeight: "calc(100vh - 58px)" }}>
-                <DesktopDashboard {...p} />
+                {p.isConnected && !p.hasVault
+                    ? <CreateVaultPage onVaultCreated={p.refetchData} />
+                    : <DesktopDashboard {...p} />
+                }
             </main>
 
             {(["shield", "transfer", "unshield", "vaults", "settings", "transfer-select", "qryptair-sender", "qryptair-fund", "qryptair-recipient", "qryptshield", "upgrade-v6"] as ModalId[]).map(id => (
@@ -754,9 +749,11 @@ function MobileLayout(p: SharedProps) {
             </header>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 90px" }}>
-                {mobileNavTab === "profile"
-                    ? <MobileProfileTab p={p} />
-                    : <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
+                {p.isConnected && !p.hasVault
+                    ? <CreateVaultPage onVaultCreated={p.refetchData} />
+                    : mobileNavTab === "profile"
+                        ? <MobileProfileTab p={p} />
+                        : <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
                 }
             </div>
 
