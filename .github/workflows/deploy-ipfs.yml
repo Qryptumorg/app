@@ -40,65 +40,66 @@ jobs:
       - name: Upload to Pinata IPFS
         env:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
           npm install @pinata/sdk --no-save --silent
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          node << 'EOF'
-          const pinataSDK = require('@pinata/sdk');
-          const pinata = new pinataSDK({ pinataJWTKey: process.env.PINATA_JWT });
-          const shortSha = process.env.SHORT_SHA;
 
-          pinata.pinFromFS('./dist/public', {
-            pinataMetadata: {
-              name: `qryptum-app-${shortSha}`,
-            },
-            pinataOptions: {
-              wrapWithDirectory: false,
-            },
-          }).then(result => {
+          cat > /tmp/pinata-upload.cjs << 'NODEEOF'
+          const pinataSDK = require('@pinata/sdk');
+          const path = require('path');
+          const fs = require('fs');
+
+          async function main() {
+            const pinata = new pinataSDK({ pinataJWTKey: process.env.PINATA_JWT });
+            const sha = (process.env.COMMIT_SHA || 'unknown').slice(0, 7);
+            const distPath = path.resolve('./dist/public');
+
+            console.log('Uploading', distPath, '...');
+            const result = await pinata.pinFromFS(distPath, {
+              pinataMetadata: { name: 'qryptum-app-' + sha },
+              pinataOptions: { wrapWithDirectory: false },
+            });
+
             const cid = result.IpfsHash;
             console.log('');
-            console.log('========================================');
-            console.log('IPFS Upload Success!');
-            console.log('========================================');
-            console.log('CID     :', cid);
-            console.log('Gateway :', `https://${cid}.ipfs.cf-ipfs.com`);
-            console.log('Pinata  :', `https://gateway.pinata.cloud/ipfs/${cid}`);
+            console.log('===== IPFS Upload Success =====');
+            console.log('CID    :', cid);
+            console.log('URL    :', 'https://' + cid + '.ipfs.cf-ipfs.com');
+            console.log('Pinata :', 'https://gateway.pinata.cloud/ipfs/' + cid);
             console.log('');
-            console.log('Next step — set contenthash on qryptum.eth:');
-            console.log(`  1. Go to https://app.ens.domains/qryptum.eth`);
-            console.log(`  2. Click Edit Records -> Content Hash`);
-            console.log(`  3. Enter: ipfs://${cid}`);
-            console.log(`  4. Save (requires ETH gas)`);
-            console.log('');
-            console.log('After update, qryptum.eth.limo will serve this build.');
-            console.log('========================================');
+            console.log('To update ENS contenthash on qryptum.eth:');
+            console.log('  1. https://app.ens.domains/qryptum.eth');
+            console.log('  2. Edit Records -> Content Hash');
+            console.log('  3. Enter: ipfs://' + cid);
+            console.log('  4. Save (requires ETH gas on mainnet)');
+            console.log('===============================');
 
             const summary = [
               '## IPFS Deploy',
               '',
               '| | |',
               '|---|---|',
-              `| **CID** | \`${cid}\` |`,
-              `| **Commit** | ${shortSha} |`,
-              `| **CF Gateway** | https://${cid}.ipfs.cf-ipfs.com |`,
-              `| **Pinata Gateway** | https://gateway.pinata.cloud/ipfs/${cid} |`,
+              '| **CID** | `' + cid + '` |',
+              '| **Commit** | ' + sha + ' |',
+              '| **CF Gateway** | https://' + cid + '.ipfs.cf-ipfs.com |',
+              '| **Pinata Gateway** | https://gateway.pinata.cloud/ipfs/' + cid + ' |',
               '',
               '### Update ENS contenthash',
               '1. Go to **https://app.ens.domains/qryptum.eth**',
-              '2. Click **Edit Records** → **Content Hash**',
-              `3. Enter: \`ipfs://${cid}\``,
+              '2. Click **Edit Records** -> **Content Hash**',
+              '3. Enter: `ipfs://' + cid + '`',
               '4. Save (requires gas on Ethereum mainnet)',
               '',
               'After update: **https://qryptum.eth.limo** will serve this build.',
             ].join('\n');
 
-            require('fs').appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-          }).catch(err => {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          }
+
+          main().catch(function(err) {
             console.error('Upload failed:', err.message);
             process.exit(1);
           });
-          EOF
-        env:
-          PINATA_JWT: ${{ secrets.PINATA_JWT }}
-          SHORT_SHA: ${{ github.sha }}
+          NODEEOF
+
+          node /tmp/pinata-upload.cjs
