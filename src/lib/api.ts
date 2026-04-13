@@ -1,4 +1,7 @@
-const BASE = `${import.meta.env.BASE_URL}api`;
+// In production (GitHub Pages / IPFS), VITE_API_BASE points to the deployed API server.
+// In development (Replit), falls back to the local relative path.
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "")
+    ?? `${import.meta.env.BASE_URL}api`;
 
 export async function fetchVault(walletAddress: string) {
     const res = await fetch(`${BASE}/vaults/${walletAddress}`);
@@ -52,12 +55,38 @@ export async function broadcastUnshieldTx(params: {
     value?: string;
     chainId: number;
 }): Promise<{ txHash: string; broadcaster: string }> {
-    const res = await fetch(`${BASE}/shield/broadcast`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-    });
-    const json = await res.json();
+    let res: Response;
+    try {
+        res = await fetch(`${BASE}/shield/broadcast`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(params),
+        });
+    } catch {
+        // Network error (offline, no backend) → fallback to direct wallet
+        const err = new Error("Broadcaster unreachable");
+        (err as Error & { fallback?: boolean }).fallback = true;
+        throw err;
+    }
+
+    // Static hosts (GitHub Pages / IPFS) return 404/405 with non-JSON body
+    // when no backend is present → fallback to direct wallet submit
+    if (res.status === 404 || res.status === 405 || res.status === 0) {
+        const err = new Error("Broadcaster not available");
+        (err as Error & { fallback?: boolean }).fallback = true;
+        throw err;
+    }
+
+    let json: { error?: string; fallback?: boolean; txHash?: string; broadcaster?: string };
+    try {
+        json = await res.json();
+    } catch {
+        // Non-JSON response (e.g. "Method Not Allowed" plain text) → fallback
+        const err = new Error("Broadcaster returned invalid response");
+        (err as Error & { fallback?: boolean }).fallback = true;
+        throw err;
+    }
+
     if (!res.ok) {
         const err = new Error(json.error ?? "Broadcast failed");
         (err as Error & { fallback?: boolean }).fallback = !!json.fallback;
