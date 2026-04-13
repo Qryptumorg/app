@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import qryptumLogoUrl from '@/assets/qryptum-logo.png';
 
 interface SplashScreenProps {
     onDone: () => void;
@@ -28,8 +27,8 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
         rafRef.current = requestAnimationFrame(tick);
 
         const preloads = Promise.allSettled([
- => null),
-            import("../pages/DashboardPage").catch(() => null)
+            import("../pages/LandingPage").catch(() => null),
+            import("../pages/DashboardPage").catch(() => null),
         ]);
 
         const timer = new Promise<void>(res => setTimeout(res, MIN_MS));
@@ -65,7 +64,7 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
             }}
         >
             <img
-                src={qryptumLogoUrl}
+                src={`${import.meta.env.BASE_URL}qryptum-logo.png`}
                 width={80}
                 height={80}
                 alt="Qryptum"
