@@ -101,8 +101,8 @@ export default function AppRouter() {
         <Suspense fallback={null}>
         <Switch>
             {/* Core */}
-            <Route path="/" component={LandingPage} />
-            <Route path="/app" component={DashboardRoute} />
+            <Route path="/" component={DashboardRoute} />
+            <Route path="/landing" component={LandingPage} />
             <Route path="/sepolia-verified" component={SepoliaVerifiedPage} />
             <Route path="/sepolia-verified-v1" component={SepoliaVerifiedV1Page} />
             <Route path="/sepolia-verified-v2" component={SepoliaVerifiedV2Page} />
