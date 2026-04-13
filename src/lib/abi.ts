@@ -259,28 +259,28 @@ export const PERSONAL_VAULT_ABI = [
 export const SHIELD_FACTORY_V6_ABI = [
     {
         type: "function",
-        name: "createVault",
+        name: "createQryptSafe",
         inputs: [{ name: "initialChainHead", type: "bytes32", internalType: "bytes32" }],
         outputs: [{ name: "vault", type: "address", internalType: "address" }],
         stateMutability: "nonpayable"
     },
     {
         type: "function",
-        name: "hasVault",
+        name: "hasQryptSafe",
         inputs: [{ name: "wallet", type: "address", internalType: "address" }],
         outputs: [{ name: "", type: "bool", internalType: "bool" }],
         stateMutability: "view"
     },
     {
         type: "function",
-        name: "getVault",
+        name: "getQryptSafe",
         inputs: [{ name: "wallet", type: "address", internalType: "address" }],
         outputs: [{ name: "", type: "address", internalType: "address" }],
         stateMutability: "view"
     },
     {
         type: "event",
-        name: "VaultCreated",
+        name: "QryptSafeCreated",
         inputs: [
             { name: "owner", type: "address", indexed: true, internalType: "address" },
             { name: "vault", type: "address", indexed: true, internalType: "address" }
@@ -292,7 +292,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     // ── QryptSafe: shield / unshield ─────────────────────────────────────────
     {
         type: "function",
-        name: "shield",
+        name: "qrypt",
         inputs: [
             { name: "tokenAddress", type: "address", internalType: "address" },
             { name: "amount",       type: "uint256", internalType: "uint256" },
@@ -303,7 +303,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "function",
-        name: "unshield",
+        name: "unqrypt",
         inputs: [
             { name: "tokenAddress", type: "address", internalType: "address" },
             { name: "amount",       type: "uint256", internalType: "uint256" },
@@ -315,14 +315,14 @@ export const PERSONAL_VAULT_V6_ABI = [
     // ── QryptSafe: commit-reveal transfer ────────────────────────────────────
     {
         type: "function",
-        name: "commitTransfer",
+        name: "veilTransfer",
         inputs: [{ name: "commitHash", type: "bytes32", internalType: "bytes32" }],
         outputs: [],
         stateMutability: "nonpayable"
     },
     {
         type: "function",
-        name: "revealTransfer",
+        name: "unveilTransfer",
         inputs: [
             { name: "tokenAddress", type: "address", internalType: "address" },
             { name: "to",           type: "address", internalType: "address" },
@@ -344,10 +344,10 @@ export const PERSONAL_VAULT_V6_ABI = [
         outputs: [],
         stateMutability: "nonpayable"
     },
-    // ── QryptAir: air budget management ─────────────────────────────────────
+    // ── QryptAir: air bags management ─────────────────────────────────────
     {
         type: "function",
-        name: "fundAirBudget",
+        name: "fundAirBags",
         inputs: [
             { name: "token",  type: "address", internalType: "address" },
             { name: "amount", type: "uint256", internalType: "uint256" },
@@ -358,7 +358,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "function",
-        name: "reclaimAirBudget",
+        name: "reclaimAirBags",
         inputs: [
             { name: "token", type: "address", internalType: "address" },
             { name: "proof", type: "bytes32", internalType: "bytes32" }
@@ -368,7 +368,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "function",
-        name: "redeemAirVoucher",
+        name: "claimAirVoucher",
         inputs: [
             { name: "token",            type: "address", internalType: "address" },
             { name: "amount",           type: "uint256", internalType: "uint256" },
@@ -384,7 +384,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     // ── QryptShield: unshield to Railgun ─────────────────────────────────────
     {
         type: "function",
-        name: "unshieldToRailgun",
+        name: "railgun",
         inputs: [
             { name: "tokenAddress",   type: "address", internalType: "address" },
             { name: "amount",         type: "uint256", internalType: "uint256" },
@@ -406,14 +406,14 @@ export const PERSONAL_VAULT_V6_ABI = [
     // ── View: balances ───────────────────────────────────────────────────────
     {
         type: "function",
-        name: "getShieldedBalance",
+        name: "getQryptedBalance",
         inputs: [{ name: "tokenAddress", type: "address", internalType: "address" }],
         outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
         stateMutability: "view"
     },
     {
         type: "function",
-        name: "getAirBudget",
+        name: "getAirBags",
         inputs: [{ name: "token", type: "address", internalType: "address" }],
         outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
         stateMutability: "view"
@@ -472,7 +472,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     // ── Events ───────────────────────────────────────────────────────────────
     {
         type: "event",
-        name: "TokenShielded",
+        name: "TokenQrypted",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "amount", type: "uint256", indexed: false },
@@ -481,7 +481,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "TokenUnshielded",
+        name: "TokenUnqrypted",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "amount", type: "uint256", indexed: false }
@@ -489,7 +489,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "TransferExecuted",
+        name: "TransferUnveiled",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "to",     type: "address", indexed: true  },
@@ -498,9 +498,9 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "CommitSubmitted",
+        name: "TransferVeiled",
         inputs: [
-            { name: "commitHash", type: "bytes32", indexed: true }
+            { name: "veilHash", type: "bytes32", indexed: true }
         ]
     },
     {
@@ -512,7 +512,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "QTokenDeployed",
+        name: "QTokenCreated",
         inputs: [
             { name: "token",  type: "address", indexed: true },
             { name: "qToken", type: "address", indexed: true }
@@ -520,7 +520,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "EmergencyWithdraw",
+        name: "EmergencyExit",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "amount", type: "uint256", indexed: false }
@@ -528,7 +528,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "AirBudgetFunded",
+        name: "AirBagsFunded",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "amount", type: "uint256", indexed: false }
@@ -536,7 +536,7 @@ export const PERSONAL_VAULT_V6_ABI = [
     },
     {
         type: "event",
-        name: "AirBudgetReclaimed",
+        name: "AirBagsReclaimed",
         inputs: [
             { name: "token",  type: "address", indexed: true  },
             { name: "amount", type: "uint256", indexed: false }
