@@ -5,7 +5,7 @@ import { useAccount, useChainId, useReadContracts } from "wagmi";
 import { useVault } from "@/hooks/useVault";
 import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI } from "@/lib/abi";
 import {
-    DownloadIcon, SendIcon,
+    DownloadIcon, SendIcon, CopyIcon,
     ClockIcon, CheckCircle2Icon, AlertTriangleIcon,
     WifiOffIcon, WifiIcon, Loader2Icon, ChevronDownIcon,
     RefreshCwIcon, SmartphoneIcon, MonitorIcon, ArrowRightIcon,
@@ -177,6 +177,19 @@ function useAirBagTokens(
 function QrCard({ record }: { record: VoucherRecord }) {
     const logoUrl = `${import.meta.env.BASE_URL}qryptum-logo.png`;
     const isExpired = record.status === "expired";
+    const [copied, setCopied] = useState(false);
+
+    const copy = useCallback(async () => {
+        try {
+            await navigator.clipboard.writeText(record.qrData);
+        } catch {
+            const ta = document.createElement("textarea");
+            ta.value = record.qrData;
+            document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }, [record.qrData]);
 
     const download = useCallback(() => {
         const container = document.getElementById(`qr-${record.id}`);
@@ -231,21 +244,54 @@ function QrCard({ record }: { record: VoucherRecord }) {
                 </div>
             )}
 
+            {!isExpired && (
+                <div
+                    onClick={copy}
+                    title="Click to copy raw payload"
+                    style={{
+                        fontFamily: "monospace", fontSize: 9,
+                        color: "rgba(255,255,255,0.3)",
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.07)",
+                        borderRadius: 6, padding: "6px 8px",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        letterSpacing: "0.02em", cursor: "pointer",
+                        userSelect: "all",
+                    }}
+                >
+                    {record.qrData.slice(0, 72)}…
+                </div>
+            )}
+
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", display: "flex", alignItems: "center", gap: 3 }}>
                     <ClockIcon size={9} />
                     {isExpired ? "Expired" : `Expires ${formatDistanceToNow(new Date(record.deadline * 1000), { addSuffix: true })}`}
                 </span>
                 {!isExpired && (
-                    <button onClick={download} style={{
-                        display: "flex", alignItems: "center", gap: 4,
-                        padding: "5px 9px", borderRadius: 6,
-                        background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
-                        color: "#F59E0B", fontSize: 10, fontWeight: 600, cursor: "pointer",
-                        fontFamily: "'Inter', sans-serif",
-                    }}>
-                        <DownloadIcon size={9} /> SVG
-                    </button>
+                    <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={copy} style={{
+                            display: "flex", alignItems: "center", gap: 4,
+                            padding: "5px 9px", borderRadius: 6,
+                            background: copied ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.06)",
+                            border: `1px solid ${copied ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`,
+                            color: copied ? "#4ade80" : "rgba(255,255,255,0.5)",
+                            fontSize: 10, fontWeight: 600, cursor: "pointer",
+                            fontFamily: "'Inter', sans-serif", transition: "all 0.15s",
+                        }}>
+                            {copied ? <CheckIcon size={9} /> : <CopyIcon size={9} />}
+                            {copied ? "Copied!" : "Copy"}
+                        </button>
+                        <button onClick={download} style={{
+                            display: "flex", alignItems: "center", gap: 4,
+                            padding: "5px 9px", borderRadius: 6,
+                            background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
+                            color: "#F59E0B", fontSize: 10, fontWeight: 600, cursor: "pointer",
+                            fontFamily: "'Inter', sans-serif",
+                        }}>
+                            <DownloadIcon size={9} /> SVG
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
@@ -373,12 +419,14 @@ function SendForm({
     airTokens,
     loadingTokens,
     onVoucherCreated,
+    history,
 }: {
     walletAddress: string;
     vaultAddress: string;
     airTokens: AirToken[];
     loadingTokens: boolean;
     onVoucherCreated: (r: VoucherRecord) => void;
+    history: VoucherRecord[];
 }) {
     const [selectedToken, setSelectedToken] = useState<AirToken | null>(null);
     const [amount, setAmount] = useState("");
@@ -388,14 +436,40 @@ function SendForm({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
-    useEffect(() => {
-        if (!selectedToken && airTokens.length > 0) {
-            setSelectedToken(airTokens[0]);
+    // Deduct pending (unredeemed) voucher amounts from each token's available budget
+    const adjustedTokens = useMemo(() => {
+        const pendingByToken: Record<string, bigint> = {};
+        for (const r of history) {
+            if (r.status === "pending") {
+                const key = r.tokenAddress.toLowerCase();
+                const token = airTokens.find(t => t.tokenAddress.toLowerCase() === key);
+                if (token) {
+                    try {
+                        pendingByToken[key] = (pendingByToken[key] ?? 0n) + parseUnits(r.amount, token.decimals);
+                    } catch { /* skip malformed records */ }
+                }
+            }
         }
-    }, [airTokens, selectedToken]);
+        return airTokens.map(t => {
+            const locked = pendingByToken[t.tokenAddress.toLowerCase()] ?? 0n;
+            const effectiveBudget = t.airBudget > locked ? t.airBudget - locked : 0n;
+            return { ...t, airBudget: effectiveBudget };
+        });
+    }, [airTokens, history]);
 
-    const maxAmount = selectedToken
-        ? formatUnits(selectedToken.airBudget, selectedToken.decimals)
+    useEffect(() => {
+        if (!selectedToken && adjustedTokens.length > 0) {
+            setSelectedToken(adjustedTokens[0]);
+        }
+    }, [adjustedTokens, selectedToken]);
+
+    // Always derive effective budget from adjustedTokens so it updates after each voucher creation
+    const effectiveSelected = selectedToken
+        ? (adjustedTokens.find(t => t.tokenAddress === selectedToken.tokenAddress) ?? selectedToken)
+        : null;
+
+    const maxAmount = effectiveSelected
+        ? formatUnits(effectiveSelected.airBudget, effectiveSelected.decimals)
         : "0";
 
     const handleMax = () => setAmount(maxAmount);
@@ -423,8 +497,13 @@ function SendForm({
                 setError("Invalid amount."); setLoading(false); return;
             }
 
-            if (parsedAmount > selectedToken.airBudget) {
-                setError(`Exceeds Air Bag budget (${maxAmount} ${selectedToken.tokenSymbol}).`);
+            const effectiveBudget = effectiveSelected?.airBudget ?? 0n;
+            if (effectiveBudget === 0n) {
+                setError(`No remaining budget — all funds are locked in pending vouchers.`);
+                setLoading(false); return;
+            }
+            if (parsedAmount > effectiveBudget) {
+                setError(`Only ${maxAmount} ${selectedToken.tokenSymbol} available (pending vouchers deducted).`);
                 setLoading(false); return;
             }
 
@@ -522,8 +601,8 @@ function SendForm({
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {fieldLabel("Token")}
                 <TokenDropdown
-                    airTokens={airTokens}
-                    selected={selectedToken}
+                    airTokens={adjustedTokens}
+                    selected={effectiveSelected}
                     onSelect={setSelectedToken}
                     loading={loadingTokens}
                 />
@@ -673,7 +752,7 @@ function LandingCard({ onEnter, isOnline }: { onEnter: () => void; isOnline: boo
         { n: "05", text: "Share the QR code - anyone can broadcast it, funds always reach the recipient" },
     ];
 
-    const isDesktop = window.matchMedia("(min-width: 900px)").matches;
+    const isDesktop = window.matchMedia("(min-width: 769px)").matches;
 
     const statusBlock = (
         <div style={{
@@ -1008,6 +1087,7 @@ export default function QryptAirPWAPage() {
     useEffect(() => {
         const on = () => {
             setIsOnline(true);
+            setShowLanding(true);
             refetchTokens();
             const { records, changed } = syncExpired(loadHistory());
             const latest = changed ? records : loadHistory();
@@ -1149,6 +1229,7 @@ export default function QryptAirPWAPage() {
                                 airTokens={airTokens}
                                 loadingTokens={loadingTokens}
                                 onVoucherCreated={onVoucherCreated}
+                                history={history}
                             />
                         )}
                     </>
