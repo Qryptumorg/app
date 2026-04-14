@@ -3,7 +3,7 @@ import {
     HistoryIcon, ExternalLinkIcon,
     ShieldIcon, SendIcon, UnlockIcon,
     ArrowDownIcon, WalletIcon, RotateCcwIcon,
-    TicketIcon, ZapIcon, PackageIcon,
+    TicketIcon, WifiOffIcon, PackageIcon,
 } from "lucide-react";
 import { fetchTransactions } from "@/lib/api";
 
@@ -133,7 +133,7 @@ function getTxMeta(type: string): TxMeta {
             };
         case "air-send":
             return {
-                icon: <ZapIcon className="w-4 h-4 text-amber-400" />,
+                icon: <WifiOffIcon className="w-4 h-4 text-amber-400" />,
                 label: "Air Sent",
                 color: "text-amber-400",
                 amountPrefix: "",

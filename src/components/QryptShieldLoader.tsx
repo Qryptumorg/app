@@ -60,21 +60,24 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
             padding: "40px 16px 24px",
             gap: 0,
         }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28, width: "100%" }}>
                 <img
                     src={`${import.meta.env.BASE_URL}qryptum-logo.png`}
-                    width={44} height={44}
+                    width={56} height={56}
                     alt="Qryptum"
-                    style={{ borderRadius: 10 }}
+                    style={{ borderRadius: 12, display: "block" }}
                 />
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                {/* marginLeft 4px (from Qryptum), marginRight 16px (before Railgun)
+                    places "+" center at midpoint between both logo centers */}
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                     style={{ flexShrink: 0, marginLeft: 4, marginRight: 16 }}>
                     <path d="M2 8h12M8 2v12" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
                 <img
                     src={`${import.meta.env.BASE_URL}railgun-logo.png`}
                     width={28} height={28}
                     alt="Railgun"
-                    style={{ borderRadius: 7, opacity: 0.75 }}
+                    style={{ borderRadius: 7, opacity: 0.75, display: "block" }}
                 />
             </div>
 

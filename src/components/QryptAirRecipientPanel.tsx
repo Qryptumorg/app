@@ -7,7 +7,6 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useChainId, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI } from "@/lib/abi";
-import { useToast } from "@/hooks/use-toast";
 import { getTxEtherscanUrl } from "@/lib/utils";
 import { recordTransaction } from "@/lib/api";
 
@@ -19,6 +18,7 @@ interface VoucherData {
     deadline: string;
     nonce: string;
     transferCodeHash: string;
+    transferCode?: string;
     signature: string;
 }
 
@@ -44,14 +44,14 @@ interface QryptAirRecipientPanelProps {
 }
 
 export default function QryptAirRecipientPanel({ walletAddress, onComplete }: QryptAirRecipientPanelProps = {}) {
-    const chainId      = useChainId();
-    const { toast }    = useToast();
+    const chainId = useChainId();
 
     const [tab, setTab]               = useState<"paste">("paste");
     const [rawJson, setRawJson]       = useState("");
     const [voucher, setVoucher]       = useState<VoucherData | null>(null);
     const [parseError, setParseError] = useState<string | null>(null);
-    const [transferCode, setTransferCode] = useState("");
+    // Only used for backward-compat vouchers that don't embed transferCode
+    const [manualCode, setManualCode] = useState("");
     const [showCode, setShowCode]     = useState(false);
     const [confirmedTxHash, setConfirmedTxHash] = useState<string | null>(null);
 
@@ -118,27 +118,34 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
         setParseError(null);
         resetWrite();
         try {
-            const parsed = JSON.parse(rawJson);
+            const trimmed = rawJson.trim();
+            let parsed: Record<string, unknown>;
+            if (trimmed.startsWith("{")) {
+                parsed = JSON.parse(trimmed);
+            } else {
+                const b64 = trimmed.replace(/-/g, "+").replace(/_/g, "/");
+                const padded = b64 + "=".repeat((4 - b64.length % 4) % 4);
+                const binary = atob(padded);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                parsed = JSON.parse(new TextDecoder().decode(bytes));
+            }
             const required = ["token", "amount", "recipient", "deadline", "nonce", "transferCodeHash", "vaultAddress", "signature"];
             for (const k of required) {
                 if (!parsed[k]) throw new Error(`Missing field: ${k}`);
             }
-            setVoucher(parsed as VoucherData);
+            setVoucher(parsed as unknown as VoucherData);
         } catch (e: unknown) {
-            setParseError(e instanceof Error ? e.message : "Invalid JSON");
+            setParseError(e instanceof Error ? e.message : "Invalid voucher code");
         }
     };
 
     const handleRedeem = () => {
         if (!voucher) return;
-        if (!transferCode) {
-            toast({ title: "Enter transfer code", description: "Ask the sender for the transfer code.", variant: "destructive" });
-            return;
-        }
-        if (!senderVaultAddress || senderVaultAddress === "0x0000000000000000000000000000000000000000") {
-            toast({ title: "Sender vault not found", description: "The sender has no vault on the current network. Make sure you are on the correct chain.", variant: "destructive" });
-            return;
-        }
+        // Use embedded code from QR payload, or manual input for legacy vouchers
+        const activeCode = voucher.transferCode ?? manualCode;
+        if (!activeCode) return;
+        if (!senderVaultAddress || senderVaultAddress === "0x0000000000000000000000000000000000000000") return;
 
         writeContract({
             address: senderVaultAddress as `0x${string}`,
@@ -150,7 +157,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                 voucher.recipient  as `0x${string}`,
                 BigInt(voucher.deadline),
                 voucher.nonce      as `0x${string}`,
-                keccak256(toBytes(transferCode)) as `0x${string}`,
+                keccak256(toBytes(activeCode)) as `0x${string}`,
                 voucher.signature  as `0x${string}`,
             ],
         });
@@ -162,9 +169,10 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
     const vaultMissing = !senderVaultAddress
         || senderVaultAddress === "0x0000000000000000000000000000000000000000";
 
+    const hasCode = !!(voucher?.transferCode ?? manualCode);
     const canRedeem = !!voucher
         && !isExpired
-        && !!transferCode
+        && hasCode
         && !alreadyRedeemed
         && !isSending
         && !isConfirming
@@ -188,7 +196,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                         fontFamily: "'Inter', sans-serif",
                     }}
                 >
-                    <FileJsonIcon size={13} /> Paste JSON
+                    <FileJsonIcon size={13} /> Paste Voucher Code
                 </button>
                 <button
                     disabled
@@ -211,7 +219,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                     <textarea
                         value={rawJson}
                         onChange={e => setRawJson(e.target.value)}
-                        placeholder={'Paste voucher JSON here...\n\n{"token":"0x...","amount":"...","signature":"0x..."}'}
+                        placeholder={"Paste voucher code here...\n\nAccepts the compact byte code from QryptAir\nor raw JSON for older vouchers."}
                         style={{
                             ...inputStyle,
                             minHeight: 140, resize: "vertical", lineHeight: 1.5,
@@ -272,27 +280,43 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                         </div>
                     )}
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em" }}>
-                            TRANSFER CODE
-                        </label>
-                        <div style={{ position: "relative" }}>
-                            <input
-                                style={inputStyle} type={showCode ? "text" : "password"}
-                                placeholder="Enter transfer code from sender"
-                                autoComplete="off"
-                                value={transferCode} onChange={e => setTransferCode(e.target.value)}
-                            />
-                            <button onClick={() => setShowCode(v => !v)} style={{
-                                position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                                background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)",
-                                display: "flex", alignItems: "center",
-                            }}>
-                                {showCode ? <EyeOffIcon size={14} /> : <EyeIcon size={14} />}
-                            </button>
+                    {voucher.transferCode ? (
+                        <div style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "9px 12px", borderRadius: 10,
+                            background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)",
+                        }}>
+                            <ShieldCheckIcon size={13} color="#4ade80" />
+                            <div>
+                                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#4ade80" }}>Self-contained voucher</p>
+                                <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                                    No transfer code needed. Anyone can broadcast — funds go to the locked recipient only.
+                                </p>
+                            </div>
                         </div>
-                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", margin: 0 }}>Provided by sender via separate channel</p>
-                    </div>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em" }}>
+                                TRANSFER CODE
+                            </label>
+                            <div style={{ position: "relative" }}>
+                                <input
+                                    style={inputStyle} type={showCode ? "text" : "password"}
+                                    placeholder="Enter transfer code from sender (legacy voucher)"
+                                    autoComplete="off"
+                                    value={manualCode} onChange={e => setManualCode(e.target.value)}
+                                />
+                                <button onClick={() => setShowCode(v => !v)} style={{
+                                    position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                                    background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)",
+                                    display: "flex", alignItems: "center",
+                                }}>
+                                    {showCode ? <EyeOffIcon size={14} /> : <EyeIcon size={14} />}
+                                </button>
+                            </div>
+                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", margin: 0 }}>This is an older voucher — ask the sender for the transfer code.</p>
+                        </div>
+                    )}
 
                     {writeError && (
                         <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.22)" }}>
@@ -349,7 +373,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                         </a>
                     )}
 
-                    <button onClick={() => { setVoucher(null); setRawJson(""); setTransferCode(""); resetWrite(); }} style={{
+                    <button onClick={() => { setVoucher(null); setRawJson(""); setManualCode(""); resetWrite(); }} style={{
                         background: "none", border: "none", cursor: "pointer",
                         color: "rgba(255,255,255,0.3)", fontSize: 12,
                         fontFamily: "'Inter', sans-serif", textDecoration: "underline",
@@ -392,7 +416,7 @@ export default function QryptAirRecipientPanel({ walletAddress, onComplete }: Qr
                     >
                         <ExternalLinkIcon size={12} /> View on Etherscan
                     </a>
-                    <button onClick={() => { setVoucher(null); setRawJson(""); setTransferCode(""); setConfirmedTxHash(null); resetWrite(); }} style={{
+                    <button onClick={() => { setVoucher(null); setRawJson(""); setManualCode(""); setConfirmedTxHash(null); resetWrite(); }} style={{
                         background: "none", border: "none", cursor: "pointer",
                         color: "rgba(255,255,255,0.3)", fontSize: 12,
                         fontFamily: "'Inter', sans-serif", textDecoration: "underline",

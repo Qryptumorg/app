@@ -14,7 +14,7 @@ export function useVault() {
     const v5FactoryAddress = SHIELD_FACTORY_ADDRESSES[chainId] as `0x${string}` | undefined;
 
     // Query V6 factory
-    const { data: hasV6Vault, isLoading: isLoadingV6, refetch: refetchV6 } = useReadContract({
+    const { data: hasV6Vault, refetch: refetchV6 } = useReadContract({
         address: v6FactoryAddress,
         abi: SHIELD_FACTORY_V6_ABI,
         functionName: "hasQryptSafe",
@@ -40,7 +40,7 @@ export function useVault() {
     });
 
     // Query V5 factory in parallel (used as fallback when no V6 vault)
-    const { data: hasV5Vault, isLoading: isLoadingV5, refetch: refetchV5 } = useReadContract({
+    const { data: hasV5Vault, refetch: refetchV5 } = useReadContract({
         address: v5FactoryAddress,
         abi: SHIELD_FACTORY_ABI,
         functionName: "hasVault",
@@ -72,7 +72,6 @@ export function useVault() {
     });
 
     // V6 takes priority: if the user has a V6 vault, use it
-    const isLoadingVault = (!!v6FactoryAddress && isLoadingV6) || (!!v5FactoryAddress && isLoadingV5);
     const hasVault = hasV6Vault === true || hasV5Vault === true;
     const vaultAddress = hasV6Vault === true
         ? (v6VaultAddress as `0x${string}` | undefined)
@@ -89,7 +88,6 @@ export function useVault() {
 
     return {
         hasVault,
-        isLoadingVault,
         vaultAddress,
         vaultVersion,
         vaultRecord,

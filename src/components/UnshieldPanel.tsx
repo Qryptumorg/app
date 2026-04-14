@@ -211,7 +211,7 @@ export default function UnshieldPanel({ vaultAddress, walletAddress, chainId, va
                 <div style={{ display: "flex", gap: 10, padding: "12px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)" }}>
                     <AlertTriangleIcon size={16} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
                     <p style={{ fontSize: 12, color: "#f87171", margin: 0, lineHeight: 1.5 }}>
-                        OTP chain not initialized on this device. Please sync your chain state in Settings.
+                        OTP chain not initialized on this device. Please sync your chain state using the OTP Chain icon in the header.
                     </p>
                 </div>
             )}

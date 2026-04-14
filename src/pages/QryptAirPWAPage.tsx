@@ -5,11 +5,11 @@ import { useAccount, useChainId, useReadContracts } from "wagmi";
 import { useVault } from "@/hooks/useVault";
 import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI } from "@/lib/abi";
 import {
-    EyeIcon, EyeOffIcon, DownloadIcon, SendIcon,
+    DownloadIcon, SendIcon,
     ClockIcon, CheckCircle2Icon, AlertTriangleIcon,
     WifiOffIcon, WifiIcon, Loader2Icon, ChevronDownIcon,
     RefreshCwIcon, SmartphoneIcon, MonitorIcon, ArrowRightIcon,
-    CheckIcon,
+    CheckIcon, ShieldCheckIcon,
 } from "lucide-react";
 import { addDays, formatDistanceToNow } from "date-fns";
 
@@ -383,8 +383,6 @@ function SendForm({
     const [selectedToken, setSelectedToken] = useState<AirToken | null>(null);
     const [amount, setAmount] = useState("");
     const [recipient, setRecipient] = useState("");
-    const [transferCode, setTransferCode] = useState("");
-    const [showCode, setShowCode] = useState(false);
     const [deadlineDays, setDeadlineDays] = useState(7);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -412,9 +410,6 @@ function SendForm({
         if (!vaultAddress || !vaultAddress.startsWith("0x") || vaultAddress.length !== 42) {
             setError("Vault address not loaded."); return;
         }
-        if (transferCode.length < 4 || transferCode.length > 32) {
-            setError("Transfer code: 4-32 characters."); return;
-        }
 
         const eth = (window as any).ethereum;
         if (!eth) { setError("MetaMask not found."); return; }
@@ -436,7 +431,10 @@ function SendForm({
             const deadline = Math.floor(addDays(new Date(), deadlineDays).getTime() / 1000);
             const nonce = `0x${Array.from(crypto.getRandomValues(new Uint8Array(32)))
                 .map(b => b.toString(16).padStart(2, "0")).join("")}` as `0x${string}`;
-            const transferCodeHash = keccak256(toBytes(transferCode));
+            // Auto-generate transfer code — embedded in QR payload so claimer needs no separate secret
+            const rawTransferCode = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const transferCodeHash = keccak256(toBytes(rawTransferCode));
 
             const typedData = {
                 types: {
@@ -478,6 +476,7 @@ function SendForm({
                 deadline: deadline.toString(),
                 nonce,
                 transferCodeHash,
+                transferCode: rawTransferCode,
                 vaultAddress,
                 signature: sig,
             };
@@ -502,7 +501,7 @@ function SendForm({
             saveHistory([record, ...history]);
             onVoucherCreated(record);
             setSuccess(true);
-            setAmount(""); setRecipient(""); setTransferCode("");
+            setAmount(""); setRecipient("");
             setTimeout(() => setSuccess(false), 3000);
         } catch (e: any) {
             setError(e.message ?? "Signing failed.");
@@ -578,30 +577,15 @@ function SendForm({
                 </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {fieldLabel("Transfer Code")}
-                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.28)", lineHeight: 1.5 }}>
-                        Any unique secret you choose: a word, PIN, or phrase. Not your vault proof. Share this separately from the QR code.
-                    </p>
-                </div>
-                <div style={{ position: "relative" }}>
-                    <input
-                        style={{ ...inp, paddingRight: 36 }}
-                        type={showCode ? "text" : "password"}
-                        placeholder="e.g. sunrise42 or any secret"
-                        autoComplete="off"
-                        value={transferCode}
-                        onChange={e => setTransferCode(e.target.value)}
-                    />
-                    <button onClick={() => setShowCode(v => !v)} style={{
-                        position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "rgba(255,255,255,0.3)", display: "flex", alignItems: "center",
-                    }}>
-                        {showCode ? <EyeOffIcon size={12} /> : <EyeIcon size={12} />}
-                    </button>
-                </div>
+            <div style={{
+                display: "flex", alignItems: "flex-start", gap: 6,
+                padding: "8px 10px", borderRadius: 8,
+                background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)",
+            }}>
+                <ShieldCheckIcon size={11} color="#F59E0B" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+                    Transfer code auto-generated and embedded in QR. Recipient scans and signs — no separate secret needed.
+                </p>
             </div>
 
             {error && (

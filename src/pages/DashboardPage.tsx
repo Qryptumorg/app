@@ -20,6 +20,7 @@ import TransferModeSelector from "@/components/TransferModeSelector";
 import QryptAirSenderPanel from "@/components/QryptAirSenderPanel";
 import QryptAirRecipientPanel from "@/components/QryptAirRecipientPanel";
 import QryptShieldGate from "@/components/QryptShieldGate";
+import ChainSyncModal from "@/components/ChainSyncModal";
 import TokenLogo from "@/components/TokenLogo";
 import { fetchTransactions, fetchPortfolio } from "@/lib/api";
 import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI } from "@/lib/abi";
@@ -69,7 +70,7 @@ interface TokenWithBalance {
     color: string;
 }
 
-type ModalId = "shield" | "transfer" | "unshield" | "vaults" | "settings" | "transfer-select" | "qryptair-sender" | "qryptair-fund" | "qryptair-recipient" | "qryptshield" | "upgrade-v6";
+type ModalId = "shield" | "transfer" | "unshield" | "vaults" | "settings" | "transfer-select" | "qryptair-sender" | "qryptair-fund" | "qryptair-recipient" | "qryptshield" | "upgrade-v6" | "chain-sync";
 
 interface WalletErc20Token {
     address: string;
@@ -431,6 +432,7 @@ const MODAL_TITLES: Record<ModalId, string> = {
     "qryptair-recipient":"QryptAir · Receive",
     qryptshield:         "QryptShield",
     "upgrade-v6":        "Upgrade to V6 Qrypt-Safe",
+    "chain-sync":        "OTP Chain · Position Recovery",
 };
 
 function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
@@ -588,6 +590,14 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                     {id === "settings" && !p.vaultAddress && (
                         <ModalSettingsNoVault p={p} />
                     )}
+                    {id === "chain-sync" && p.vaultAddress && p.address && (
+                        <ChainSyncModal vaultAddress={p.vaultAddress} walletAddress={p.address} vaultVersion={p.vaultVersion} />
+                    )}
+                    {id === "chain-sync" && (!p.vaultAddress || !p.address) && (
+                        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
+                            Connect your wallet and create a Qrypt-Safe to use chain sync.
+                        </p>
+                    )}
                     {id === "upgrade-v6" && p.address && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
                             Vault upgrade available — connect wallet to proceed.
@@ -641,7 +651,7 @@ function DesktopLayout(p: SharedProps) {
                 <DesktopDashboard {...p} />
             </main>
 
-            {(["shield", "transfer", "unshield", "vaults", "settings", "transfer-select", "qryptair-sender", "qryptair-fund", "qryptair-recipient", "qryptshield", "upgrade-v6"] as ModalId[]).map(id => (
+            {(["shield", "transfer", "unshield", "vaults", "settings", "transfer-select", "qryptair-sender", "qryptair-fund", "qryptair-recipient", "qryptshield", "upgrade-v6", "chain-sync"] as ModalId[]).map(id => (
                 <Modal key={id} id={id} p={p} />
             ))}
         </div>
@@ -802,12 +812,25 @@ function MobileLayout(p: SharedProps) {
                             </button>
                         );
                     })}
+                    <button
+                        onClick={() => p.setActiveModal("chain-sync")}
+                        style={{
+                            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                            justifyContent: "center", gap: 4, background: "none", border: "none",
+                            cursor: "pointer", transition: "color 0.15s",
+                            color: "rgba(74,222,128,0.4)",
+                            borderTop: "2px solid transparent",
+                        }}
+                    >
+                        <RefreshCwIcon size={19} />
+                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.07em" }}>OTP CHAIN</span>
+                    </button>
                     <button onClick={() => setMobileNavTab("profile")} style={{
                         flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
                         justifyContent: "center", gap: 4, background: "none", border: "none",
                         cursor: "pointer", transition: "color 0.15s",
-                        color: mobileNavTab === "profile" ? "#fff" : "rgba(255,255,255,0.25)",
-                        borderTop: mobileNavTab === "profile" ? "2px solid rgba(255,255,255,0.7)" : "2px solid transparent",
+                        color: mobileNavTab === "profile" ? "#60a5fa" : "rgba(255,255,255,0.25)",
+                        borderTop: mobileNavTab === "profile" ? "2px solid #60a5fa" : "2px solid transparent",
                     }}>
                         <UserIcon size={19} />
                         <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.07em" }}>PROFILE</span>
@@ -815,7 +838,7 @@ function MobileLayout(p: SharedProps) {
                 </nav>
             )}
 
-            {(["shield", "transfer", "unshield", "settings", "transfer-select", "qryptair-sender", "qryptair-fund", "qryptair-recipient", "qryptshield", "upgrade-v6"] as ModalId[]).map(id => (
+            {(["shield", "transfer", "unshield", "settings", "transfer-select", "qryptair-sender", "qryptair-fund", "qryptair-recipient", "qryptshield", "upgrade-v6", "chain-sync"] as ModalId[]).map(id => (
                 <Modal key={id} id={id} p={p} />
             ))}
         </div>
@@ -988,6 +1011,20 @@ function TopBarWallet(p: SharedProps) {
                     </div>
                 )}
             </div>
+
+            <button
+                onClick={() => p.setActiveModal("chain-sync")}
+                title="OTP Chain Position Recovery"
+                style={{
+                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 20, padding: "6px 10px", cursor: "pointer",
+                    color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.35)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
+            >
+                <RefreshCwIcon size={14} />
+            </button>
 
             <button
                 onClick={() => p.setActiveModal("settings")}

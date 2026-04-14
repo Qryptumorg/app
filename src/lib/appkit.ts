@@ -1,10 +1,8 @@
 import { http, createConfig } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
-import type { AppKit } from "@reown/appkit";
-import type { Config } from "wagmi";
 
-const _defaultConfig: Config = createConfig({
+const _defaultConfig = createConfig({
     chains: [sepolia, mainnet],
     connectors: [injected()],
     transports: {
@@ -13,9 +11,9 @@ const _defaultConfig: Config = createConfig({
     },
 });
 
-export let wagmiConfig: Config = _defaultConfig;
+export let wagmiConfig: ReturnType<typeof createConfig> = _defaultConfig;
 export let hasAppKit = false;
-export let appKitModal: AppKit | null = null;
+export let appKitModal: any = null;
 
 export async function initAppKit(projectId: string): Promise<void> {
     try {
@@ -48,7 +46,7 @@ export async function initAppKit(projectId: string): Promise<void> {
         appKitModal = modal;
         hasAppKit = true;
     } catch (e) {
-        console.warn("[AppKit] init failed, falling back to injected:", e);
+        console.warn("[AppKit] init failed, falling back to injected only:", e);
     }
 }
 
