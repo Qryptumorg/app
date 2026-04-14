@@ -5,7 +5,6 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 import fs from "fs";
 
 function inlineWasmUrls(code: string, dir: string): string {
@@ -93,7 +92,6 @@ export default defineConfig({
       protocolImports: true,
     }),
     wasm(),
-    topLevelAwait(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
