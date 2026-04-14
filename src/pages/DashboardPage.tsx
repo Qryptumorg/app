@@ -251,6 +251,32 @@ export default function DashboardPage() {
         return map;
     }, [airBudgetResults, shieldedTokenAddresses]);
 
+    useEffect(() => {
+        if (!address || !isConnected || !vaultAddress || vaultVersion !== "v6") return;
+        if (Object.keys(airBudgets).length === 0) return;
+        try {
+            const balances: Record<string, { raw: string; symbol: string; name: string; decimals: number }> = {};
+            shieldedTokenAddresses.forEach((t, i) => {
+                const budget = airBudgets[t.tokenAddress.toLowerCase()];
+                if (budget !== undefined) {
+                    balances[t.tokenAddress.toLowerCase()] = {
+                        raw: budget.toString(),
+                        symbol: t.tokenSymbol,
+                        name: t.tokenName,
+                        decimals: (decimalsResults?.[i]?.result as number | undefined) ?? 18,
+                    };
+                }
+            });
+            localStorage.setItem(`qryptair_sync_${address.toLowerCase()}`, JSON.stringify({
+                updatedAt: Date.now(),
+                chainId,
+                vaultAddress,
+                vaultVersion,
+                balances,
+            }));
+        } catch {}
+    }, [airBudgets, address, isConnected, vaultAddress, vaultVersion, chainId, shieldedTokenAddresses, decimalsResults]);
+
     const { data: portfolioData } = useQuery({
         queryKey: ["portfolio", address, chainId],
         queryFn: () => fetchPortfolio(address!, chainId),
