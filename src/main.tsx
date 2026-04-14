@@ -28,7 +28,9 @@ async function fetchAndInitAppKit(): Promise<void> {
         } catch {}
     }
     const envId = import.meta.env.VITE_REOWN_PROJECT_ID as string | undefined;
-    if (envId) await initAppKit(envId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fallbackId = (import.meta as any).env?.VITE_WC_FALLBACK ?? "82af1c1c8379e6a23b690050c7b7099a";
+    await initAppKit(envId || fallbackId);
 }
 
 async function boot() {
