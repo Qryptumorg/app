@@ -1,8 +1,13 @@
-// In production, VITE_API_BASE = "https://qryptum-api.up.railway.app"
-// The Railway Express server mounts all routes under /api, so we append it here.
-// In development (no VITE_API_BASE), the Vite proxy handles /api → local server.
+// Railway URL is the canonical API. In dev, VITE_API_BASE is unset and Vite
+// proxies /api to the local server. In production (GitHub Pages / IPFS),
+// VITE_API_BASE may be unset too — fall back to the hardcoded Railway URL so
+// no GitHub Secrets are required.
 const _rawBase = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "");
-const BASE = _rawBase ? `${_rawBase}/api` : `${import.meta.env.BASE_URL}api`;
+const BASE = _rawBase
+    ? `${_rawBase}/api`
+    : import.meta.env.DEV
+        ? `${import.meta.env.BASE_URL}api`
+        : "https://qryptum-api.up.railway.app/api";
 
 export async function fetchVault(walletAddress: string) {
     const res = await fetch(`${BASE}/vaults/${walletAddress}`);

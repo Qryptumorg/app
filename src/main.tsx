@@ -16,8 +16,11 @@ const skipSplash = (window as any).__SPLASH_SKIP__ as boolean ?? false;
 async function fetchAndInitAppKit(): Promise<void> {
     // VITE_API_BASE = "https://qryptum-api.up.railway.app" (no /api suffix)
     // Railway Express mounts routes at /api, so append it here.
+    // In production without VITE_API_BASE set, fall back to the hardcoded Railway URL.
     const rawBase = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "");
-    const base = rawBase ? `${rawBase}/api` : null;
+    const base = rawBase
+        ? `${rawBase}/api`
+        : import.meta.env.DEV ? null : "https://qryptum-api.up.railway.app/api";
     if (base) {
         try {
             const res = await fetch(`${base}/config`, { signal: AbortSignal.timeout(3000) });
@@ -28,9 +31,7 @@ async function fetchAndInitAppKit(): Promise<void> {
         } catch {}
     }
     const envId = import.meta.env.VITE_REOWN_PROJECT_ID as string | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallbackId = (import.meta as any).env?.VITE_WC_FALLBACK ?? "82af1c1c8379e6a23b690050c7b7099a";
-    await initAppKit(envId || fallbackId);
+    if (envId) await initAppKit(envId);
 }
 
 async function boot() {
