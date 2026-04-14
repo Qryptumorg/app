@@ -802,7 +802,6 @@ function MobileLayout(p: SharedProps) {
                             </button>
                         );
                     })}
-                    <button
                     <button onClick={() => setMobileNavTab("profile")} style={{
                         flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
                         justifyContent: "center", gap: 4, background: "none", border: "none",
