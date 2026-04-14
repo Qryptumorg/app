@@ -4,7 +4,6 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 import PageLoader from "@/components/PageLoader";
 
 const DashboardPage = lazy(() => import("./DashboardPage"));
-const CreateQryptSafePage = lazy(() => import("./CreateQryptSafePage"));
 const QryptAirPWAPage = lazy(() => import("./QryptAirPWAPage"));
 const NotFound = lazy(() => import("./not-found"));
 
@@ -46,9 +45,7 @@ export default function AppRouter() {
         <Switch>
             <Route path="/" component={DashboardRoute} />
             <Route path="/app" component={DashboardRoute} />
-            <Route path="/air" component={QryptAirPWAPage} />
-            <Route path="/create-personal-qrypt-safe" component={CreateQryptSafePage} />
-            <Route component={NotFound} />
+            <Route path="/air" component={QryptAirPWAPage} />            <Route component={NotFound} />
         </Switch>
         </Suspense>
         </LanguageProvider>
