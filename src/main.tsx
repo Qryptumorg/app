@@ -16,29 +16,30 @@ async function fetchAndInitAppKit(): Promise<void> {
                 }
             } catch {}
         }
-        if (!projectId) {
-            projectId = import.meta.env.VITE_REOWN_PROJECT_ID as string | undefined;
-        }
+        if (!projectId) projectId = import.meta.env.VITE_REOWN_PROJECT_ID as string | undefined;
         if (projectId) await initAppKit(projectId);
     } catch (e) {
-        console.warn("[boot] AppKit init skipped:", e);
+        console.warn("[boot] AppKit skipped:", e);
     }
 }
 
-function hideSplash() {
-    const splash = document.getElementById("splash-html");
-    if (!splash) return;
-    splash.classList.add("fading");
-    setTimeout(() => { splash.style.display = "none"; }, 500);
-}
-
 async function boot() {
-    // Mount React immediately — no blocking on AppKit
+    // CRITICAL: await AppKit sebelum render
+    // wagmiConfig live binding di wagmi.ts hanya berguna kalau App baca config
+    // SETELAH initAppKit selesai set wagmiConfig = adapter.wagmiConfig
+    await Promise.race([
+        fetchAndInitAppKit(),
+        new Promise<void>(res => setTimeout(res, 5000)), // max 5s
+    ]);
+
     createRoot(document.getElementById("root")!).render(<App />);
-    hideSplash();
+
+    const splash = document.getElementById("splash-html");
+    if (splash) {
+        splash.classList.add("fading");
+        setTimeout(() => { splash.style.display = "none"; }, 400);
+    }
     sessionStorage.setItem("qryptum_splash_done", "1");
-    // Load AppKit in background after page is interactive
-    fetchAndInitAppKit();
 }
 
 boot();
