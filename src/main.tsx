@@ -19,19 +19,11 @@ async function preloadPages() {
     const remainingForPreload = Math.max(0, deadline - Date.now());
     const timeout = new Promise<void>(res => setTimeout(res, remainingForPreload));
 
-    // In APP_ONLY mode: only preload DashboardPage + QryptAir.
-    // DashboardPage includes @railgun-community/wallet — preloading here means
-    // the chunk is FULLY cached before React renders, so no stuck PageLoader.
-    if (APP_ONLY) {
-        await Promise.race([
-            Promise.allSettled([
-                import("./pages/DashboardPage"),
-                import("./pages/QryptAirPWAPage"),
-            ]),
-            timeout,
-        ]);
-        return;
-    }
+    // In APP_ONLY mode: do NOT preload pages during the spinner.
+    // DashboardPage lazy-loads after React renders (Suspense handles the brief flash).
+    // @railgun-community/wallet only downloads when the user actually shields —
+    // keeping it completely out of the startup download path.
+    if (APP_ONLY) return;
 
     // Full site mode: preload marketing + docs pages during splash.
     // Also include DashboardPage so it's cached when user clicks "Launch App".

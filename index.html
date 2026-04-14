@@ -177,12 +177,10 @@
     </style>
 
     <!--
-      Step 6 — Groth16 prover for browser (snarkjs).
-      Loaded async so it does NOT block the splash screen from appearing.
-      railgun.ts waits for window.snarkjs to be ready before using it.
-      https://docs.railgun.org/developer-guide/wallet/getting-started/6.-load-a-groth16-prover-for-each-platform
+      snarkjs is loaded on-demand inside railgun.ts (ensureRailgunEngine)
+      — NOT at page boot. This saves 676KB on every initial page load for
+      users who only browse but never shield a token.
     -->
-    <script async src="%BASE_URL%snarkjs.min.js"></script>
 
     <script>
       // Suppress Railgun SDK "Failed to refresh POIs" unhandled rejections.

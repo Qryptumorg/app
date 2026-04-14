@@ -6,37 +6,35 @@
  * - level-js (IndexedDB) replaces custom in-memory LevelDOWN → wallet persists across sessions
  * - IndexedDB artifact store → ZK circuit files cached, no re-download each session
  * - FallbackProviderJsonConfig with multiple RPCs → resilient to single RPC failures
- * - Groth16 prover loaded from window.snarkjs (script tag in index.html)
+ * - Groth16 prover injected dynamically — NOT loaded at page boot (saves 676KB on startup)
  * - setOnBalanceUpdateCallback → event-driven, no polling loop
+ * - @railgun-community/wallet is lazy-loaded — only downloads when user first shields
  */
 
-import {
-    startRailgunEngine,
-    loadProvider,
-    createRailgunWallet,
-    loadWalletByID,
-    getRailgunAddress,
-    getShieldPrivateKeySignatureMessage,
-    populateShield,
-    generateUnshieldProof,
-    populateProvedUnshield,
-    fullWalletForID,
-    balanceForERC20Token,
-    refreshBalances,
-    rescanFullUTXOMerkletreesAndWallets,
-    ArtifactStore,
-    setOnUTXOMerkletreeScanCallback,
-    setOnTXIDMerkletreeScanCallback,
-    setOnBalanceUpdateCallback,
-    getProver,
-    type SnarkJSGroth16,
-} from "@railgun-community/wallet";
+import type { SnarkJSGroth16 } from "@railgun-community/wallet";
 import {
     NetworkName,
     TXIDVersion,
     type RailgunBalancesEvent,
     type FallbackProviderJsonConfig,
 } from "@railgun-community/shared-models";
+
+// ─── Lazy loader for @railgun-community/wallet ────────────────────────────────
+// The wallet SDK is WASM-heavy. It is NOT imported statically so it is kept out
+// of the initial JS bundle entirely. The chunk only downloads the first time
+// ensureRailgunEngine() is called (i.e. when user actually needs to shield).
+type WalletPkg = typeof import("@railgun-community/wallet");
+let _wp: WalletPkg | null = null;
+async function wp(): Promise<WalletPkg> {
+    if (!_wp) _wp = await import("@railgun-community/wallet");
+    return _wp;
+}
+// Synchronous accessor — only valid AFTER wp() has resolved at least once.
+// Safe to call inside any function that runs after ensureRailgunEngine() completes.
+function wpSync(): WalletPkg {
+    if (!_wp) throw new Error("Railgun wallet package not yet loaded. Call ensureRailgunEngine() first.");
+    return _wp;
+}
 
 export { NetworkName, TXIDVersion };
 
@@ -113,7 +111,9 @@ export const PUBLIC_RPC = FALLBACK_RPC;
  * ZK circuit artifacts are large (>10 MB) and must be cached across sessions.
  * https://docs.railgun.org/developer-guide/wallet/getting-started/4.-build-a-persistent-store-for-artifact-downloads
  */
-function createArtifactStore(): ArtifactStore {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createArtifactStore(): any {
+    const { ArtifactStore } = wpSync();
     const DB_NAME = "qryptum-artifacts";
     const STORE_NAME = "files";
     let _db: IDBDatabase | null = null;
@@ -230,6 +230,16 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
     try {
         onProgress?.("Loading privacy engine...");
 
+        // Load the heavy wallet SDK — first call triggers the chunk download.
+        // Subsequent calls return the cached module instantly.
+        const {
+            startRailgunEngine,
+            setOnUTXOMerkletreeScanCallback,
+            setOnTXIDMerkletreeScanCallback,
+            setOnBalanceUpdateCallback,
+            getProver,
+        } = await wp();
+
         // Step 3 — Database: level-js → persists wallet in IndexedDB
         // https://docs.railgun.org/developer-guide/wallet/getting-started/3.-set-up-database
         const LevelDB = (await import("level-js")).default;
@@ -237,6 +247,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         const db = new LevelDB("qryptum-engine") as unknown as any;
 
         // Step 4 — Persistent artifact store (IndexedDB)
+        // wpSync() is safe here because wp() has already been awaited above.
         const artifactStore = createArtifactStore();
 
         onProgress?.("Starting Railgun engine...");
@@ -262,12 +273,20 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         );
 
         // Step 6 — Load Groth16 prover for browser
-        // snarkjs.min.js is loaded async in index.html — wait up to 30s for it to be ready.
+        // snarkjs is injected dynamically here (NOT loaded at page boot) to avoid
+        // adding 676KB to the initial bundle on every page visit.
         // https://docs.railgun.org/developer-guide/wallet/getting-started/6.-load-a-groth16-prover-for-each-platform
         const groth16 = await (async () => {
             const win = window as unknown as { snarkjs?: { groth16: SnarkJSGroth16 } };
             if (win.snarkjs?.groth16) return win.snarkjs.groth16;
-            // Poll every 100ms until snarkjs is available (async script may still be loading)
+            // Inject the script tag now — it was removed from index.html to save startup time
+            if (!document.querySelector('script[data-snarkjs]')) {
+                const s = document.createElement("script");
+                s.src = `${import.meta.env.BASE_URL}snarkjs.min.js`;
+                s.setAttribute("data-snarkjs", "1");
+                document.head.appendChild(s);
+            }
+            // Poll every 100ms until snarkjs is available
             return new Promise<SnarkJSGroth16>((resolve, reject) => {
                 const deadline = Date.now() + 30_000;
                 const id = setInterval(() => {
@@ -358,6 +377,7 @@ export async function loadRailgunProvider(chainId: number, onProgress?: (msg: st
 
     onProgress?.("Connecting to network...");
 
+    const { loadProvider } = await wp();
     // 5 min polling interval as recommended in docs
     await loadProvider(config as Parameters<typeof loadProvider>[0], networkName, 5 * 60 * 1000);
     _loadedProviders.add(chainId);
@@ -384,6 +404,8 @@ export async function getOrCreateRailgunWallet(
     const key = `${WALLET_ID_KEY}_${walletAddress.toLowerCase()}`;
     const rawKey = encryptionKey.startsWith("0x") ? encryptionKey.slice(2) : encryptionKey;
     const existingID = localStorage.getItem(key);
+
+    const { loadWalletByID, createRailgunWallet } = await wp();
 
     if (existingID) {
         try {
@@ -425,12 +447,14 @@ export async function getOrCreateRailgunWallet(
 }
 
 export function getRailgunWalletAddress(walletID: string): string {
+    const { getRailgunAddress } = wpSync();
     const addr = getRailgunAddress(walletID);
     if (!addr) throw new Error("Could not derive Railgun wallet address.");
     return addr;
 }
 
 export function getShieldSignMessage(): string {
+    const { getShieldPrivateKeySignatureMessage } = wpSync();
     return getShieldPrivateKeySignatureMessage();
 }
 
@@ -447,6 +471,7 @@ export async function buildShieldTx(params: {
     const networkName = RAILGUN_CHAIN_MAP[params.chainId];
     if (!networkName) throw new Error("Unsupported network for Railgun.");
 
+    const { populateShield } = await wp();
     const response = await populateShield(
         TXIDVersion.V2_PoseidonMerkle,
         networkName,
@@ -478,6 +503,8 @@ export async function buildUnshieldTx(params: {
     }];
 
     const rawKey = params.encryptionKey.startsWith("0x") ? params.encryptionKey.slice(2) : params.encryptionKey;
+
+    const { generateUnshieldProof, populateProvedUnshield } = await wp();
 
     // Step: generate ZK proof (Groth16, ~30–60 s in browser)
     await generateUnshieldProof(
@@ -528,6 +555,7 @@ async function checkRailgunBalance(
     onlySpendable = false,
 ): Promise<bigint> {
     try {
+        const { fullWalletForID, balanceForERC20Token } = wpSync();
         const wallet = fullWalletForID(walletID);
         return await balanceForERC20Token(
             TXIDVersion.V2_PoseidonMerkle,
@@ -578,7 +606,7 @@ export async function hasRailgunBalance(
             });
 
             // Trigger scan after subscribing
-            refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
+            wpSync().refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
         });
     } catch {
         // Any unexpected error (import failure, SDK not ready) → treat as no balance
@@ -664,7 +692,7 @@ export async function waitForRailgunBalance(
         });
 
         // Trigger first scan immediately (incremental — fast)
-        refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
+        wpSync().refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
 
         // Re-trigger scan every 20 s.
         // If UTXO has been found in non-Spendable bucket for > 2 min, escalate to
@@ -672,6 +700,7 @@ export async function waitForRailgunBalance(
         const FULL_RESCAN_AFTER_MS = 2 * 60 * 1_000;
         let fullRescanTriggered = false;
         const ticker = setInterval(() => {
+            const pkg = wpSync();
             if (
                 committedAt !== null &&
                 !fullRescanTriggered &&
@@ -679,10 +708,10 @@ export async function waitForRailgunBalance(
             ) {
                 fullRescanTriggered = true;
                 onProgress?.("UTXO stuck in ShieldPending: triggering full index rescan...");
-                rescanFullUTXOMerkletreesAndWallets(chain, [walletID])
+                pkg.rescanFullUTXOMerkletreesAndWallets(chain, [walletID])
                     .catch(() => { /* best effort */ });
             } else {
-                refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
+                pkg.refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
             }
         }, 20_000);
 

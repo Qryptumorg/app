@@ -124,8 +124,9 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       "buffer",
-      "@railgun-community/wallet",
       "@railgun-community/shared-models",
+      // @railgun-community/wallet is lazy-loaded (dynamic import in railgun.ts)
+      // so it is NOT pre-bundled here — keeps it out of the startup download path.
     ],
     esbuildOptions: {
       target: "esnext",
@@ -140,6 +141,19 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     target: "esnext",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Keep @railgun-community/wallet in its own chunk so browsers can
+          // cache it independently (it's lazy-loaded on first shield action).
+          if (id.includes("@railgun-community/wallet")) return "vendor-railgun";
+          // Group AppKit (wallet connect modal) — loaded lazily after boot
+          if (id.includes("@reown/appkit")) return "vendor-appkit";
+          // wagmi + viem — used for wallet connection state throughout the app
+          if (id.includes("/node_modules/wagmi/") || id.includes("/node_modules/viem/") || id.includes("/node_modules/@wagmi/")) return "vendor-wagmi";
+        },
+      },
+    },
   },
   server: {
     port,
