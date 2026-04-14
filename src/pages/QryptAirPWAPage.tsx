@@ -587,7 +587,7 @@ function SendForm({
         } finally {
             setLoading(false);
         }
-    }, [walletAddress, vaultAddress, selectedToken, amount, recipient, transferCode, deadlineDays, maxAmount, onVoucherCreated]);
+    }, [walletAddress, vaultAddress, selectedToken, amount, recipient, deadlineDays, maxAmount, onVoucherCreated]);
 
     const fieldLabel = (label: string) => (
         <label style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
