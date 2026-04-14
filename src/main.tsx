@@ -3,14 +3,15 @@ import App from "./App";
 import "./index.css";
 import { initAppKit } from "./lib/appkit";
 
-const MIN_MS = 3200;
+// APP_ONLY = true when deployed to GitHub Pages (VITE_DEPLOY_TARGET=app)
+const APP_ONLY = import.meta.env.VITE_DEPLOY_TARGET === "app";
+
+// Spinner-only splash in APP_ONLY mode: show briefly (min 1s), dismiss within 7s.
+// Full marketing splash in dev/marketing mode: min 3.2s, max 7s.
+const MIN_MS = APP_ONLY ? 1000 : 3200;
 const MAX_MS = 7000;
 const startTime = (window as any).__SPLASH_START__ as number ?? Date.now();
-
-// APP_ONLY = true when deployed to GitHub Pages (VITE_DEPLOY_TARGET=app)
-// In APP_ONLY mode: no splash at all — go straight to the app.
-const APP_ONLY = import.meta.env.VITE_DEPLOY_TARGET === "app";
-const skipSplash = APP_ONLY || ((window as any).__SPLASH_SKIP__ as boolean ?? false);
+const skipSplash = (window as any).__SPLASH_SKIP__ as boolean ?? false;
 
 async function preloadPages() {
     // Hard cap: never block past MAX_MS - 600ms (fade time)

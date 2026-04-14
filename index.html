@@ -149,6 +149,19 @@
         background: linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.3) 25%, #8B5CF6 50%, rgba(167,139,250,0.8) 75%, transparent 100%);
         animation: _sscan 2s ease-in-out infinite;
       }
+
+      /* circular spinner — shown only in APP_ONLY mode */
+      #splash-spinner {
+        display: none;
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        border: 3px solid rgba(139,92,246,0.15);
+        border-top-color: #8B5CF6;
+        animation: _sspin 0.9s linear infinite;
+      }
+      @keyframes _sspin {
+        to { transform: rotate(360deg); }
+      }
     </style>
 
     <!--
@@ -177,7 +190,7 @@
       <img src="%BASE_URL%qryptum-logo.png" width="68" height="68" alt="Qryptum" class="s0"
            style="display:block;margin-bottom:18px;" />
 
-      <p class="s1"
+      <p id="splash-label" class="s1"
          style="margin:0 0 28px;color:rgba(255,255,255,0.3);font-size:10px;font-weight:500;letter-spacing:0.6em;text-transform:uppercase;">
         QRYPTUM
       </p>
@@ -193,22 +206,39 @@
       <div id="splash-loader" class="s5">
         <div id="splash-scanner"></div>
       </div>
+
+      <!-- circular spinner — visible only in APP_ONLY mode -->
+      <div id="splash-spinner"></div>
     </div>
 
     <script>
+      var _appOnly = '%VITE_DEPLOY_TARGET%' === 'app';
+
+      if (_appOnly) {
+        // GitHub Pages build: show only the logo + circular spinner.
+        // Hide all marketing text so the splash is a clean loading state.
+        var _hide = ['splash-line1','splash-line2','splash-tagline','splash-loader','splash-label'];
+        _hide.forEach(function(id){
+          var el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        var _sp = document.getElementById('splash-spinner');
+        if (_sp) _sp.style.display = 'block';
+      }
+
       if (window.__SPLASH_SKIP__) {
         /* returning user: hide splash text/animations but keep black bg
            so there's no flash while React bundle loads.
            main.tsx will remove the whole element after React mounts. */
-        var inner = ['splash-line1','splash-line2','splash-tagline','splash-loader'];
-        inner.forEach(function(id){
+        var _inner = ['splash-line1','splash-line2','splash-tagline','splash-loader','splash-label'];
+        _inner.forEach(function(id){
           var el = document.getElementById(id);
           if (el) el.style.visibility = 'hidden';
         });
-        var logo = document.querySelector('#splash-html img');
-        if (logo) logo.style.visibility = 'hidden';
-        var label = document.querySelector('#splash-html p.s1');
-        if (label) label.style.visibility = 'hidden';
+        var _logo = document.querySelector('#splash-html img');
+        if (_logo) _logo.style.visibility = 'hidden';
+        var _spinner = document.getElementById('splash-spinner');
+        if (_spinner) _spinner.style.visibility = 'hidden';
       }
     </script>
 
