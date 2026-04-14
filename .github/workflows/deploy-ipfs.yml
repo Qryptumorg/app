@@ -33,6 +33,9 @@ jobs:
           NODE_ENV: production
           PORT: '3000'
           BASE_PATH: '/'
+          VITE_DEPLOY_TARGET: app
+          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
+          VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
           VITE_PROOF_SALT: ${{ secrets.VITE_PROOF_SALT }}
           VITE_SHIELD_FACTORY_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_SEPOLIA }}
           VITE_SHIELD_FACTORY_V6_SEPOLIA: ${{ secrets.VITE_SHIELD_FACTORY_V6_SEPOLIA }}
@@ -66,9 +69,6 @@ jobs:
 
           const jwt = process.env.PINATA_JWT;
           const sha = (process.env.COMMIT_SHA || 'unknown').slice(0, 7);
-          // Pinata SDK fileArray pattern: prefix files with folder name.
-          // Pinata returns the CID of the folder itself (strips the prefix),
-          // so IpfsHash IS the app directory — index.html served at root.
           const folder = 'qryptum-app-' + sha;
           const entries = getFiles('./dist/public');
 
@@ -107,7 +107,6 @@ jobs:
             process.exit(1);
           }
 
-          // IpfsHash = CID of the app directory (index.html at root)
           const cid = result.IpfsHash;
 
           console.log('');
