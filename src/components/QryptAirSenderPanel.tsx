@@ -112,7 +112,7 @@ export default function QryptAirSenderPanel({
                             </span>
                             {selectedAirBudget === 0n && (
                                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "4px 0 0" }}>
-                                    Mint air bags to create offline vouchers
+                                    Mint offTokens to send funds offline without internet.
                                 </p>
                             )}
                         </div>

@@ -119,7 +119,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
             functionName: "reclaimAirBags",
             args: [token.tokenAddress as `0x${string}`, peeked.proof],
         }, {
-            onSuccess: (hash) => pushTx(hash, `Reclaiming air budget for ${token.tokenSymbol}`),
+            onSuccess: (hash) => pushTx(hash, `Returning off${token.tokenSymbol} to shielded balance`),
         });
     }, [vaultProof, airBudget, walletAddress, vaultAddress, writeReclaim, token, toast, pushTx]);
 
@@ -171,7 +171,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "24px 0" }}>
                         <CheckCircle2Icon size={40} color="#4ade80" />
                         <p style={{ fontSize: 15, fontWeight: 700, color: "#4ade80", margin: 0 }}>
-                            {fundSuccess ? "Minted successfully" : "Reclaimed successfully"}
+                            {fundSuccess ? "Minted successfully" : "Returned successfully"}
                         </p>
                         <button onClick={onClose} style={{
                             background: "none", border: "none", cursor: "pointer",
@@ -190,7 +190,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                                     color: subMode === m ? "#F59E0B" : "rgba(255,255,255,0.45)",
                                     fontSize: 13, fontWeight: 700, cursor: "pointer",
                                     fontFamily: "'Inter', sans-serif",
-                                }}>{m === "fund" ? `Mint off${token.tokenSymbol}` : "Reclaim"}</button>
+                                }}>{m === "fund" ? `Mint off${token.tokenSymbol}` : "Return"}</button>
                             ))}
                         </div>
 
@@ -291,7 +291,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                             ) : subMode === "fund" ? (
                                 <><ArrowUpIcon size={16} /> Mint</>
                             ) : (
-                                <><RefreshCwIcon size={16} /> Reclaim off{token.tokenSymbol}</>
+                                <><RefreshCwIcon size={16} /> Return off{token.tokenSymbol}</>
                             )}
                         </button>
 
