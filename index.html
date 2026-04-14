@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <!-- Timer starts immediately — before any blocking resources -->
     <script>
       window.__SPLASH_START__ = Date.now();
       if (sessionStorage.getItem('qryptum_splash_done') === '1') {
@@ -15,25 +14,20 @@
     <meta name="description" content="The Security Layer Beyond Your Private Key. Quantum-Resistant, Private, and No Internet Required." />
     <meta name="theme-color" content="#08090F" />
 
-    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="%BASE_URL%favicon-tight.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%favicon-tight.png" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="The Security Layer Beyond Your Private Key" />
     <meta property="og:description" content="The Security Layer Beyond Your Private Key. Quantum-Resistant, Private, and No Internet Required." />
     <meta property="og:image" content="/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Security Layer Beyond Your Private Key" />
     <meta name="twitter:description" content="The Security Layer Beyond Your Private Key. Quantum-Resistant, Private, and No Internet Required." />
     <meta name="twitter:image" content="/og-image.jpg" />
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100;0,14..32,200;0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap" rel="stylesheet">
@@ -45,170 +39,48 @@
       #splash-html {
         position: fixed; inset: 0; z-index: 9999;
         background: #000;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        font-family: Inter, system-ui, sans-serif;
-        transition: opacity 0.6s ease;
-        overflow: hidden;
-        padding: 0 24px 80px;
+        display: flex; align-items: center; justify-content: center;
+        transition: opacity 0.5s ease;
       }
       #splash-html.fading { opacity: 0; pointer-events: none; }
 
-      #splash-html::before {
-        content: '';
-        position: absolute;
-        top: 42%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: min(700px, 150vw); height: min(700px, 150vw);
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 65%);
-        pointer-events: none;
+      #splash-ring {
+        position: relative;
+        width: 88px; height: 88px;
+        display: flex; align-items: center; justify-content: center;
       }
 
-      @keyframes _sfadeup {
-        from { opacity: 0; transform: translateY(14px); }
-        to   { opacity: 1; transform: translateY(0); }
+      #splash-ring svg {
+        position: absolute; inset: 0;
+        animation: splash-spin 1.1s linear infinite;
       }
-      .s0 { opacity: 0; animation: _sfadeup 0.55s ease 0.0s  forwards; }
-      .s1 { opacity: 0; animation: _sfadeup 0.55s ease 0.12s forwards; }
-      .s2 { opacity: 0; animation: _sfadeup 0.6s  ease 0.28s forwards; }
-      .s3 { opacity: 0; animation: _sfadeup 0.6s  ease 0.44s forwards; }
-      .s4 { opacity: 0; animation: _sfadeup 0.6s  ease 0.60s forwards; }
-      .s5 { opacity: 0; animation: _sfadeup 0.6s  ease 0.75s forwards; }
-      /* if device has reduce-motion or animations don't run, show everything */
+
+      @keyframes splash-spin {
+        to { transform: rotate(360deg); }
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .s0,.s1,.s2,.s3,.s4,.s5 { animation: none !important; opacity: 1 !important; transform: none !important; }
-      }
-
-      #splash-line1 {
-        margin: 0; padding: 0;
-        color: #fff;
-        font-size: clamp(26px, 6.5vw, 38px);
-        font-weight: 700;
-        line-height: 1.15;
-        text-align: center;
-        letter-spacing: -0.025em;
-        max-width: 600px;
-        width: 100%;
-      }
-      #splash-line2 {
-        margin: 10px 0 0; padding: 0;
-        color: rgba(255,255,255,0.5);
-        font-size: clamp(20px, 5.2vw, 30px);
-        font-weight: 300;
-        line-height: 1.3;
-        text-align: center;
-        letter-spacing: -0.015em;
-        max-width: 580px;
-        width: 100%;
-      }
-
-      /* sharp tech card — NO border-radius */
-      #splash-tagline {
-        display: inline-flex; align-items: center; gap: 10px;
-        margin-top: 36px;
-        padding: 9px 18px;
-        border-radius: 0;
-        border: 1px solid rgba(139,92,246,0.3);
-        border-left: 3px solid rgba(139,92,246,0.7);
-        background: rgba(139,92,246,0.05);
-        color: rgba(255,255,255,0.55);
-        font-size: clamp(11px, 2.5vw, 13px);
-        font-weight: 400;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        box-shadow: 0 0 20px rgba(139,92,246,0.1);
-      }
-      #splash-tagline-dot {
-        width: 5px; height: 5px;
-        background: rgba(139,92,246,0.9);
-        flex-shrink: 0;
-        animation: _spulse 2s ease infinite;
-      }
-      @keyframes _spulse {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0.35; }
-      }
-
-      /* scanner bar */
-      #splash-loader {
-        margin-top: 40px;
-        width: min(220px, 55vw); height: 3px;
-        background: rgba(255,255,255,0.05);
-        overflow: hidden;
-      }
-      @keyframes _sscan {
-        0%   { transform: translateX(-100%); }
-        50%  { transform: translateX(480%); }
-        100% { transform: translateX(-100%); }
-      }
-      #splash-scanner {
-        width: 22%; height: 100%;
-        background: linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.3) 25%, #8B5CF6 50%, rgba(167,139,250,0.8) 75%, transparent 100%);
-        animation: _sscan 2s ease-in-out infinite;
+        #splash-ring svg { animation: none; }
       }
     </style>
 
-    <!--
-      Step 6 — Groth16 prover for browser (snarkjs).
-      Loaded async so it does NOT block the splash screen from appearing.
-      railgun.ts waits for window.snarkjs to be ready before using it.
-      https://docs.railgun.org/developer-guide/wallet/getting-started/6.-load-a-groth16-prover-for-each-platform
-    -->
-    <script async src="%BASE_URL%snarkjs.min.js"></script>
-
-    <script>
-      // Suppress Railgun SDK "Failed to refresh POIs" unhandled rejections.
-      window.addEventListener('unhandledrejection', function(event) {
-        var msg = event.reason && event.reason.message ? event.reason.message : '';
-        if (msg === 'Failed to refresh POIs' || msg.indexOf('POI') !== -1) {
-          event.stopImmediatePropagation();
-          event.preventDefault();
-        }
-      }, true);
-    </script>
+    <script src="%BASE_URL%snarkjs.min.js"></script>
   </head>
   <body style="background:#000">
     <div id="root"></div>
 
     <div id="splash-html">
-      <img src="%BASE_URL%qryptum-logo.png" width="68" height="68" alt="Qryptum" class="s0"
-           style="display:block;margin-bottom:18px;" />
-
-      <p class="s1"
-         style="margin:0 0 28px;color:rgba(255,255,255,0.3);font-size:10px;font-weight:500;letter-spacing:0.6em;text-transform:uppercase;">
-        QRYPTUM
-      </p>
-
-      <p id="splash-line1" class="s2">Deploy your own personal shield</p>
-      <p id="splash-line2" class="s3">and take full control of every transfer.</p>
-
-      <div id="splash-tagline" class="s4">
-        <div id="splash-tagline-dot"></div>
-        Secure &nbsp;·&nbsp; Private &nbsp;·&nbsp; No Internet Required
-      </div>
-
-      <div id="splash-loader" class="s5">
-        <div id="splash-scanner"></div>
+      <div id="splash-ring">
+        <!-- spinner ring -->
+        <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="44" cy="44" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="2.5"/>
+          <path d="M44 4 A40 40 0 0 1 84 44" stroke="rgba(255,255,255,0.55)" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <!-- logo -->
+        <img src="%BASE_URL%qryptum-logo.png" width="40" height="40" alt="Qryptum"
+             style="display:block;position:relative;z-index:1;" />
       </div>
     </div>
-
-    <script>
-      if (window.__SPLASH_SKIP__) {
-        /* returning user: hide splash text/animations but keep black bg
-           so there's no flash while React bundle loads.
-           main.tsx will remove the whole element after React mounts. */
-        var inner = ['splash-line1','splash-line2','splash-tagline','splash-loader'];
-        inner.forEach(function(id){
-          var el = document.getElementById(id);
-          if (el) el.style.visibility = 'hidden';
-        });
-        var logo = document.querySelector('#splash-html img');
-        if (logo) logo.style.visibility = 'hidden';
-        var label = document.querySelector('#splash-html p.s1');
-        if (label) label.style.visibility = 'hidden';
-      }
-    </script>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>
