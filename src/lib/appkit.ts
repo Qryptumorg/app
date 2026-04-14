@@ -1,11 +1,10 @@
 import { http, createConfig } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
-import { createAppKit } from "@reown/appkit";
-import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKit } from "@reown/appkit";
+import type { Config } from "wagmi";
 
-const _defaultConfig = createConfig({
+const _defaultConfig: Config = createConfig({
     chains: [sepolia, mainnet],
     connectors: [injected()],
     transports: {
@@ -14,12 +13,16 @@ const _defaultConfig = createConfig({
     },
 });
 
-export let wagmiConfig: ReturnType<typeof createConfig> = _defaultConfig;
+export let wagmiConfig: Config = _defaultConfig;
 export let hasAppKit = false;
 export let appKitModal: AppKit | null = null;
 
-export function initAppKit(projectId: string): void {
+export async function initAppKit(projectId: string): Promise<void> {
     try {
+        const [{ createAppKit }, { WagmiAdapter }] = await Promise.all([
+            import("@reown/appkit"),
+            import("@reown/appkit-adapter-wagmi"),
+        ]);
         const networks = [sepolia, mainnet] as [any, any];
         const adapter = new WagmiAdapter({
             networks,
@@ -45,7 +48,7 @@ export function initAppKit(projectId: string): void {
         appKitModal = modal;
         hasAppKit = true;
     } catch (e) {
-        console.warn("[AppKit] init failed, falling back to MetaMask only:", e);
+        console.warn("[AppKit] init failed, falling back to injected:", e);
     }
 }
 
