@@ -685,7 +685,7 @@ function SendForm({
                     background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.2)",
                 }}>
                     <CheckCircle2Icon size={11} color="#4ade80" />
-                    <p style={{ margin: 0, fontSize: 11, color: "#4ade80" }}>Voucher created</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#4ade80" }}>off{selectedToken?.tokenSymbol} created</p>
                 </div>
             )}
 
@@ -705,7 +705,7 @@ function SendForm({
             >
                 {loading
                     ? <><Loader2Icon size={13} style={{ animation: "spin 1s linear infinite" }} /> Signing...</>
-                    : <><SendIcon size={13} /> Generate Voucher</>
+                    : <><SendIcon size={13} /> Send off{selectedToken?.tokenSymbol ?? "Token"}</>
                 }
             </button>
 

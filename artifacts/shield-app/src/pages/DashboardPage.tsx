@@ -567,7 +567,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                     )}
                     {(id === "qryptair-sender" || id === "qryptair-fund") && !p.address && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet to create a voucher.
+                            Connect your wallet to create an offToken.
                         </p>
                     )}
                     {id === "qryptair-recipient" && (
