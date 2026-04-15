@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useSyncChannel } from "@/hooks/useSyncChannel";
 import { useAccount, useChainId, useDisconnect, useConnect, useBalance, useReadContracts, useSwitchChain } from "wagmi";
 import type { Connector } from "wagmi";
 import { formatUnits, parseUnits } from "viem";
@@ -327,31 +328,17 @@ export default function DashboardPage() {
         prevModal.current = activeModal;
     }, [activeModal, refetchTx]);
 
-    // BroadcastChannel: listen for events from the /qryptair tab
-    useEffect(() => {
-        if (!address) return;
-        let bc: BroadcastChannel | null = null;
-        try {
-            bc = new BroadcastChannel("qryptum-sync");
-            bc.onmessage = (e) => {
-                const msg = e.data;
-                if (!msg || msg.address !== address.toLowerCase()) return;
-                if (msg.type === "VOUCHER_CREATED") refetchTx();
-                if (msg.type === "CLAIM_SUCCESS") { refetchTx(); refetchBalances(); }
-            };
-        } catch {}
-        return () => { try { bc?.close(); } catch {} };
-    }, [address, refetchTx, refetchBalances]);
+    // Unified sync: BroadcastChannel (same device) + WebSocket (cross-device)
+    const { broadcast } = useSyncChannel(address, (msg) => {
+        if (msg.type === "VOUCHER_CREATED") refetchTx();
+        if (msg.type === "CLAIM_SUCCESS") { refetchTx(); refetchBalances(); }
+    });
 
-    // Wrapper: refetch airBudgets AND broadcast MINT_SUCCESS to /qryptair tab
+    // Wrapper: refetch airBudgets AND broadcast MINT_SUCCESS to all peers
     const handleMintSuccess = useCallback(() => {
         refetchAirBudgets();
-        try {
-            const bc = new BroadcastChannel("qryptum-sync");
-            bc.postMessage({ type: "MINT_SUCCESS", address: address?.toLowerCase(), chainId });
-            bc.close();
-        } catch {}
-    }, [refetchAirBudgets, address, chainId]);
+        broadcast({ type: "MINT_SUCCESS", chainId });
+    }, [refetchAirBudgets, broadcast, chainId]);
 
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth < 768);

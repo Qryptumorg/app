@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSyncChannel } from "@/hooks/useSyncChannel";
 import { keccak256, toBytes, parseUnits, formatUnits } from "viem";
 import { QRCodeSVG } from "qrcode.react";
 import { useAccount, useChainId, useReadContracts } from "wagmi";
@@ -1122,30 +1123,15 @@ export default function QryptAirPWAPage() {
         }
     }, [isOnline]);
 
-    // BroadcastChannel: listen for events from the /app (dashboard) tab
-    useEffect(() => {
-        if (!address) return;
-        let bc: BroadcastChannel | null = null;
-        try {
-            bc = new BroadcastChannel("qryptum-sync");
-            bc.onmessage = (e) => {
-                const msg = e.data;
-                if (!msg || msg.address !== address.toLowerCase()) return;
-                if (msg.type === "MINT_SUCCESS") refetchTokens();
-            };
-        } catch {}
-        return () => { try { bc?.close(); } catch {} };
-    }, [address, refetchTokens]);
+    // Unified sync: BroadcastChannel (same device) + WebSocket (cross-device)
+    const { broadcast } = useSyncChannel(address, (msg) => {
+        if (msg.type === "MINT_SUCCESS") refetchTokens();
+    });
 
     const onVoucherCreated = useCallback((r: VoucherRecord) => {
         setHistory(prev => [r, ...prev]);
-        // Broadcast to the /app dashboard tab so it can refetch transaction history
-        try {
-            const bc = new BroadcastChannel("qryptum-sync");
-            bc.postMessage({ type: "VOUCHER_CREATED", address: address?.toLowerCase() });
-            bc.close();
-        } catch {}
-    }, [address]);
+        broadcast({ type: "VOUCHER_CREATED" });
+    }, [broadcast]);
 
     // Auto-resolve pending offTokens by checking usedVoucherNonces on-chain
     const nonceLookups = useMemo(() => {
