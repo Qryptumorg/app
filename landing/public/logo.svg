@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 116" fill="none">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="shieldGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 5 L88 19 L88 54 C88 80 71 99 50 111 C29 99 12 80 12 54 L12 19 Z"
+        fill="rgba(6,182,212,0.10)" stroke="url(#shieldGrad)" stroke-width="2.8" filter="url(#glow)"/>
+  <circle cx="50" cy="58" r="18.5" stroke="white" stroke-width="2.8" fill="none" filter="url(#glow)"
+          stroke-dasharray="100 15" stroke-dashoffset="-7"/>
+  <line x1="62" y1="70" x2="73" y2="81" stroke="white" stroke-width="2.8" stroke-linecap="round" filter="url(#glow)"/>
+</svg>
