@@ -19,6 +19,12 @@ jobs:
           repository: Qryptumorg/qryptair
           path: _qryptair
 
+      - name: Checkout docs repo (public)
+        uses: actions/checkout@v4
+        with:
+          repository: Qryptumorg/docs
+          path: _docs
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -73,11 +79,25 @@ jobs:
           NODE_ENV: production
         run: pnpm run build
 
-      # ── 4. ASSEMBLE dist/ ────────────────────────────────────────────
+      # ── 4. BUILD DOCS ────────────────────────────────────────────────
+      # base = /docs/ (hardcoded as default in vite.config) →  qryptum.eth.limo/docs/
+      # outDir = _docs/dist/public/
+      - name: Install docs dependencies
+        working-directory: _docs
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build Docs (base /docs/ default)
+        working-directory: _docs
+        env:
+          NODE_ENV: production
+        run: pnpm run build
+
+      # ── 5. ASSEMBLE dist/ ────────────────────────────────────────────
       # Final layout:
       #   dist/            = landing  (qryptum.eth.limo/)
       #   dist/app/        = shield   (qryptum.eth.limo/app/)
       #   dist/qryptair/   = qryptair (qryptum.eth.limo/qryptair/)
+      #   dist/docs/       = docs     (qryptum.eth.limo/docs/)
       - name: Assemble combined dist/
         run: |
           set -euo pipefail
@@ -91,6 +111,10 @@ jobs:
           mkdir -p dist/qryptair
           cp -r _qryptair/dist/. dist/qryptair/
 
+          # Docs — copy to dist/docs/
+          mkdir -p dist/docs
+          cp -r _docs/dist/public/. dist/docs/
+
           # Landing — copy to dist/ ROOT last (avoids being overwritten)
           if [ -d "landing/dist/public" ]; then
             cp -r landing/dist/public/. dist/
@@ -102,7 +126,7 @@ jobs:
           find dist -maxdepth 2 -type d
           du -sh dist
 
-      # ── 5. UPLOAD TO PINATA ──────────────────────────────────────────
+      # ── 6. UPLOAD TO PINATA ──────────────────────────────────────────
       - name: Upload to Pinata IPFS
         env:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
