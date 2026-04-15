@@ -4,7 +4,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { EyeIcon, EyeOffIcon, Loader2Icon, ArrowUpIcon, RefreshCwIcon, CheckCircle2Icon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { peekNextProof, consumeProofAtPosition } from "@/lib/password";
-import { PERSONAL_VAULT_V6_ABI } from "@/lib/abi";
+import { getVaultABI } from "@/lib/abi";
 import { useTxStatus } from "@/lib/txStatusContext";
 import { recordTransaction } from "@/lib/api";
 
@@ -23,6 +23,7 @@ interface Props {
     vaultAddress: `0x${string}`;
     chainId: number;
     onClose: () => void;
+    onMintSuccess?: () => void;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -32,7 +33,7 @@ const inputStyle: React.CSSProperties = {
     outline: "none", boxSizing: "border-box",
 };
 
-export default function MintAirBagsModal({ token, airBudget, shieldedBalance, walletAddress, vaultAddress, chainId, onClose }: Props) {
+export default function MintAirBagsModal({ token, airBudget, shieldedBalance, walletAddress, vaultAddress, chainId, onClose, onMintSuccess }: Props) {
     const { toast } = useToast();
     const { pushTx } = useTxStatus();
     const [subMode, setSubMode] = useState<"fund" | "reclaim">("fund");
@@ -60,6 +61,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                 fromAddress: walletAddress,
                 networkId: chainId,
             }).catch(() => {});
+            onMintSuccess?.();
         }
     }, [fundSuccess, fundTxHash]);
 
@@ -76,6 +78,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                 fromAddress: walletAddress,
                 networkId: chainId,
             }).catch(() => {});
+            onMintSuccess?.();
         }
     }, [reclaimSuccess, reclaimTxHash]);
 
@@ -97,8 +100,8 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
         fundAmountRef.current = fundAmount;
         writeFund({
             address: vaultAddress,
-            abi: PERSONAL_VAULT_V6_ABI,
-            functionName: "fundAirBags",
+            abi: getVaultABI(chainId),
+            functionName: chainId === 1 ? "mintOffToken" : "fundAirBags",
             args: [token.tokenAddress as `0x${string}`, parsed, peeked.proof],
         }, {
             onSuccess: (hash) => pushTx(hash, `Minting ${fundAmount} ${token.tokenSymbol} to air budget`),
@@ -115,11 +118,11 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
         pendingPositionRef.current = peeked.position;
         writeReclaim({
             address: vaultAddress,
-            abi: PERSONAL_VAULT_V6_ABI,
-            functionName: "reclaimAirBags",
+            abi: getVaultABI(chainId),
+            functionName: chainId === 1 ? "reclaimOffToken" : "reclaimAirBags",
             args: [token.tokenAddress as `0x${string}`, peeked.proof],
         }, {
-            onSuccess: (hash) => pushTx(hash, `Reclaiming air budget for ${token.tokenSymbol}`),
+            onSuccess: (hash) => pushTx(hash, `Returning off${token.tokenSymbol} to shielded balance`),
         });
     }, [vaultProof, airBudget, walletAddress, vaultAddress, writeReclaim, token, toast, pushTx]);
 
@@ -171,7 +174,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "24px 0" }}>
                         <CheckCircle2Icon size={40} color="#4ade80" />
                         <p style={{ fontSize: 15, fontWeight: 700, color: "#4ade80", margin: 0 }}>
-                            {fundSuccess ? "Minted successfully" : "Reclaimed successfully"}
+                            {fundSuccess ? "Minted successfully" : "Returned successfully"}
                         </p>
                         <button onClick={onClose} style={{
                             background: "none", border: "none", cursor: "pointer",
@@ -190,7 +193,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                                     color: subMode === m ? "#F59E0B" : "rgba(255,255,255,0.45)",
                                     fontSize: 13, fontWeight: 700, cursor: "pointer",
                                     fontFamily: "'Inter', sans-serif",
-                                }}>{m === "fund" ? `Mint off${token.tokenSymbol}` : "Reclaim"}</button>
+                                }}>{m === "fund" ? `Mint off${token.tokenSymbol}` : "Return"}</button>
                             ))}
                         </div>
 
@@ -291,7 +294,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
                             ) : subMode === "fund" ? (
                                 <><ArrowUpIcon size={16} /> Mint</>
                             ) : (
-                                <><RefreshCwIcon size={16} /> Reclaim off{token.tokenSymbol}</>
+                                <><RefreshCwIcon size={16} /> Return off{token.tokenSymbol}</>
                             )}
                         </button>
 
