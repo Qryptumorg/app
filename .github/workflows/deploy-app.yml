@@ -45,7 +45,8 @@ jobs:
         with:
           node-version: '24'
 
-      # 1. Build landing -> dist/public/ (root of GitHub Pages = /app/)
+      # ── 1. BUILD LANDING ─────────────────────────────────────────────
+      # Output: landing/dist/public/
       - name: Install landing dependencies
         working-directory: landing
         run: pnpm install --no-frozen-lockfile
@@ -57,12 +58,8 @@ jobs:
           BASE_PATH: /app/
         run: pnpm run build
 
-      - name: Move landing build to dist/public/
-        run: |
-          mkdir -p dist/public
-          cp -r landing/dist/. dist/public/
-
-      # 2. Build ShieldTransfer -> dist/public/app/
+      # ── 2. BUILD SHIELD ──────────────────────────────────────────────
+      # Output: dist/public/ (repo root)
       - name: Install shield-app dependencies
         run: pnpm install --no-frozen-lockfile
 
@@ -76,13 +73,8 @@ jobs:
           VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
         run: pnpm run build
 
-      - name: Move shield build to dist/public/app/
-        run: |
-          mkdir -p dist/public/app
-          cp -r dist/public/. dist/public/app/ 2>/dev/null || true
-          rm -rf dist/public/app/app
-
-      # 3. Build QryptAir -> dist/public/qryptair/
+      # ── 3. BUILD QRYPTAIR ────────────────────────────────────────────
+      # Output: _qryptair/dist/ or _qryptair/dist/public/
       - name: Install qryptair dependencies
         working-directory: _qryptair
         run: pnpm install --no-frozen-lockfile
@@ -97,19 +89,34 @@ jobs:
           VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
         run: pnpm run build
 
-      - name: Move qryptair build to dist/public/qryptair/
+      # ── 4. ASSEMBLE FINAL PAGES DIRECTORY ───────────────────────────
+      # _pages/            = landing  (served at /app/)
+      # _pages/app/        = shield   (served at /app/app/)
+      # _pages/qryptair/   = qryptair (served at /app/qryptair/)
+      - name: Assemble pages output
         run: |
-          mkdir -p dist/public/qryptair
-          cp -r _qryptair/dist/. dist/public/qryptair/
+          mkdir -p _pages/app _pages/qryptair
 
-      - name: Add 404.html fallback (SPA routing)
-        run: cp dist/public/index.html dist/public/404.html
+          # Shield -> _pages/app/
+          cp -r dist/public/. _pages/app/
 
-      - name: Show build structure
-        run: |
-          echo "=== Pages structure ==="
-          find dist/public -maxdepth 2 -type d
-          du -sh dist/public
+          # QryptAir -> _pages/qryptair/
+          # Support either dist/public/ or dist/ as outdir
+          if [ -d "_qryptair/dist/public" ]; then
+            cp -r _qryptair/dist/public/. _pages/qryptair/
+          else
+            cp -r _qryptair/dist/. _pages/qryptair/
+          fi
+
+          # Landing -> _pages/ (must be LAST to avoid being overwritten)
+          cp -r landing/dist/public/. _pages/
+
+          # SPA 404 fallback
+          cp _pages/index.html _pages/404.html
+
+          echo "=== Final structure ==="
+          find _pages -maxdepth 2 -type d
+          du -sh _pages
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -117,7 +124,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/public
+          path: _pages
 
       - name: Deploy to GitHub Pages
         id: deployment
