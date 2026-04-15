@@ -114,10 +114,10 @@ export default function LandingPage() {
   const cards = [
     {
       id: "website",
-      label: "Website",
-      sub: "qryptum.org",
-      href: "https://qryptum.org",
-      newTab: true,
+      label: "Site",
+      sub: "qryptum.eth.limo/site",
+      href: "https://qryptum.eth.limo/site",
+      newTab: false,
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
