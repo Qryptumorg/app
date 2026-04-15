@@ -18,19 +18,22 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     if: github.repository == 'Qryptumorg/app'
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    env:
-      NODE_ENV: production
-      PORT: '3000'
-      BASE_PATH: '/app'
 
     steps:
-      - name: Checkout
+      - name: Checkout app repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Checkout qryptair repo (public)
+        uses: actions/checkout@v4
+        with:
+          repository: Qryptumorg/qryptair
+          path: _qryptair
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -42,18 +45,71 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Install dependencies
+      # 1. Build landing -> dist/public/ (root of GitHub Pages = /app/)
+      - name: Install landing dependencies
+        working-directory: landing
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build
+      - name: Build landing (base = /app/)
+        working-directory: landing
         env:
-          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
-          VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
-          VITE_DEPLOY_TARGET: app
+          NODE_ENV: production
+          BASE_PATH: /app/
         run: pnpm run build
 
-      - name: Copy index.html to 404.html for SPA routing
+      - name: Move landing build to dist/public/
+        run: |
+          mkdir -p dist/public
+          cp -r landing/dist/. dist/public/
+
+      # 2. Build ShieldTransfer -> dist/public/app/
+      - name: Install shield-app dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build ShieldTransfer (base = /app/app/)
+        env:
+          NODE_ENV: production
+          PORT: '3000'
+          BASE_PATH: /app/app/
+          VITE_DEPLOY_TARGET: app
+          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
+          VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
+        run: pnpm run build
+
+      - name: Move shield build to dist/public/app/
+        run: |
+          mkdir -p dist/public/app
+          cp -r dist/public/. dist/public/app/ 2>/dev/null || true
+          rm -rf dist/public/app/app
+
+      # 3. Build QryptAir -> dist/public/qryptair/
+      - name: Install qryptair dependencies
+        working-directory: _qryptair
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build QryptAir (base = /app/qryptair/)
+        working-directory: _qryptair
+        env:
+          NODE_ENV: production
+          PORT: '3001'
+          BASE_PATH: /app/qryptair/
+          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
+          VITE_REOWN_PROJECT_ID: ${{ secrets.VITE_REOWN_PROJECT_ID }}
+        run: pnpm run build
+
+      - name: Move qryptair build to dist/public/qryptair/
+        run: |
+          mkdir -p dist/public/qryptair
+          cp -r _qryptair/dist/. dist/public/qryptair/
+
+      - name: Add 404.html fallback (SPA routing)
         run: cp dist/public/index.html dist/public/404.html
+
+      - name: Show build structure
+        run: |
+          echo "=== Pages structure ==="
+          find dist/public -maxdepth 2 -type d
+          du -sh dist/public
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -66,42 +122,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Generate release tag
-        id: tag
-        run: |
-          TAG="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          name: "QryptSafe dApp ${{ steps.tag.outputs.tag }}"
-          generate_release_notes: true
-          body: |
-            ## QryptSafe dApp: Privacy Dashboard
-
-            Live: https://qryptumorg.github.io/app/
-
-            ### Panels
-            - QryptSafe: create vault, shield/unshield tokens via OTP chain
-            - QryptShield: private transfer via RAILGUN + QryptumSigner broadcaster
-            - QryptAir: voucher-based air budget distribution
-
-            ### Wallet Support
-            - WalletConnect v2
-            - MetaMask, Coinbase Wallet, injected providers
-
-            ### Active Contract (V6 Sepolia)
-            - Factory: `0xeaa722e996888b662E71aBf63d08729c6B6802F4`
-            - Implementation: `0x3E03f768476a763A48f2E00B73e4dC69f9E8A7E3`
-
-            ### Networks
-            - Sepolia testnet (primary)
-            - Ethereum mainnet (V6)
-
-            ---
-            Commit: ${{ github.sha }}
-          draft: false
-          prerelease: false
