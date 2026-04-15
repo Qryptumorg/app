@@ -201,25 +201,24 @@ export default function LandingPage() {
         }
         .qr-grid {
           display: grid;
-          grid-template-columns: repeat(3, 200px);
-          gap: 14px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          width: 100%;
         }
         @media (max-width: 680px) {
           .qr-grid {
             grid-template-columns: repeat(2, 1fr);
-            width: 100%;
-            max-width: 420px;
           }
         }
         .qr-card {
-          display: flex; flex-direction: column; align-items: center; gap: 10px;
-          padding: 20px; text-align: center;
-          background: rgba(5, 15, 35, 0.55);
-          border: 1px solid rgba(56, 189, 248, 0.12);
-          border-radius: 10px;
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+          padding: 26px 20px; text-align: center;
+          background: rgba(5, 15, 35, 0.60);
+          border: 1px solid rgba(56, 189, 248, 0.13);
+          border-radius: 12px;
           text-decoration: none; color: inherit;
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
           cursor: pointer;
         }
@@ -236,7 +235,12 @@ export default function LandingPage() {
 
         <div style={{
           position: "absolute", inset: 0, zIndex: 1,
-          background: "linear-gradient(to right, rgba(2,8,16,0.92) 0%, rgba(2,8,16,0.65) 45%, rgba(2,8,16,0.1) 100%)",
+          background: "linear-gradient(to right, rgba(2,8,16,0.88) 0%, rgba(2,8,16,0.55) 40%, rgba(2,8,16,0.88) 100%)",
+        }} />
+
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 1,
+          background: "radial-gradient(ellipse 70% 80% at 50% 50%, rgba(2,8,16,0.72) 0%, rgba(2,8,16,0.0) 100%)",
         }} />
 
         <div style={{
@@ -245,34 +249,35 @@ export default function LandingPage() {
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          padding: "28px 24px",
+          padding: "40px 32px",
         }}>
-          <header style={{ textAlign: "center", marginBottom: "20px" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+          <div style={{ width: "100%", maxWidth: "920px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <header style={{ textAlign: "center", marginBottom: "24px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
               <img
                 src={qLogo}
                 alt="Qryptum"
-                style={{ width: "88px", height: "88px", objectFit: "contain", animation: "logo-glow 4s ease-in-out infinite" }}
+                style={{ width: "100px", height: "100px", objectFit: "contain", animation: "logo-glow 4s ease-in-out infinite" }}
               />
               <span style={{
-                fontSize: "20px", fontWeight: 700,
-                letterSpacing: "0.2em", color: "#e0f2fe", textTransform: "uppercase",
+                fontSize: "22px", fontWeight: 700,
+                letterSpacing: "0.22em", color: "#e0f2fe", textTransform: "uppercase",
               }}>
                 Qryptum
               </span>
             </div>
-            <p style={{ fontSize: "17px", fontWeight: 500, color: "#94a3b8", letterSpacing: "0.02em", margin: 0 }}>
+            <p style={{ fontSize: "18px", fontWeight: 500, color: "#94a3b8", letterSpacing: "0.02em", margin: 0, lineHeight: 1.5 }}>
               The Security Layer<br />Beyond Your Private Key
             </p>
           </header>
 
           <p style={{
-            maxWidth: "520px",
-            fontSize: "13px",
-            lineHeight: "1.7",
+            maxWidth: "600px",
+            fontSize: "13.5px",
+            lineHeight: "1.75",
             color: "#64748b",
             textAlign: "center",
-            marginBottom: "16px",
+            marginBottom: "24px",
           }}>
             Quantum-resistant vault commitments, zero-knowledge transfer privacy, and offline-capable transfers that require no internet connection, built into a single self-custody protocol on Ethereum.
           </p>
@@ -320,6 +325,7 @@ export default function LandingPage() {
               })()}
             </div>
           </footer>
+          </div>
         </div>
       </div>
     </>
