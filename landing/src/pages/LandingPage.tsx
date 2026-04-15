@@ -8,7 +8,7 @@ import logoEns from "@/assets/logo-ens.png";
 import logoPinata from "@/assets/logo-pinata.png";
 import logoEthlimo from "@/assets/logo-ethlimo.png";
 
-const qLogo = import.meta.env.BASE_URL + "logo.svg";
+const qLogo = import.meta.env.BASE_URL + "qryptum-logo.png";
 
 function SpiralBg() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -272,7 +272,7 @@ export default function LandingPage() {
           </header>
 
           <p style={{
-            maxWidth: "600px",
+            maxWidth: "760px",
             fontSize: "13.5px",
             lineHeight: "1.75",
             color: "#64748b",
