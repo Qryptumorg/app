@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import qLogo from "@/assets/qryptum-q.png";
 import appIcon from "@/assets/icon-app.png";
 import logoRailgun from "@/assets/logo-railgun.png";
@@ -7,6 +8,97 @@ import logoReown from "@/assets/logo-reown.png";
 import logoEns from "@/assets/logo-ens.png";
 import logoPinata from "@/assets/logo-pinata.png";
 import logoEthlimo from "@/assets/logo-ethlimo.png";
+
+function SpiralBg() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    let animId: number;
+    let t = 0;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function draw() {
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "#020810";
+      ctx.fillRect(0, 0, W, H);
+
+      const cx = W * 0.62;
+      const cy = H * 0.44;
+      const maxR = Math.max(W, H) * 0.68;
+      const turns = 3.2;
+      const steps = 900;
+      const numArms = 2;
+
+      for (let arm = 0; arm < numArms; arm++) {
+        const armOffset = (arm / numArms) * Math.PI * 2;
+
+        for (let pass = 0; pass < 3; pass++) {
+          const phaseNudge = pass * 0.18;
+          const alphaScale = 1 - pass * 0.28;
+          const widthScale = 1 - pass * 0.2;
+
+          ctx.beginPath();
+          let first = true;
+          for (let i = 0; i <= steps; i++) {
+            const frac = i / steps;
+            const r = frac * maxR;
+            const angle =
+              frac * turns * Math.PI * 2 + armOffset + t + phaseNudge;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (first) { ctx.moveTo(x, y); first = false; }
+            else ctx.lineTo(x, y);
+          }
+
+          const grad = ctx.createLinearGradient(cx, cy, cx + maxR * 0.7, cy + maxR * 0.3);
+          grad.addColorStop(0,   `rgba(6,182,212,${0.72 * alphaScale})`);
+          grad.addColorStop(0.3, `rgba(14,165,233,${0.45 * alphaScale})`);
+          grad.addColorStop(0.6, `rgba(56,189,248,${0.2 * alphaScale})`);
+          grad.addColorStop(1,   `rgba(2,8,16,0)`);
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = (2.4 - pass * 0.5) * widthScale;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.stroke();
+        }
+      }
+
+      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
+      grd.addColorStop(0,   "rgba(6,182,212,0.18)");
+      grd.addColorStop(0.4, "rgba(14,165,233,0.06)");
+      grd.addColorStop(1,   "transparent");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+
+      t += 0.0032;
+      animId = requestAnimationFrame(draw);
+    }
+
+    draw();
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={ref}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0 }}
+    />
+  );
+}
 
 export default function LandingPage() {
   const cards = [
@@ -93,27 +185,10 @@ export default function LandingPage() {
   return (
     <>
       <style>{`
-        @keyframes wave1 {
-          0%,100% { transform: rotate(-22deg) translateY(0px)   scaleX(1);    }
-          50%      { transform: rotate(-22deg) translateY(-38px) scaleX(1.03); }
-        }
-        @keyframes wave2 {
-          0%,100% { transform: rotate(-22deg) translateY(0px)  scaleX(1);    }
-          50%      { transform: rotate(-22deg) translateY(32px) scaleX(1.04); }
-        }
-        @keyframes wave3 {
-          0%,100% { transform: rotate(-22deg) translateY(0px)   scaleX(1);    }
-          50%      { transform: rotate(-22deg) translateY(-22px) scaleX(1.02); }
-        }
-        @keyframes wave4 {
-          0%,100% { transform: rotate(-22deg) translateY(0px)  scaleX(1);   }
-          50%      { transform: rotate(-22deg) translateY(18px) scaleX(1.03);}
-        }
         @keyframes logo-glow {
           0%, 100% { filter: drop-shadow(0 0 16px #38bdf870) drop-shadow(0 0 36px #0ea5e950); }
           50%       { filter: drop-shadow(0 0 28px #38bdf8aa) drop-shadow(0 0 56px #0ea5e980); }
         }
-        .qr-wave { position: absolute; border-radius: 40%; will-change: transform; }
         .qr-grid {
           display: grid;
           grid-template-columns: repeat(3, 200px);
@@ -147,36 +222,7 @@ export default function LandingPage() {
 
       <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden", background: "#020810" }}>
 
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
-          <div className="qr-wave" style={{
-            top: "-40%", right: "-10%",
-            width: "110vw", height: "200vh",
-            background: "linear-gradient(160deg, #05131f 0%, #071e2e 50%, transparent 100%)",
-            opacity: 0.95,
-            animation: "wave4 14s ease-in-out infinite",
-          }} />
-          <div className="qr-wave" style={{
-            top: "-35%", right: "-5%",
-            width: "90vw", height: "190vh",
-            background: "linear-gradient(160deg, #0a1f40 0%, #0d2147 40%, #06152e 100%)",
-            opacity: 0.92,
-            animation: "wave3 18s ease-in-out infinite",
-          }} />
-          <div className="qr-wave" style={{
-            top: "-30%", right: "-2%",
-            width: "72vw", height: "180vh",
-            background: "linear-gradient(160deg, #0c3060 0%, #0a2550 40%, #061840 100%)",
-            opacity: 0.88,
-            animation: "wave2 22s ease-in-out infinite",
-          }} />
-          <div className="qr-wave" style={{
-            top: "-28%", right: "2%",
-            width: "52vw", height: "175vh",
-            background: "linear-gradient(160deg, #0a4060 0%, #0c4a72 30%, #0a3558 70%, #06213d 100%)",
-            opacity: 0.85,
-            animation: "wave1 16s ease-in-out infinite",
-          }} />
-        </div>
+        <SpiralBg />
 
         <div style={{
           position: "absolute", inset: 0, zIndex: 1,
