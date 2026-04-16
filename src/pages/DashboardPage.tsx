@@ -21,9 +21,10 @@ import TransferModeSelector from "@/components/TransferModeSelector";
 import QryptAirSenderPanel from "@/components/QryptAirSenderPanel";
 import QryptAirRecipientPanel from "@/components/QryptAirRecipientPanel";
 import QryptShieldGate from "@/components/QryptShieldGate";
+import { QryptShieldTabDesktop, QryptShieldTabMobile } from "@/components/QryptShieldTab";
 import ChainSyncModal from "@/components/ChainSyncModal";
 import TokenLogo from "@/components/TokenLogo";
-import { fetchTransactions, fetchPortfolio } from "@/lib/api";
+import { fetchTransactions, fetchPortfolio, fetchRailgunPending, type RailgunPendingData } from "@/lib/api";
 import { PERSONAL_VAULT_ABI, ERC20_ABI, SHIELD_FACTORY_V6_ABI, getVaultABI } from "@/lib/abi";
 import { SUPPORTED_CHAIN_IDS } from "@/lib/wagmi";
 import { hasAppKit, appKitModal, SHIELD_FACTORY_V6_ADDRESSES } from "@/lib/appkit";
@@ -921,78 +922,131 @@ function MobileProfileTab({ p }: { p: SharedProps }) {
 }
 
 function MobileLayout(p: SharedProps) {
-    const [mobileNavTab, setMobileNavTab] = useState<"safes" | "air" | "profile">("safes");
+    const [mobileNavTab, setMobileNavTab] = useState<"safes" | "shield" | "air" | "profile">("safes");
+    const { switchChain } = useSwitchChain();
+    const [showChainMenu, setShowChainMenu] = useState(false);
+
+    const CHAINS = [
+        { id: 1,        label: "Ethereum Mainnet", short: "ETH", color: "#627EEA" },
+        { id: 11155111, label: "Sepolia Testnet",  short: "SEP", color: "#A78BFA" },
+    ];
+    const activeChain = CHAINS.find(c => c.id === p.chainId) ?? { id: p.chainId, label: `Chain ${p.chainId}`, short: "?", color: "rgba(255,255,255,0.4)" };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <header style={{
                 height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "0 20px", borderBottom: "1px solid rgba(255,255,255,0.15)",
+                padding: "0 16px", borderBottom: "1px solid rgba(255,255,255,0.15)",
                 background: "rgba(0,0,0,0.97)", position: "sticky", top: 0, zIndex: 20,
             }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 0 }}>
-                        <img src={`${import.meta.env.BASE_URL}qryptum-logo.png`} alt="Qryptum" style={{ height: 42, width: 42, objectFit: "contain" }} />
-                        <span style={{ fontWeight: 800, fontSize: 15, color: "#d4d6e2", letterSpacing: "-0.01em", marginLeft: -5 }}>QRYPTUM</span>
+                        <img src={`${import.meta.env.BASE_URL}qryptum-logo.png`} alt="Qryptum" style={{ height: 40, width: 40, objectFit: "contain" }} />
+                        <span style={{ fontWeight: 800, fontSize: 14, color: "#d4d6e2", letterSpacing: "-0.01em", marginLeft: -4 }}>QRYPTUM</span>
                     </a>
-                    {[
-                        { href: "https://qryptum.org", label: "Website", icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-                        { href: "https://github.com/qryptumorg", label: "GitHub", icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg> },
-                        { href: "https://x.com/qryptumorg", label: "X", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
-                    ].map(({ href, label, icon }) => (
-                        <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 6, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
-                        >{icon}</a>
-                    ))}
+                    <a href="https://qryptum.org" target="_blank" rel="noopener noreferrer" aria-label="Website"
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 6, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </a>
                 </div>
 
-                {p.isConnected && p.hasVault ? (
-                    <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
-                        <button onClick={() => p.setActiveModal("qryptair-recipient")} style={{
-                            width: 34, height: 34, borderRadius: "50%",
-                            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", color: "rgba(255,255,255,0.6)",
-                        }}>
-                            <ScanLineIcon size={15} />
-                        </button>
-                        <button onClick={() => p.setActiveModal("shield")} style={{
-                            width: 34, height: 34, borderRadius: "50%",
-                            background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.18)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", color: "rgba(255,255,255,0.85)",
-                        }}>
-                            <PlusIcon size={16} />
-                        </button>
-                    </div>
-                ) : !p.isConnected ? (
+                <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
+                    {/* Chain selector - always visible */}
                     <div style={{ position: "relative" }}>
-                        <button onClick={() => {
-                            p.setConnectError(null);
-                            if (hasAppKit && appKitModal) { appKitModal.open(); }
-                            else { p.setShowConnectMenu(!p.showConnectMenu); }
-                        }} style={{
-                            background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20,
-                            padding: "7px 14px", cursor: "pointer",
-                            fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.82)",
-                            display: "flex", alignItems: "center", gap: 6,
+                        <button onClick={() => setShowChainMenu(v => !v)} style={{
+                            height: 32, paddingLeft: 8, paddingRight: 10, borderRadius: 16,
+                            background: "rgba(255,255,255,0.06)", border: `1px solid ${activeChain.color}40`,
+                            display: "flex", alignItems: "center", gap: 5,
+                            cursor: "pointer", color: activeChain.color,
                         }}>
-                            <WalletIcon size={13} /> Connect Wallet
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="7" width="4" height="10" rx="1"/><rect x="10" y="4" width="4" height="13" rx="1"/><rect x="18" y="2" width="4" height="15" rx="1"/>
+                                <path d="M2 21h20"/>
+                            </svg>
+                            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>{activeChain.short}</span>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
                         </button>
-                        {p.showConnectMenu && !p.connectError && (
-                            <ConnectorMenu connectors={p.availableConnectors} onConnect={p.handleConnectWith} />
-                        )}
-                        {p.connectError === "iframe" && (
-                            <IframeErrorPopup onOpen={() => { window.open(window.location.href, "_blank"); p.setConnectError(null); }} onDismiss={() => p.setConnectError(null)} />
+                        {showChainMenu && (
+                            <div style={{
+                                position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 100,
+                                background: "#0d1117", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10,
+                                overflow: "hidden", minWidth: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                            }}>
+                                {CHAINS.map(c => (
+                                    <button key={c.id} onClick={() => {
+                                        switchChain?.({ chainId: c.id as 1 | 11155111 });
+                                        setShowChainMenu(false);
+                                    }} style={{
+                                        width: "100%", display: "flex", alignItems: "center", gap: 10,
+                                        padding: "11px 14px", background: c.id === p.chainId ? "rgba(255,255,255,0.05)" : "transparent",
+                                        border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
+                                        cursor: "pointer", color: c.id === p.chainId ? c.color : "rgba(255,255,255,0.6)",
+                                        fontSize: 13, fontWeight: c.id === p.chainId ? 700 : 400,
+                                        fontFamily: "'Inter', sans-serif", textAlign: "left",
+                                    }}>
+                                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, display: "inline-block", flexShrink: 0 }} />
+                                        {c.label}
+                                        {c.id === p.chainId && <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.6 }}>Active</span>}
+                                    </button>
+                                ))}
+                            </div>
                         )}
                     </div>
-                ) : null}
+
+                    {/* QR scan + Shield new token - when connected */}
+                    {p.isConnected && (
+                        <>
+                            <button onClick={() => p.setActiveModal("qryptair-recipient")} style={{
+                                width: 34, height: 34, borderRadius: "50%",
+                                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                cursor: "pointer", color: "rgba(255,255,255,0.6)",
+                            }}>
+                                <ScanLineIcon size={15} />
+                            </button>
+                            <button onClick={() => p.setActiveModal("shield")} style={{
+                                width: 34, height: 34, borderRadius: "50%",
+                                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.22)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                cursor: "pointer", color: "#fff",
+                            }}>
+                                <PlusIcon size={16} />
+                            </button>
+                        </>
+                    )}
+
+                    {/* Connect wallet when not connected */}
+                    {!p.isConnected && (
+                        <div style={{ position: "relative" }}>
+                            <button onClick={() => {
+                                p.setConnectError(null);
+                                if (hasAppKit && appKitModal) { appKitModal.open(); }
+                                else { p.setShowConnectMenu(!p.showConnectMenu); }
+                            }} style={{
+                                background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20,
+                                padding: "7px 12px", cursor: "pointer",
+                                fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.82)",
+                                display: "flex", alignItems: "center", gap: 5,
+                            }}>
+                                <WalletIcon size={12} /> Connect
+                            </button>
+                            {p.showConnectMenu && !p.connectError && (
+                                <ConnectorMenu connectors={p.availableConnectors} onConnect={p.handleConnectWith} />
+                            )}
+                            {p.connectError === "iframe" && (
+                                <IframeErrorPopup onOpen={() => { window.open(window.location.href, "_blank"); p.setConnectError(null); }} onDismiss={() => p.setConnectError(null)} />
+                            )}
+                        </div>
+                    )}
+                </div>
             </header>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 90px" }}>
                 {mobileNavTab === "profile"
                     ? <MobileProfileTab p={p} />
-                    : <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
+                    : mobileNavTab === "shield"
+                        ? <QryptShieldTabMobile p={p} />
+                        : <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
                 }
             </div>
 
@@ -1003,20 +1057,24 @@ function MobileLayout(p: SharedProps) {
                     display: "flex", zIndex: 30,
                 }}>
                     {([
-                        { id: "safes" as const, icon: <ShieldIcon size={19} />, label: "QRYPT-SAFES" },
-                        { id: "air" as const, icon: <WifiOffIcon size={19} />, label: "AIR BAGS" },
+                        { id: "safes" as const, icon: <ShieldIcon size={18} />, label: "QRYPT-SAFE" },
+                        { id: "shield" as const, icon: <EyeOffIcon size={18} />, label: "QRYPTSHIELD" },
+                        { id: "air" as const, icon: <WifiOffIcon size={18} />, label: "QRYPTAIR" },
                     ]).map(tab => {
                         const isActive = mobileNavTab === tab.id;
                         return (
                             <button key={tab.id} onClick={() => setMobileNavTab(tab.id)} style={{
                                 flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                                justifyContent: "center", gap: 4, background: "none", border: "none",
+                                justifyContent: "center", gap: 3, background: "none", border: "none",
                                 cursor: "pointer", transition: "color 0.15s",
-                                color: isActive ? "#fff" : "rgba(255,255,255,0.25)",
-                                borderTop: isActive ? "2px solid rgba(255,255,255,0.7)" : "2px solid transparent",
+                                color: tab.id === "shield" && isActive ? "#c4b5fd"
+                                    : isActive ? "#fff" : "rgba(255,255,255,0.25)",
+                                borderTop: isActive
+                                    ? tab.id === "shield" ? "2px solid #8B5CF6" : "2px solid rgba(255,255,255,0.7)"
+                                    : "2px solid transparent",
                             }}>
                                 {tab.icon}
-                                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.07em" }}>{tab.label}</span>
+                                <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.06em" }}>{tab.label}</span>
                             </button>
                         );
                     })}
@@ -1024,24 +1082,24 @@ function MobileLayout(p: SharedProps) {
                         onClick={() => p.setActiveModal("chain-sync")}
                         style={{
                             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                            justifyContent: "center", gap: 4, background: "none", border: "none",
+                            justifyContent: "center", gap: 3, background: "none", border: "none",
                             cursor: "pointer", transition: "color 0.15s",
                             color: "rgba(74,222,128,0.4)",
                             borderTop: "2px solid transparent",
                         }}
                     >
-                        <RefreshCwIcon size={19} />
-                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.07em" }}>OTP CHAIN</span>
+                        <RefreshCwIcon size={18} />
+                        <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.06em" }}>OTP CHAIN</span>
                     </button>
                     <button onClick={() => setMobileNavTab("profile")} style={{
                         flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                        justifyContent: "center", gap: 4, background: "none", border: "none",
+                        justifyContent: "center", gap: 3, background: "none", border: "none",
                         cursor: "pointer", transition: "color 0.15s",
                         color: mobileNavTab === "profile" ? "#60a5fa" : "rgba(255,255,255,0.25)",
                         borderTop: mobileNavTab === "profile" ? "2px solid #60a5fa" : "2px solid transparent",
                     }}>
-                        <UserIcon size={19} />
-                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.07em" }}>PROFILE</span>
+                        <UserIcon size={18} />
+                        <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.06em" }}>PROFILE</span>
                     </button>
                 </nav>
             )}
@@ -1484,8 +1542,23 @@ function SparkLine({ points, color = "#60a5fa", h = 100, full }: { points: numbe
 
 function DesktopDashboard(p: SharedProps) {
     const [selected, setSelected] = useState<string>("");
-    const [sidebarTab, setSidebarTab] = useState<"safes" | "air">("safes");
+    const [sidebarTab, setSidebarTab] = useState<"safes" | "shield" | "air">("safes");
     const [showAirTransferNotice, setShowAirTransferNotice] = useState(false);
+    const [pendingList, setPendingList] = useState<RailgunPendingData[]>([]);
+    const [pendingLoading, setPendingLoading] = useState(false);
+    const [selectedPending, setSelectedPending] = useState<RailgunPendingData | null>(null);
+
+    const loadPending = useCallback(async () => {
+        if (!p.address) return;
+        setPendingLoading(true);
+        const rows = await fetchRailgunPending(p.address, p.chainId).catch(() => []);
+        setPendingList(rows);
+        setPendingLoading(false);
+    }, [p.address, p.chainId]);
+
+    useEffect(() => {
+        if (sidebarTab === "shield") loadPending();
+    }, [sidebarTab, loadPending]);
 
     useEffect(() => {
         if (!selected && p.tokensWithBalances.length > 0) {
@@ -1558,34 +1631,79 @@ function DesktopDashboard(p: SharedProps) {
                     <div style={{ ...panelBase }}>
                         {/* Tab header */}
                         <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
-                            <div style={{ display: "flex", gap: 6 }}>
-                                {(["safes", "air"] as const).map(tab => {
+                            <div style={{ display: "flex", gap: 5 }}>
+                                {(["safes", "shield", "air"] as const).map(tab => {
                                     const isActive = sidebarTab === tab;
-                                    const isSafes = tab === "safes";
+                                    const label = tab === "safes" ? "QRYPT-SAFE" : tab === "shield" ? "QRYPTSHIELD" : "AIR BAGS";
                                     return (
                                         <button key={tab} onClick={() => { setSidebarTab(tab); setSelected(""); }} style={{
-                                            flex: 1, padding: "11px 6px", cursor: "pointer",
+                                            flex: 1, padding: "10px 4px", cursor: "pointer",
                                             borderRadius: 9, fontFamily: "'Inter', sans-serif",
-                                            fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                                            fontSize: 10, fontWeight: 700, letterSpacing: "0.04em",
                                             transition: "all 0.15s",
                                             background: isActive
-                                                ? "rgba(255,255,255,0.09)"
-                                                : "rgba(255,255,255,0.04)",
+                                                ? tab === "shield" ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.09)"
+                                                : "rgba(255,255,255,0.03)",
                                             border: isActive
-                                                ? "1px solid rgba(255,255,255,0.2)"
-                                                : "1px solid rgba(255,255,255,0.07)",
+                                                ? tab === "shield" ? "1px solid rgba(139,92,246,0.3)" : "1px solid rgba(255,255,255,0.2)"
+                                                : "1px solid rgba(255,255,255,0.06)",
                                             color: isActive
-                                                ? "#fff"
-                                                : "rgba(255,255,255,0.35)",
+                                                ? tab === "shield" ? "#c4b5fd" : "#fff"
+                                                : "rgba(255,255,255,0.3)",
                                         }}>
-                                            {tab === "safes" ? "QRYPT-SAFES" : "AIR BAGS"}
+                                            {label}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {sidebarTab === "safes" ? (
+                        {sidebarTab === "shield" ? (
+                            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+                                <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
+                                        Transfers interrupted mid-flight appear here automatically. Click to resume.
+                                    </p>
+                                </div>
+                                <PB scroll>
+                                    {pendingLoading && pendingList.length === 0 ? (
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 8 }}>
+                                            <EyeOffIcon size={14} color="rgba(255,255,255,0.2)" />
+                                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Checking...</p>
+                                        </div>
+                                    ) : pendingList.length === 0 ? (
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 10, padding: "32px 0" }}>
+                                            <EyeOffIcon size={28} color="rgba(255,255,255,0.08)" />
+                                            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", textAlign: "center" }}>No pending transfers</p>
+                                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", textAlign: "center", lineHeight: 1.5 }}>Start a shield transfer from the right panel</p>
+                                        </div>
+                                    ) : pendingList.map((item, i) => {
+                                        const isSel = selectedPending?.tokenAddress === item.tokenAddress;
+                                        return (
+                                            <div key={item.tokenAddress} onClick={() => setSelectedPending(isSel ? null : item)} style={{
+                                                borderBottom: i < pendingList.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                                                display: "flex", alignItems: "center", justifyContent: "space-between",
+                                                padding: "11px 0", cursor: "pointer",
+                                                background: isSel ? "rgba(139,92,246,0.06)" : "transparent",
+                                            }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                    <EyeOffIcon size={14} color={isSel ? "#8B5CF6" : "rgba(255,255,255,0.3)"} />
+                                                    <div>
+                                                        <p style={{ fontSize: 13, fontWeight: 600, color: isSel ? "#c4b5fd" : "rgba(255,255,255,0.85)" }}>q{item.tokenSymbol}</p>
+                                                        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{parseFloat(item.amount).toLocaleString(undefined, { maximumFractionDigits: 6 })} {item.tokenSymbol}</p>
+                                                    </div>
+                                                </div>
+                                                <span style={{
+                                                    fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
+                                                    background: "rgba(245,158,11,0.12)", color: "#F59E0B",
+                                                    border: "1px solid rgba(245,158,11,0.18)",
+                                                }}>In Flight</span>
+                                            </div>
+                                        );
+                                    })}
+                                </PB>
+                            </div>
+                        ) : sidebarTab === "safes" ? (
                             <>
                                 <div style={{ padding: "10px 14px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
                                     <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.5, margin: "0 0 9px" }}>
@@ -1671,7 +1789,20 @@ function DesktopDashboard(p: SharedProps) {
                     </div>
 
                     <div style={{ ...panelBase }}>
-                        {selectedToken ? (
+                        {sidebarTab === "shield" ? (
+                            p.vaultAddress && p.address ? (
+                                <QryptShieldGate
+                                    vaultAddress={p.vaultAddress}
+                                    walletAddress={p.address}
+                                    chainId={p.chainId}
+                                    tokensWithBalances={p.tokensWithBalances}
+                                    vaultVersion={p.vaultVersion ?? "v5"}
+                                    onComplete={() => { loadPending(); p.refetchData(); p.refetchBalances(); }}
+                                />
+                            ) : (
+                                <ModalNoVaultMsg isConnected={p.isConnected} isLoading={p.isVaultLoading} />
+                            )
+                        ) : selectedToken ? (
                             <>
                                 <div style={{
                                     padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
