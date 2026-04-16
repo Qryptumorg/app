@@ -57,12 +57,12 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     1: {
         chainId: 1,
         providers: [
-            { provider: "https://ethereum-rpc.publicnode.com", priority: 1, weight: 3 },
-            { provider: "https://eth.drpc.org", priority: 2, weight: 2 },
-            { provider: "https://1rpc.io/eth", priority: 3, weight: 2 },
-            { provider: "https://eth.llamarpc.com", priority: 4, weight: 1 },
-            { provider: "https://rpc.ankr.com/eth", priority: 5, weight: 1 },
-            { provider: "https://rpc.mevblocker.io", priority: 6, weight: 1 },
+            { provider: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c", priority: 1, weight: 4 },
+            { provider: "https://ethereum-rpc.publicnode.com", priority: 2, weight: 2 },
+            { provider: "https://eth.drpc.org", priority: 3, weight: 2 },
+            { provider: "https://1rpc.io/eth", priority: 4, weight: 1 },
+            { provider: "https://eth.llamarpc.com", priority: 5, weight: 1 },
+            { provider: "https://rpc.ankr.com/eth", priority: 6, weight: 1 },
         ],
     },
     137: {
@@ -99,7 +99,7 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
 
 // Fallback single-URL for any network not in NETWORK_PROVIDERS
 const FALLBACK_RPC: Partial<Record<number, string>> = {
-    1: "https://ethereum-rpc.publicnode.com",
+    1: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c",
     137: "https://polygon.llamarpc.com",
     56: "https://binance.llamarpc.com",
     42161: "https://arbitrum.llamarpc.com",
