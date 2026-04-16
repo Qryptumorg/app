@@ -21,6 +21,7 @@ interface QryptShieldGateProps {
     vaultVersion?: "v5" | "v6";
     onComplete?: () => void;
     onCancel?: () => void;
+    onLockChange?: (locked: boolean) => void;
 }
 
 interface ErrorBoundaryState { error: Error | null }
@@ -95,6 +96,7 @@ export default function QryptShieldGate(props: QryptShieldGateProps) {
                 initialTokenAddress={props.initialTokenAddress}
                 vaultVersion={props.vaultVersion ?? "v5"}
                 onComplete={props.onComplete}
+                onLockChange={props.onLockChange}
             />
         </QryptShieldErrorBoundary>
     );
