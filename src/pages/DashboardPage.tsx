@@ -469,22 +469,11 @@ function CreateVaultInline({ p }: { p: SharedProps }) {
     const proofValid = validatePasswordFormat(vaultProof);
 
     useEffect(() => {
-        if (!isSuccess || !txHash || !publicClient) return;
-        publicClient.getTransactionReceipt({ hash: txHash }).then(receipt => {
-            const eventTopic = keccak256(toBytes("QryptSafeCreated(address,address)"));
-            const log = receipt.logs.find(l => l.topics[0]?.toLowerCase() === eventTopic.toLowerCase());
-            if (log?.topics[2]) {
-                const vaultAddr = ("0x" + log.topics[2].slice(-40)) as `0x${string}`;
-                initChainState(vaultAddr);
-            }
-            initChainState(p.address as string);
-            setDone(true);
-            p.refetchVault();
-        }).catch(() => {
-            setDone(true);
-            p.refetchVault();
-        });
-    }, [isSuccess, txHash, publicClient]);
+        if (!isSuccess || !txHash) return;
+        initChainState(p.address as string);
+        setDone(true);
+        p.refetchVault();
+    }, [isSuccess, txHash]);
 
     const handleCreate = async () => {
         if (!proofValid || !factoryAddress || !p.address || isComputing) return;
@@ -810,7 +799,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                         <ModalSettingsNoVault p={p} />
                     )}
                     {id === "chain-sync" && p.vaultAddress && p.address && (
-                        <ChainSyncModal vaultAddress={p.vaultAddress} walletAddress={p.address} vaultVersion={p.vaultVersion} />
+                        <ChainSyncModal vaultAddress={p.vaultAddress} walletAddress={p.address} vaultVersion={p.vaultVersion} chainId={p.chainId} />
                     )}
                     {id === "chain-sync" && (!p.vaultAddress || !p.address) && (
                         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
