@@ -148,3 +148,46 @@ export async function generateH0Api(
     const data = await res.json();
     return data.h0 as `0x${string}`;
 }
+
+export interface RailgunPendingData {
+    walletAddress: string;
+    chainId: number;
+    atomicHash: string;
+    tokenAddress: string;
+    tokenSymbol: string;
+    amount: string;
+    recipient: string;
+}
+
+export async function fetchRailgunPending(walletAddress: string, chainId: number): Promise<RailgunPendingData | null> {
+    try {
+        const res = await fetch(`${BASE}/railgun-pending/${walletAddress.toLowerCase()}/${chainId}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.pending ?? null;
+    } catch {
+        return null;
+    }
+}
+
+export async function saveRailgunPending(data: RailgunPendingData): Promise<void> {
+    try {
+        await fetch(`${BASE}/railgun-pending`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+    } catch {
+        // best effort - localStorage still has it
+    }
+}
+
+export async function clearRailgunPending(walletAddress: string, chainId: number): Promise<void> {
+    try {
+        await fetch(`${BASE}/railgun-pending/${walletAddress.toLowerCase()}/${chainId}`, {
+            method: "DELETE",
+        });
+    } catch {
+        // best effort
+    }
+}
