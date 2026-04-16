@@ -43,6 +43,7 @@ interface QryptShieldPanelProps {
     initialTokenAddress?: string;
     vaultVersion?: "v5" | "v6";
     onComplete?: () => void;
+    onLockChange?: (locked: boolean) => void;
 }
 
 type StepStatus = "pending" | "active" | "done" | "error";
@@ -74,6 +75,7 @@ export default function QryptShieldPanel({
     initialTokenAddress,
     vaultVersion = "v5",
     onComplete,
+    onLockChange,
 }: QryptShieldPanelProps) {
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient({ chainId });
@@ -119,6 +121,10 @@ export default function QryptShieldPanel({
     const [phase, setPhase] = useState<"form" | "running" | "done" | "error">("form");
     const [steps, setSteps] = useState<Step[]>(INITIAL_STEPS);
     const [fatalError, setFatalError] = useState<string | null>(null);
+
+    useEffect(() => {
+        onLockChange?.(phase === "running");
+    }, [phase, onLockChange]);
     const [doneTxHash, setDoneTxHash] = useState<string>("");
 
     // Pending transfer - server is primary (survives clear history), localStorage is fast local cache
