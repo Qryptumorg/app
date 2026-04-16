@@ -35,7 +35,7 @@ export async function initAppKit(projectId: string): Promise<void> {
             metadata: {
                 name: "Qryptum",
                 description: "Privacy-first DeFi protocol on Ethereum",
-                url: window.location.origin,
+                url: "https://qryptum.eth.limo",
                 icons: [`${window.location.origin}${import.meta.env.BASE_URL}qryptum-logo.png`],
             },
             features: { analytics: false },
@@ -44,7 +44,7 @@ export async function initAppKit(projectId: string): Promise<void> {
         appKitModal = modal;
         hasAppKit = true;
     } catch (e) {
-        console.error("[AppKit] init failed:", e);
+        console.warn("[AppKit] init failed, falling back to injected only:", e);
     }
 }
 
@@ -55,7 +55,7 @@ export const SHIELD_FACTORY_ADDRESSES: Record<number, string> = {
 
 export const SHIELD_FACTORY_V6_ADDRESSES: Record<number, string> = {
     11155111: "0xeaa722e996888b662E71aBf63d08729c6B6802F4",
-    1: "",
+    1:        "0xE3583f8cA00Edf89A00d9D8c46AE456487a4C56f",
 };
 
 export const SUPPORTED_CHAIN_IDS = [11155111, 1];
