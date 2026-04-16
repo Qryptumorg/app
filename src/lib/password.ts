@@ -303,18 +303,30 @@ export async function readChainHeadFromContract(
     return raw as `0x${string}`;
 }
 
+/** @internal zero bytes32 sentinel */
+const ZERO_BYTES32 = "0x" + "0".repeat(64);
+
+export interface SyncResult {
+    /** Recovered position (0-99), or null if no match found. */
+    pos: number | null;
+    /** Raw value read from contract storage slot 1. Shown to user for diagnostics. */
+    contractHead: `0x${string}`;
+    /** True when slot 1 is all-zero (vault uninitialized or wrong slot). */
+    isZero: boolean;
+}
+
 /**
  * Sync local chain position by reading proofChainHead from the contract.
  * Scans H{CHAIN_DEPTH-1} down to H0 until keccak256(Hpos) matches the on-chain head.
  *
  * Use when localStorage is cleared, user moves to a new device, or after a failed TX
  * caused a local position desync.
- * Returns the recovered position (also stored in localStorage), or null if no match
- * (wrong vault proof or wrong addresses).
+ * Returns a SyncResult with the recovered position (null = no match),
+ * the raw contractHead, and whether the slot read zero (uninitialized vault).
  *
  * @param vaultProof    - the 6-char vault proof (e.g. "abc123")
  * @param walletAddress - the EOA wallet address (PBKDF2 salt + storage key)
- * @param vaultAddress  - the PersonalQryptSafeV6 clone address (for on-chain read)
+ * @param vaultAddress  - the QryptSafe clone address (for on-chain read)
  * @param publicClient  - Viem PublicClient connected to the correct network
  */
 export async function syncChainPosition(
@@ -322,30 +334,30 @@ export async function syncChainPosition(
     walletAddress: string,
     vaultAddress: string,
     publicClient: PublicClient
-): Promise<number | null> {
+): Promise<SyncResult> {
     const contractHead = await readChainHeadFromContract(vaultAddress, publicClient);
+    const isZero = contractHead === ZERO_BYTES32;
+
+    if (isZero) {
+        return { pos: null, contractHead, isZero: true };
+    }
+
     const H0 = await generateH0(vaultProof, walletAddress);
 
-    // contractHead = H{n+1} means position n is the next proof to submit.
-    // Special: contractHead = H{CHAIN_DEPTH} means fresh vault, position = CHAIN_DEPTH - 1.
-    // Scan from top of chain downward.
+    // contractHead = H{pos} after submitting H{pos}.
+    // Fresh vault: contractHead = H{CHAIN_DEPTH} (= keccak256^100(H0)).
+    // Scan H{CHAIN_DEPTH-1} down to H0: keccak256(H{p}) === contractHead means pos = p.
+    // Note: for fresh vault pos=CHAIN_DEPTH-1 catches H{CHAIN_DEPTH} since
+    //       keccak256(H{CHAIN_DEPTH-1}) = H{CHAIN_DEPTH}.
     for (let pos = CHAIN_DEPTH - 1; pos >= 0; pos--) {
         const Hpos = computeChainHash(H0, pos);
         if (keccak256(Hpos) === contractHead) {
-            // contractHead = H{pos+1}, meaning next proof = H{pos}
             setChainPosition(walletAddress, pos);
-            return pos;
+            return { pos, contractHead, isZero: false };
         }
     }
 
-    // Also check if contractHead = H{CHAIN_DEPTH} (fresh vault, no proofs used yet)
-    const H100 = computeChainHash(H0, CHAIN_DEPTH);
-    if (H100 === contractHead) {
-        setChainPosition(walletAddress, CHAIN_DEPTH - 1);
-        return CHAIN_DEPTH - 1;
-    }
-
-    return null;
+    return { pos: null, contractHead, isZero: false };
 }
 
 // ── V6 commit hash ────────────────────────────────────────────────────────────
