@@ -464,7 +464,7 @@ function CreateVaultInline({ p }: { p: SharedProps }) {
     const factoryAddress = SHIELD_FACTORY_V6_ADDRESSES[p.chainId] as `0x${string}` | undefined;
     const { writeContract, data: txHash, isPending } = useWriteContract();
     const { isSuccess, isLoading: txLoading } = useWaitForTransactionReceipt({ hash: txHash, pollingInterval: 1500 });
-    const publicClient = usePublicClient();
+    const publicClient = usePublicClient({ chainId: p.chainId });
 
     const proofValid = validatePasswordFormat(vaultProof);
 
