@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useAccount, useChainId, useDisconnect, useConnect, useBalance, useReadContracts, useSwitchChain } from "wagmi";
+import { useSyncChannel } from "@/hooks/useSyncChannel";
+import { useAccount, useChainId, useDisconnect, useConnect, useBalance, useReadContracts, useSwitchChain, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
 import type { Connector } from "wagmi";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, parseUnits, keccak256, toBytes } from "viem";
 import { useQuery } from "@tanstack/react-query";
 import {
     ShieldIcon, SendIcon, SettingsIcon,
     WalletIcon, LogOutIcon, CopyIcon, CheckIcon, LockIcon,
     AlertTriangleIcon, UserIcon, XIcon, PlusIcon, ExternalLinkIcon, ArrowDownIcon,
-    WifiOffIcon, ScanLineIcon, RefreshCwIcon,
+    WifiOffIcon, ScanLineIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Loader2Icon,
 } from "lucide-react";
 import { getTxEtherscanUrl } from "@/lib/utils";
 import { useVault } from "@/hooks/useVault";
@@ -23,9 +24,10 @@ import QryptShieldGate from "@/components/QryptShieldGate";
 import ChainSyncModal from "@/components/ChainSyncModal";
 import TokenLogo from "@/components/TokenLogo";
 import { fetchTransactions, fetchPortfolio } from "@/lib/api";
-import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI } from "@/lib/abi";
+import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI, SHIELD_FACTORY_V6_ABI } from "@/lib/abi";
 import { SUPPORTED_CHAIN_IDS } from "@/lib/wagmi";
-import { hasAppKit, appKitModal } from "@/lib/appkit";
+import { hasAppKit, appKitModal, SHIELD_FACTORY_V6_ADDRESSES } from "@/lib/appkit";
+import { generateInitialChainHead, initChainState, validatePasswordFormat } from "@/lib/password";
 
 const TOKEN_COLORS = ["#60a5fa","#a78bfa","#fb923c","#facc15","#c084fc","#2dd4bf","#f472b6","#38bdf8","#f87171","#4ade80"];
 
@@ -92,6 +94,7 @@ interface SharedProps {
     networkName: string;
     balanceStr: string;
     hasVault: boolean;
+    isVaultLoading: boolean;
     vaultVersion: VaultVersion;
     vaultAddress: `0x${string}` | undefined;
     copied: boolean;
@@ -109,6 +112,8 @@ interface SharedProps {
     transactions: ApiTransaction[];
     refetchData: () => void;
     refetchBalances: () => void;
+    refetchAirBudgets: () => void;
+    refetchVault: () => void;
     activeUnshieldToken: string;
     setActiveUnshieldToken: (addr: string) => void;
     activeShieldToken: string;
@@ -123,7 +128,7 @@ export default function DashboardPage() {
     const chainId = useChainId();
     const { disconnect } = useDisconnect();
     const { connect, connectors } = useConnect();
-    const { vaultAddress, hasVault, vaultVersion } = useVault();
+    const { vaultAddress, hasVault, vaultVersion, isVaultLoading, refetch: refetchVault } = useVault();
     const { data: balance } = useBalance({ address });
 
     const [activeModal, setActiveModal] = useState<ModalId | null>(null);
@@ -326,6 +331,18 @@ export default function DashboardPage() {
         prevModal.current = activeModal;
     }, [activeModal, refetchTx]);
 
+    // Unified sync: BroadcastChannel (same device) + WebSocket (cross-device)
+    const { broadcast } = useSyncChannel(address, (msg) => {
+        if (msg.type === "VOUCHER_CREATED") refetchTx();
+        if (msg.type === "CLAIM_SUCCESS") { refetchTx(); refetchBalances(); }
+    });
+
+    // Wrapper: refetch airBudgets AND broadcast MINT_SUCCESS to all peers
+    const handleMintSuccess = useCallback(() => {
+        refetchAirBudgets();
+        broadcast({ type: "MINT_SUCCESS", chainId });
+    }, [refetchAirBudgets, broadcast, chainId]);
+
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth < 768);
         check();
@@ -357,7 +374,7 @@ export default function DashboardPage() {
     const sharedProps: SharedProps = {
         activeModal, setActiveModal, closeModal,
         isConnected, address, shortAddress,
-        chainId, networkName, balanceStr, hasVault, vaultVersion, vaultAddress,
+        chainId, networkName, balanceStr, hasVault, isVaultLoading, vaultVersion, vaultAddress,
         copied, copyAddress,
         showConnectMenu, setShowConnectMenu,
         handleDisconnect: disconnect,
@@ -387,6 +404,8 @@ export default function DashboardPage() {
         transactions,
         refetchData: refetchTx,
         refetchBalances,
+        refetchAirBudgets: handleMintSuccess,
+        refetchVault,
         activeUnshieldToken,
         setActiveUnshieldToken,
         activeShieldToken,
@@ -420,6 +439,158 @@ export default function DashboardPage() {
 
 function getNetworkName(chainId: number) {
     return ({ 1: "Ethereum", 11155111: "Sepolia", 31337: "Local" } as Record<number, string>)[chainId] || `Chain ${chainId}`;
+}
+
+function ModalNoVaultMsg({ isConnected, isLoading }: { isConnected: boolean; isLoading: boolean }) {
+    const msg = isLoading
+        ? "Checking for Qrypt-Safe..."
+        : !isConnected
+        ? "Connect your wallet first."
+        : "You need to create a Qrypt-Safe on this network first.";
+    return (
+        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
+            {msg}
+        </p>
+    );
+}
+
+function CreateVaultInline({ p }: { p: SharedProps }) {
+    const [vaultProof, setVaultProof] = useState("");
+    const [showProof, setShowProof] = useState(false);
+    const [isComputing, setIsComputing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [done, setDone] = useState(false);
+
+    const factoryAddress = SHIELD_FACTORY_V6_ADDRESSES[p.chainId] as `0x${string}` | undefined;
+    const { writeContract, data: txHash, isPending } = useWriteContract();
+    const { isSuccess, isLoading: txLoading } = useWaitForTransactionReceipt({ hash: txHash, pollingInterval: 1500 });
+    const publicClient = usePublicClient();
+
+    const proofValid = validatePasswordFormat(vaultProof);
+
+    useEffect(() => {
+        if (!isSuccess || !txHash || !publicClient) return;
+        publicClient.getTransactionReceipt({ hash: txHash }).then(receipt => {
+            const eventTopic = keccak256(toBytes("QryptSafeCreated(address,address)"));
+            const log = receipt.logs.find(l => l.topics[0]?.toLowerCase() === eventTopic.toLowerCase());
+            if (log?.topics[2]) {
+                const vaultAddr = ("0x" + log.topics[2].slice(-40)) as `0x${string}`;
+                initChainState(vaultAddr);
+            }
+            initChainState(p.address as string);
+            setDone(true);
+            p.refetchVault();
+        }).catch(() => {
+            setDone(true);
+            p.refetchVault();
+        });
+    }, [isSuccess, txHash, publicClient]);
+
+    const handleCreate = async () => {
+        if (!proofValid || !factoryAddress || !p.address || isComputing) return;
+        setIsComputing(true);
+        setError(null);
+        try {
+            const chainHead = await generateInitialChainHead(vaultProof, p.address);
+            writeContract({
+                address: factoryAddress,
+                abi: SHIELD_FACTORY_V6_ABI,
+                functionName: "createQryptSafe",
+                args: [chainHead],
+            }, {
+                onSuccess: () => { setIsComputing(false); },
+                onError: (e: Error) => { setError(e.message.slice(0, 120)); setIsComputing(false); },
+            });
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message.slice(0, 120) : "Unknown error");
+            setIsComputing(false);
+        }
+    };
+
+    if (done || isSuccess) {
+        return (
+            <div style={{ textAlign: "center", padding: "32px 0" }}>
+                <ShieldIcon size={36} color="#4ade80" style={{ margin: "0 auto 12px", display: "block" }} />
+                <p style={{ fontSize: 14, color: "#4ade80", fontWeight: 600, marginBottom: 6 }}>Qrypt-Safe Created!</p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Your vault is ready. You can now shield tokens.</p>
+            </div>
+        );
+    }
+
+    const busy = isComputing || isPending || txLoading;
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ textAlign: "center", padding: "16px 0 4px" }}>
+                <ShieldIcon size={28} color="rgba(255,255,255,0.25)" style={{ margin: "0 auto 8px", display: "block" }} />
+                <p style={{ fontSize: 13, fontWeight: 600, color: "#d4d6e2", marginBottom: 4 }}>Create Your Qrypt-Safe</p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+                    You don't have a Qrypt-Safe on {p.networkName} yet. Choose a vault proof to deploy one.
+                </p>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 8, letterSpacing: "0.06em" }}>VAULT PROOF</p>
+                <div style={{ position: "relative" }}>
+                    <input
+                        type={showProof ? "text" : "password"}
+                        value={vaultProof}
+                        onChange={e => setVaultProof(e.target.value)}
+                        placeholder="e.g. abc123"
+                        maxLength={6}
+                        disabled={busy}
+                        style={{
+                            width: "100%", padding: "10px 36px 10px 12px", borderRadius: 8, boxSizing: "border-box",
+                            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)",
+                            color: "#fff", fontSize: 18, fontFamily: "monospace", letterSpacing: "0.25em",
+                            textAlign: "center", outline: "none",
+                        }}
+                    />
+                    <button
+                        onClick={() => setShowProof(!showProof)}
+                        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", padding: 0, display: "flex" }}
+                    >
+                        {showProof ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                    </button>
+                </div>
+                {vaultProof.length > 0 && (
+                    <p style={{ fontSize: 11, color: proofValid ? "#4ade80" : "#fbbf24", marginTop: 6 }}>
+                        {proofValid ? "Valid format - remember this proof!" : "3 letters + 3 numbers required (e.g. abc123)"}
+                    </p>
+                )}
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 8, lineHeight: 1.5 }}>
+                    This proof is required every time you shield, unshield, or transfer. Store it safely.
+                </p>
+            </div>
+
+            {error && (
+                <p style={{ fontSize: 12, color: "#f87171", textAlign: "center" }}>
+                    {error}
+                </p>
+            )}
+
+            <button
+                onClick={handleCreate}
+                disabled={!proofValid || busy || !factoryAddress}
+                style={{
+                    padding: "12px", borderRadius: 10, border: "none",
+                    background: proofValid && !busy ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                    color: proofValid && !busy ? "#fff" : "rgba(255,255,255,0.3)",
+                    fontSize: 13, fontWeight: 600, cursor: proofValid && !busy ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "background 0.2s",
+                }}
+            >
+                {busy ? (
+                    <>
+                        <Loader2Icon size={14} className="animate-spin" />
+                        {isComputing ? "Deriving chain head..." : isPending ? "Confirm in wallet..." : "Deploying vault..."}
+                    </>
+                ) : (
+                    <><ShieldIcon size={14} /> Create Qrypt-Safe on {p.networkName}</>
+                )}
+            </button>
+        </div>
+    );
 }
 
 function formatBalance(balance: bigint | undefined, decimals: number): string {
@@ -529,18 +700,26 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                             initialTokenAddress={p.activeShieldToken || undefined}
                         />
                     )}
-                    {id === "shield" && (!p.vaultAddress || !p.address) && (
-                        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a Qrypt-Safe first.
-                        </p>
+                    {id === "shield" && !p.isConnected && (
+                        <ModalNoVaultMsg isConnected={false} isLoading={false} />
+                    )}
+                    {id === "shield" && p.isConnected && p.isVaultLoading && (
+                        <ModalNoVaultMsg isConnected={true} isLoading={true} />
+                    )}
+                    {id === "shield" && p.isConnected && !p.isVaultLoading && !p.vaultAddress && (
+                        <CreateVaultInline p={p} />
                     )}
                     {id === "transfer" && p.vaultAddress && p.address && (
                         <TransferPanel key={p.activeTransferToken || "none"} vaultAddress={p.vaultAddress} walletAddress={p.address} chainId={p.chainId} vaultVersion={p.vaultVersion} initialTokenAddress={p.activeTransferToken || undefined} />
                     )}
-                    {id === "transfer" && (!p.vaultAddress || !p.address) && (
-                        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a Qrypt-Safe first.
-                        </p>
+                    {id === "transfer" && !p.isConnected && (
+                        <ModalNoVaultMsg isConnected={false} isLoading={false} />
+                    )}
+                    {id === "transfer" && p.isConnected && p.isVaultLoading && (
+                        <ModalNoVaultMsg isConnected={true} isLoading={true} />
+                    )}
+                    {id === "transfer" && p.isConnected && !p.isVaultLoading && !p.vaultAddress && (
+                        <CreateVaultInline p={p} />
                     )}
                     {id === "transfer-select" && (
                         <TransferModeSelector
@@ -563,6 +742,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                             vaultVersion={p.vaultVersion}
                             vaultAddress={p.vaultAddress}
                             airBudgets={p.airBudgets}
+                            onMintSuccess={p.refetchAirBudgets}
                         />
                     )}
                     {(id === "qryptair-sender" || id === "qryptair-fund") && !p.address && (
@@ -590,9 +770,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                         />
                     )}
                     {id === "qryptshield" && (!p.vaultAddress || !p.address) && (
-                        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a Qrypt-Safe first.
-                        </p>
+                        <ModalNoVaultMsg isConnected={p.isConnected} isLoading={p.isVaultLoading} />
                     )}
                     {id === "unshield" && p.vaultAddress && p.address && (
                         <UnshieldPanel
@@ -604,10 +782,14 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                             onComplete={() => { p.refetchData(); p.refetchBalances(); }}
                         />
                     )}
-                    {id === "unshield" && (!p.vaultAddress || !p.address) && (
-                        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", padding: "32px 0" }}>
-                            Connect your wallet and create a Qrypt-Safe first.
-                        </p>
+                    {id === "unshield" && !p.isConnected && (
+                        <ModalNoVaultMsg isConnected={false} isLoading={false} />
+                    )}
+                    {id === "unshield" && p.isConnected && p.isVaultLoading && (
+                        <ModalNoVaultMsg isConnected={true} isLoading={true} />
+                    )}
+                    {id === "unshield" && p.isConnected && !p.isVaultLoading && !p.vaultAddress && (
+                        <CreateVaultInline p={p} />
                     )}
                     {id === "vaults" && <ModalVaults p={p} />}
                     {id === "settings" && p.vaultAddress && (
