@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import LandingPage from "@/pages/LandingPage";
 import StatusPage from "@/pages/StatusPage";
 
@@ -10,7 +11,14 @@ function getCurrentRoute(): string {
 }
 
 export default function App() {
-    const route = getCurrentRoute();
+    const [route, setRoute] = useState(getCurrentRoute);
+
+    useEffect(() => {
+        const onHashChange = () => setRoute(getCurrentRoute());
+        window.addEventListener("hashchange", onHashChange);
+        return () => window.removeEventListener("hashchange", onHashChange);
+    }, []);
+
     if (route === "status") return <StatusPage />;
     return <LandingPage />;
 }
