@@ -555,6 +555,286 @@ export const PERSONAL_VAULT_V6_ABI = [
 ] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Mainnet ABI — QryptSafe.sol (renamed functions, deploy-ready)
+// Sepolia V6 ABI above stays unchanged for backward compatibility.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PERSONAL_VAULT_MAINNET_ABI = [
+    // ── QryptSafe: shield / unshield ─────────────────────────────────────────
+    {
+        type: "function",
+        name: "Qrypt",
+        inputs: [
+            { name: "tokenAddress", type: "address", internalType: "address" },
+            { name: "amount",       type: "uint256", internalType: "uint256" },
+            { name: "proof",        type: "bytes32", internalType: "bytes32" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    {
+        type: "function",
+        name: "unQrypt",
+        inputs: [
+            { name: "tokenAddress", type: "address", internalType: "address" },
+            { name: "amount",       type: "uint256", internalType: "uint256" },
+            { name: "proof",        type: "bytes32", internalType: "bytes32" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    // ── QryptSafe: init-finalize transfer ────────────────────────────────────
+    {
+        type: "function",
+        name: "initTransfer",
+        inputs: [{ name: "initHash", type: "bytes32", internalType: "bytes32" }],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    {
+        type: "function",
+        name: "finalizeTransfer",
+        inputs: [
+            { name: "tokenAddress", type: "address", internalType: "address" },
+            { name: "to",           type: "address", internalType: "address" },
+            { name: "amount",       type: "uint256", internalType: "uint256" },
+            { name: "proof",        type: "bytes32", internalType: "bytes32" },
+            { name: "nonce",        type: "uint256", internalType: "uint256" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    // ── OTP chain: recharge ──────────────────────────────────────────────────
+    {
+        type: "function",
+        name: "rechargeChain",
+        inputs: [
+            { name: "newHead",      type: "bytes32", internalType: "bytes32" },
+            { name: "currentProof", type: "bytes32", internalType: "bytes32" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    // ── QryptAir: offToken management ─────────────────────────────────────
+    {
+        type: "function",
+        name: "mintOffToken",
+        inputs: [
+            { name: "token",  type: "address", internalType: "address" },
+            { name: "amount", type: "uint256", internalType: "uint256" },
+            { name: "proof",  type: "bytes32", internalType: "bytes32" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    {
+        type: "function",
+        name: "reclaimOffToken",
+        inputs: [
+            { name: "token", type: "address", internalType: "address" },
+            { name: "proof", type: "bytes32", internalType: "bytes32" }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    {
+        type: "function",
+        name: "claimAirVoucher",
+        inputs: [
+            { name: "token",            type: "address", internalType: "address" },
+            { name: "amount",           type: "uint256", internalType: "uint256" },
+            { name: "recipient",        type: "address", internalType: "address" },
+            { name: "deadline",         type: "uint256", internalType: "uint256" },
+            { name: "nonce",            type: "bytes32", internalType: "bytes32" },
+            { name: "transferCodeHash", type: "bytes32", internalType: "bytes32" },
+            { name: "signature",        type: "bytes",   internalType: "bytes"   }
+        ],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    // ── QryptShield: enter Railgun ────────────────────────────────────────────
+    {
+        type: "function",
+        name: "enterRailgun",
+        inputs: [
+            { name: "tokenAddress",   type: "address", internalType: "address" },
+            { name: "amount",         type: "uint256", internalType: "uint256" },
+            { name: "proof",          type: "bytes32", internalType: "bytes32" },
+            { name: "railgunProxy",   type: "address", internalType: "address" },
+            { name: "shieldCalldata", type: "bytes",   internalType: "bytes"   }
+        ],
+        outputs: [],
+        stateMutability: "payable"
+    },
+    // ── Emergency withdraw ───────────────────────────────────────────────────
+    {
+        type: "function",
+        name: "emergencyWithdraw",
+        inputs: [{ name: "tokenAddresses", type: "address[]", internalType: "address[]" }],
+        outputs: [],
+        stateMutability: "nonpayable"
+    },
+    // ── View: balances ───────────────────────────────────────────────────────
+    {
+        type: "function",
+        name: "getQryptedBalance",
+        inputs: [{ name: "tokenAddress", type: "address", internalType: "address" }],
+        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "getAirBags",
+        inputs: [{ name: "token", type: "address", internalType: "address" }],
+        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+        stateMutability: "view"
+    },
+    // ── View: qToken ─────────────────────────────────────────────────────────
+    {
+        type: "function",
+        name: "getQTokenAddress",
+        inputs: [{ name: "tokenAddress", type: "address", internalType: "address" }],
+        outputs: [{ name: "", type: "address", internalType: "address" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "qTokens",
+        inputs: [{ name: "tokenAddress", type: "address", internalType: "address" }],
+        outputs: [{ name: "", type: "address", internalType: "address" }],
+        stateMutability: "view"
+    },
+    // ── View: misc ───────────────────────────────────────────────────────────
+    {
+        type: "function",
+        name: "owner",
+        inputs: [],
+        outputs: [{ name: "", type: "address", internalType: "address" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "initialized",
+        inputs: [],
+        outputs: [{ name: "", type: "bool", internalType: "bool" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "lastActivityBlock",
+        inputs: [],
+        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "getEmergencyWithdrawAvailableBlock",
+        inputs: [],
+        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+        stateMutability: "view"
+    },
+    {
+        type: "function",
+        name: "usedVoucherNonces",
+        inputs: [{ name: "nonce", type: "bytes32", internalType: "bytes32" }],
+        outputs: [{ name: "", type: "bool", internalType: "bool" }],
+        stateMutability: "view"
+    },
+    // ── Events ───────────────────────────────────────────────────────────────
+    {
+        type: "event",
+        name: "TokenQrypted",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false },
+            { name: "qToken", type: "address", indexed: true  }
+        ]
+    },
+    {
+        type: "event",
+        name: "TokenUnqrypted",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "TransferFinalized",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "to",     type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "TransferInitiated",
+        inputs: [
+            { name: "initHash", type: "bytes32", indexed: true }
+        ]
+    },
+    {
+        type: "event",
+        name: "ChainRecharged",
+        inputs: [
+            { name: "newHead", type: "bytes32", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "QTokenCreated",
+        inputs: [
+            { name: "token",  type: "address", indexed: true },
+            { name: "qToken", type: "address", indexed: true }
+        ]
+    },
+    {
+        type: "event",
+        name: "EmergencyExit",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "OffTokenMinted",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "OffTokenReclaimed",
+        inputs: [
+            { name: "token",  type: "address", indexed: true  },
+            { name: "amount", type: "uint256", indexed: false }
+        ]
+    },
+    {
+        type: "event",
+        name: "AirVoucherClaimed",
+        inputs: [
+            { name: "nonce",     type: "bytes32", indexed: true  },
+            { name: "token",     type: "address", indexed: true  },
+            { name: "amount",    type: "uint256", indexed: false },
+            { name: "recipient", type: "address", indexed: true  }
+        ]
+    }
+] as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: pick the right vault ABI based on chain
+// chainId 1 (mainnet) → PERSONAL_VAULT_MAINNET_ABI
+// everything else     → PERSONAL_VAULT_V6_ABI (Sepolia / testnet)
+// ─────────────────────────────────────────────────────────────────────────────
+export function getVaultABI(chainId: number) {
+    return chainId === 1 ? PERSONAL_VAULT_MAINNET_ABI : PERSONAL_VAULT_V6_ABI;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ERC-20 ABI (shared by V5 and V6)
 // ─────────────────────────────────────────────────────────────────────────────
 
