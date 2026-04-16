@@ -307,6 +307,21 @@ export default function QryptShieldPanel({
                     if (atomicReceiptV5.status === "reverted") throw new Error(`Shield transaction reverted on-chain. Check Etherscan for details. TX: ${atomicHash}`);
                 }
                 stepDone("atomicShield", atomicHash);
+                // Record vault-side event: qTokens left the vault into Railgun pool
+                try {
+                    await recordTransaction({
+                        walletAddress,
+                        txHash: atomicHash,
+                        type: "transfer",
+                        tokenAddress: token.tokenAddress,
+                        tokenSymbol: token.tokenSymbol,
+                        tokenName: token.tokenName,
+                        amount,
+                        fromAddress: walletAddress,
+                        toAddress: recipient,
+                        networkId: chainId,
+                    });
+                } catch {}
             }
 
             // ── STEP 3: Wait for Merkle tree sync ──────────────────────────
