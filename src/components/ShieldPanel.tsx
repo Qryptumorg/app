@@ -89,17 +89,32 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
         },
     });
 
+    const [approveErr, setApproveErr] = useState<string | null>(null);
+    const [shieldErr, setShieldErr] = useState<string | null>(null);
+
     const { writeContract: writeApprove, data: approveTxHash, isPending: isPendingApprove } = useWriteContract();
-    const { isSuccess: approveSuccess, isLoading: approveLoading } = useWaitForTransactionReceipt({
+    const { isSuccess: approveSuccess, isLoading: approveLoading, isError: approveReverted, error: approveRevertErr } = useWaitForTransactionReceipt({
         hash: approveTxHash,
         pollingInterval: 1500,
     });
 
     const { writeContract: writeShield, data: shieldTxHash, isPending: isPendingShield } = useWriteContract();
-    const { isSuccess: shieldSuccess, isLoading: shieldLoading } = useWaitForTransactionReceipt({
+    const { isSuccess: shieldSuccess, isLoading: shieldLoading, isError: shieldReverted, error: shieldRevertErr } = useWaitForTransactionReceipt({
         hash: shieldTxHash,
         pollingInterval: 1500,
     });
+
+    useEffect(() => {
+        if (approveReverted && approveRevertErr) {
+            setApproveErr(approveRevertErr.message ?? "Approval transaction reverted on-chain.");
+        }
+    }, [approveReverted, approveRevertErr]);
+
+    useEffect(() => {
+        if (shieldReverted && shieldRevertErr) {
+            setShieldErr(shieldRevertErr.message ?? "Shield transaction reverted on-chain.");
+        }
+    }, [shieldReverted, shieldRevertErr]);
 
     const shieldPosRef = useRef<number | null>(null);
 
@@ -135,6 +150,8 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
 
     const handleApprove = () => {
         if (!isValidToken || parsedAmount === 0n) return;
+        setApproveErr(null);
+        setShieldErr(null);
         writeApprove({
             address: tokenAddress as `0x${string}`,
             abi: ERC20_ABI,
@@ -145,11 +162,19 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                 pushTx(hash, `Approving ${tokenSymbol || "token"}`);
                 setStep("approve");
             },
+            onError: (err) => {
+                const msg = err?.message ?? "Wallet rejected the approval.";
+                if (!msg.includes("User rejected") && !msg.includes("user rejected")) {
+                    setApproveErr(msg);
+                }
+            },
         });
     };
 
     const handleShield = async () => {
         if (!canProceed || deriving) return;
+        setShieldErr(null);
+        setApproveErr(null);
 
         if (isV6) {
             setDeriving(true);
@@ -182,13 +207,17 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                             });
                         } catch {}
                     },
-                    onError: () => {
+                    onError: (err) => {
                         setDeriving(false);
+                        const msg = err?.message ?? "Wallet rejected the transaction.";
+                        if (!msg.includes("User rejected") && !msg.includes("user rejected")) {
+                            setShieldErr(msg);
+                        }
                     },
                 });
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : "Unknown error";
-                alert(message);
+                setShieldErr(message);
                 setDeriving(false);
             }
         } else {
@@ -214,6 +243,12 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                             networkId: chainId,
                         });
                     } catch {}
+                },
+                onError: (err) => {
+                    const msg = err?.message ?? "Wallet rejected the transaction.";
+                    if (!msg.includes("User rejected") && !msg.includes("user rejected")) {
+                        setShieldErr(msg);
+                    }
                 },
             });
         }
@@ -355,6 +390,12 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                                 <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Approving...</>
                             ) : "Approve Token"}
                         </Button>
+                        {approveErr && (
+                            <div style={{ marginTop: 8, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)" }}>
+                                <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: "#f87171" }}>Approval failed</p>
+                                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.5, wordBreak: "break-word" }}>{approveErr}</p>
+                            </div>
+                        )}
                         {approveTxHash && (
                             <div style={{ textAlign: "center", marginTop: 8 }}>
                                 <a href={getTxEtherscanUrl(approveTxHash, chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#60a5fa" }}>
@@ -378,8 +419,14 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                                 <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Confirm in wallet...</>
                             ) : shieldLoading ? (
                                 <><Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> Shielding...</>
-                            ) : "Shield Tokens"}
+                            ) : shieldReverted ? "Retry Shield" : "Shield Tokens"}
                         </Button>
+                        {shieldErr && (
+                            <div style={{ marginTop: 8, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)" }}>
+                                <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: "#f87171" }}>Shield failed</p>
+                                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.5, wordBreak: "break-word" }}>{shieldErr}</p>
+                            </div>
+                        )}
                         {shieldTxHash && (
                             <div style={{ textAlign: "center", marginTop: 8 }}>
                                 <a href={getTxEtherscanUrl(shieldTxHash, chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#60a5fa" }}>
