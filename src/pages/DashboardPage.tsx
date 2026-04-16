@@ -141,8 +141,8 @@ export default function DashboardPage() {
     const [connectError, setConnectError] = useState<string | null>(null);
 
     const { data: txData, refetch: refetchTx } = useQuery({
-        queryKey: ["transactions", address],
-        queryFn: () => fetchTransactions(address!, 100),
+        queryKey: ["transactions", address, chainId],
+        queryFn: () => fetchTransactions(address!, 100, 0, chainId),
         enabled: !!address && isConnected,
         refetchInterval: 30000,
     });
