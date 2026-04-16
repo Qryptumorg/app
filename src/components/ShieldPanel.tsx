@@ -82,8 +82,9 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
             enabled: isValidToken,
             refetchInterval: (query) => {
                 const data = query.state.data as bigint | undefined;
-                const parsed = amount && !isNaN(parseFloat(amount)) ? 1n : 0n;
-                return data !== undefined && parsed > 0n && data >= parsed ? false : 2_000;
+                const dec = tokenDecimals ?? 18;
+                const needed = amount && !isNaN(parseFloat(amount)) ? parseUnits(amount, dec) : 0n;
+                return data !== undefined && needed > 0n && data >= needed ? false : 2_000;
             },
         },
     });
@@ -116,9 +117,10 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                 consumeProofAtPosition(walletAddress, shieldPosRef.current);
                 shieldPosRef.current = null;
             }
+            refetchAllowance();
             onShieldSuccess?.();
         }
-    }, [shieldSuccess, onShieldSuccess, walletAddress]);
+    }, [shieldSuccess, onShieldSuccess, walletAddress, refetchAllowance]);
 
     const decimals = tokenDecimals ?? 18;
     const parsedAmount = amount && !isNaN(parseFloat(amount)) ? parseUnits(amount, decimals) : 0n;
