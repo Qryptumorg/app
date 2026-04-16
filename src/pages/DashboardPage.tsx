@@ -24,7 +24,7 @@ import QryptShieldGate from "@/components/QryptShieldGate";
 import ChainSyncModal from "@/components/ChainSyncModal";
 import TokenLogo from "@/components/TokenLogo";
 import { fetchTransactions, fetchPortfolio } from "@/lib/api";
-import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI, SHIELD_FACTORY_V6_ABI } from "@/lib/abi";
+import { PERSONAL_VAULT_ABI, ERC20_ABI, SHIELD_FACTORY_V6_ABI, getVaultABI } from "@/lib/abi";
 import { SUPPORTED_CHAIN_IDS } from "@/lib/wagmi";
 import { hasAppKit, appKitModal, SHIELD_FACTORY_V6_ADDRESSES } from "@/lib/appkit";
 import { generateInitialChainHead, initChainState, validatePasswordFormat } from "@/lib/password";
@@ -210,7 +210,7 @@ export default function DashboardPage() {
         const isV6 = vaultVersion === "v6";
         return shieldedTokenAddresses.map(t => ({
             address: vaultAddress,
-            abi: isV6 ? PERSONAL_VAULT_V6_ABI : PERSONAL_VAULT_ABI,
+            abi: isV6 ? getVaultABI(chainId) : PERSONAL_VAULT_ABI,
             functionName: (isV6 ? "getQryptedBalance" : "getShieldedBalance") as "getQryptedBalance",
             args: [t.tokenAddress as `0x${string}`],
         }));
@@ -235,7 +235,7 @@ export default function DashboardPage() {
         if (!vaultAddress || vaultVersion !== "v6" || shieldedTokenAddresses.length === 0) return [];
         return shieldedTokenAddresses.map(t => ({
             address: vaultAddress,
-            abi: PERSONAL_VAULT_V6_ABI,
+            abi: getVaultABI(chainId),
             functionName: "getAirBags" as const,
             args: [t.tokenAddress as `0x${string}`],
         }));
@@ -563,32 +563,43 @@ function CreateVaultInline({ p }: { p: SharedProps }) {
                 </p>
             </div>
 
+            {!factoryAddress && (
+                <p style={{ fontSize: 12, color: "#f87171", textAlign: "center" }}>
+                    Switch to Ethereum or Sepolia to deploy a Qrypt-Safe.
+                </p>
+            )}
+
             {error && (
                 <p style={{ fontSize: 12, color: "#f87171", textAlign: "center" }}>
                     {error}
                 </p>
             )}
 
-            <button
-                onClick={handleCreate}
-                disabled={!proofValid || busy || !factoryAddress}
-                style={{
-                    padding: "12px", borderRadius: 10, border: "none",
-                    background: proofValid && !busy ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-                    color: proofValid && !busy ? "#fff" : "rgba(255,255,255,0.3)",
-                    fontSize: 13, fontWeight: 600, cursor: proofValid && !busy ? "pointer" : "not-allowed",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "background 0.2s",
-                }}
-            >
-                {busy ? (
-                    <>
-                        <Loader2Icon size={14} className="animate-spin" />
-                        {isComputing ? "Deriving chain head..." : isPending ? "Confirm in wallet..." : "Deploying vault..."}
-                    </>
-                ) : (
-                    <><ShieldIcon size={14} /> Create Qrypt-Safe on {p.networkName}</>
-                )}
-            </button>
+            {(() => {
+                const canCreate = proofValid && !busy && !!factoryAddress;
+                return (
+                    <button
+                        onClick={handleCreate}
+                        disabled={!canCreate}
+                        style={{
+                            padding: "12px", borderRadius: 10, border: "none",
+                            background: canCreate ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                            color: canCreate ? "#fff" : "rgba(255,255,255,0.3)",
+                            fontSize: 13, fontWeight: 600, cursor: canCreate ? "pointer" : "not-allowed",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "background 0.2s",
+                        }}
+                    >
+                        {busy ? (
+                            <>
+                                <Loader2Icon size={14} className="animate-spin" />
+                                {isComputing ? "Deriving chain head..." : isPending ? "Confirm in wallet..." : "Deploying vault..."}
+                            </>
+                        ) : (
+                            <><ShieldIcon size={14} /> Create Qrypt-Safe on {p.networkName}</>
+                        )}
+                    </button>
+                );
+            })()}
         </div>
     );
 }
