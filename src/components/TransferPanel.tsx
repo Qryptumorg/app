@@ -34,7 +34,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
     const [tokenAddress, setTokenAddress] = useState(initialTokenAddress ?? "");
     const [recipientAddress, setRecipientAddress] = useState("");
     const { pushTx } = useTxStatus();
-    const publicClient = usePublicClient();
+    const publicClient = usePublicClient({ chainId });
     const [amount, setAmount] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
