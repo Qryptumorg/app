@@ -5,7 +5,7 @@ import { SendIcon, EyeIcon, EyeOffIcon, UserIcon, Loader2Icon, AlertTriangleIcon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI, SHIELD_FACTORY_ABI, SHIELD_FACTORY_V6_ABI } from "@/lib/abi";
+import { PERSONAL_VAULT_ABI, getVaultABI, ERC20_ABI, SHIELD_FACTORY_ABI, SHIELD_FACTORY_V6_ABI } from "@/lib/abi";
 import { SHIELD_FACTORY_ADDRESSES, SHIELD_FACTORY_V6_ADDRESSES } from "@/lib/wagmi";
 import {
     validatePasswordFormat, buildCommitHash, hashPassword,
@@ -57,7 +57,7 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
     const v6FactoryAddress = SHIELD_FACTORY_V6_ADDRESSES[chainId] as `0x${string}`;
     const factoryAddress = isV6 ? v6FactoryAddress : v5FactoryAddress;
     const factoryAbi = isV6 ? SHIELD_FACTORY_V6_ABI : SHIELD_FACTORY_ABI;
-    const vaultAbi = isV6 ? PERSONAL_VAULT_V6_ABI : PERSONAL_VAULT_ABI;
+    const vaultAbi = isV6 ? getVaultABI(chainId) : PERSONAL_VAULT_ABI;
 
     const { data: tokenSymbol } = useReadContract({
         address: isValidToken ? tokenAddress as `0x${string}` : undefined,
@@ -162,8 +162,8 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
 
                 writeCommit({
                     address: vaultAddress,
-                    abi: PERSONAL_VAULT_V6_ABI,
-                    functionName: "veilTransfer",
+                    abi: getVaultABI(chainId),
+                    functionName: chainId === 1 ? "initTransfer" : "veilTransfer",
                     args: [commitHash],
                 }, {
                     onSuccess: (hash) => {
@@ -220,8 +220,8 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
                 try {
                     await publicClient.simulateContract({
                         address: vaultAddress,
-                        abi: PERSONAL_VAULT_V6_ABI,
-                        functionName: "unveilTransfer",
+                        abi: getVaultABI(chainId),
+                        functionName: chainId === 1 ? "finalizeTransfer" : "unveilTransfer",
                         args: [
                             tokenAddress as `0x${string}`,
                             recipientAddress as `0x${string}`,
@@ -242,8 +242,8 @@ export default function TransferPanel({ vaultAddress, walletAddress, chainId, va
             }
             writeReveal({
                 address: vaultAddress,
-                abi: PERSONAL_VAULT_V6_ABI,
-                functionName: "unveilTransfer",
+                abi: getVaultABI(chainId),
+                functionName: chainId === 1 ? "finalizeTransfer" : "unveilTransfer",
                 args: [
                     tokenAddress as `0x${string}`,
                     recipientAddress as `0x${string}`,
