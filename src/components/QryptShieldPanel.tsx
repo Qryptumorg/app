@@ -128,22 +128,26 @@ export default function QryptShieldPanel({
     });
 
     // On mount: fetch from server (overrides localStorage, survives browser clear)
+    // Finds the pending entry matching the current token's address.
     useEffect(() => {
-        fetchRailgunPending(walletAddress, chainId).then(serverPending => {
-            if (serverPending) {
-                setPendingTransfer(serverPending);
-                try { localStorage.setItem(pendingKey, JSON.stringify(serverPending)); } catch {}
+        fetchRailgunPending(walletAddress, chainId).then(rows => {
+            const match = selectedToken
+                ? rows.find(r => r.tokenAddress.toLowerCase() === selectedToken.tokenAddress.toLowerCase())
+                : rows[0];
+            if (match) {
+                setPendingTransfer(match);
+                try { localStorage.setItem(pendingKey, JSON.stringify(match)); } catch {}
             }
         }).catch(() => {});
     }, [walletAddress, chainId]);
 
     // Auto-fill form from pending transfer when selected token matches
     useEffect(() => {
-        if (!pendingTransfer || !token) return;
-        if (pendingTransfer.tokenAddress.toLowerCase() !== token.tokenAddress.toLowerCase()) return;
+        if (!pendingTransfer || !selectedToken) return;
+        if (pendingTransfer.tokenAddress.toLowerCase() !== selectedToken.tokenAddress.toLowerCase()) return;
         if (!amount) setAmount(pendingTransfer.amount);
         if (!recipient) setRecipient(pendingTransfer.recipient);
-    }, [pendingTransfer, token]);
+    }, [pendingTransfer, selectedToken]);
 
     const abortRef = useRef(false);
     const activeStepRef = useRef<string | null>(null);
@@ -249,9 +253,11 @@ export default function QryptShieldPanel({
             // Fall back to on-chain Railgun balance scan only if both are empty.
             stepActive("atomicShield", "Checking for pending transfer...");
 
-            const serverPending = await fetchRailgunPending(walletAddress, chainId);
-            const tokenIsPending = serverPending &&
-                serverPending.tokenAddress.toLowerCase() === token.tokenAddress.toLowerCase();
+            const serverPendingList = await fetchRailgunPending(walletAddress, chainId);
+            const serverPending = serverPendingList.find(
+                r => r.tokenAddress.toLowerCase() === token.tokenAddress.toLowerCase()
+            ) ?? null;
+            const tokenIsPending = !!serverPending;
 
             const alreadyShielded = tokenIsPending || await hasRailgunBalance(
                 railgunWalletID,
@@ -431,7 +437,7 @@ export default function QryptShieldPanel({
             // Clear pending state from server + localStorage - transfer complete
             setPendingTransfer(null);
             try { localStorage.removeItem(pendingKey); } catch {}
-            clearRailgunPending(walletAddress, chainId).catch(() => {});
+            clearRailgunPending(walletAddress, chainId, token.tokenAddress).catch(() => {});
 
             setDoneTxHash(deliverHash);
             setPhase("done");
