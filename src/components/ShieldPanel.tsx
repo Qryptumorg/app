@@ -5,7 +5,7 @@ import { ShieldIcon, EyeIcon, EyeOffIcon, Loader2Icon, AlertTriangleIcon } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PERSONAL_VAULT_ABI, PERSONAL_VAULT_V6_ABI, ERC20_ABI } from "@/lib/abi";
+import { PERSONAL_VAULT_ABI, getVaultABI, ERC20_ABI } from "@/lib/abi";
 import { validatePasswordFormat, hashPassword, peekNextProof, consumeProofAtPosition, getChainPosition } from "@/lib/password";
 import type { VaultVersion } from "@/hooks/useVault";
 import { recordTransaction } from "@/lib/api";
@@ -63,7 +63,7 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
         query: { enabled: isValidToken },
     });
 
-    const vaultAbi = isV6 ? PERSONAL_VAULT_V6_ABI : PERSONAL_VAULT_ABI;
+    const vaultAbi = isV6 ? getVaultABI(chainId) : PERSONAL_VAULT_ABI;
 
     const { data: existingShieldedBalance } = useReadContract({
         address: vaultAddress,
@@ -158,8 +158,8 @@ export default function ShieldPanel({ vaultAddress, walletAddress, chainId, vaul
                 setDeriving(false);
                 writeShield({
                     address: vaultAddress,
-                    abi: PERSONAL_VAULT_V6_ABI,
-                    functionName: "qrypt",
+                    abi: getVaultABI(chainId),
+                    functionName: chainId === 1 ? "Qrypt" : "qrypt",
                     args: [tokenAddress as `0x${string}`, parsedAmount, proof],
                 }, {
                     onSuccess: async (hash) => {
