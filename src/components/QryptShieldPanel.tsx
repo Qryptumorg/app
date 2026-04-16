@@ -24,7 +24,7 @@ import {
     clearZKArtifactCache,
     RAILGUN_CHAIN_MAP,
 } from "@/lib/railgun";
-import { recordTransaction, broadcastUnshieldTx } from "@/lib/api";
+import { recordTransaction, broadcastUnshieldTx, fetchRailgunPending, saveRailgunPending, clearRailgunPending, type RailgunPendingData } from "@/lib/api";
 
 interface ShieldedToken {
     tokenAddress: string;
@@ -120,6 +120,30 @@ export default function QryptShieldPanel({
     const [steps, setSteps] = useState<Step[]>(INITIAL_STEPS);
     const [fatalError, setFatalError] = useState<string | null>(null);
     const [doneTxHash, setDoneTxHash] = useState<string>("");
+
+    // Pending transfer - server is primary (survives clear history), localStorage is fast local cache
+    const pendingKey = `qryptum:railgun:pending:${walletAddress.toLowerCase()}:${chainId}`;
+    const [pendingTransfer, setPendingTransfer] = useState<RailgunPendingData | null>(() => {
+        try { const raw = localStorage.getItem(pendingKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    });
+
+    // On mount: fetch from server (overrides localStorage, survives browser clear)
+    useEffect(() => {
+        fetchRailgunPending(walletAddress, chainId).then(serverPending => {
+            if (serverPending) {
+                setPendingTransfer(serverPending);
+                try { localStorage.setItem(pendingKey, JSON.stringify(serverPending)); } catch {}
+            }
+        }).catch(() => {});
+    }, [walletAddress, chainId]);
+
+    // Auto-fill form from pending transfer when selected token matches
+    useEffect(() => {
+        if (!pendingTransfer || !token) return;
+        if (pendingTransfer.tokenAddress.toLowerCase() !== token.tokenAddress.toLowerCase()) return;
+        if (!amount) setAmount(pendingTransfer.amount);
+        if (!recipient) setRecipient(pendingTransfer.recipient);
+    }, [pendingTransfer, token]);
 
     const abortRef = useRef(false);
     const activeStepRef = useRef<string | null>(null);
@@ -218,14 +242,18 @@ export default function QryptShieldPanel({
 
             stepDone("engine");
 
-            // ── RESUME CHECK: skip atomic step if already in pool ───────────
-            // If the user's Railgun wallet already has a balance for this token
-            // (e.g. a previous run completed atomicShield but browser crashed
-            //  before sync/deliver), skip straight to step 3.
-            // Use stepActive (not updateStep) so the spinner starts immediately
-            // after step 1 - no gap where the UI looks frozen.
-            stepActive("atomicShield", "Checking for existing pool balance...");
-            const alreadyShielded = await hasRailgunBalance(
+            // ── RESUME CHECK ────────────────────────────────────────────────
+            // Server pending state is the most reliable resume signal.
+            // It's set after atomicShield confirms and cleared only on success.
+            // localStorage is a fast local cache; server survives clear history.
+            // Fall back to on-chain Railgun balance scan only if both are empty.
+            stepActive("atomicShield", "Checking for pending transfer...");
+
+            const serverPending = await fetchRailgunPending(walletAddress, chainId);
+            const tokenIsPending = serverPending &&
+                serverPending.tokenAddress.toLowerCase() === token.tokenAddress.toLowerCase();
+
+            const alreadyShielded = tokenIsPending || await hasRailgunBalance(
                 railgunWalletID,
                 chainId,
                 token.tokenAddress,
@@ -307,6 +335,21 @@ export default function QryptShieldPanel({
                     if (atomicReceiptV5.status === "reverted") throw new Error(`Shield transaction reverted on-chain. Check Etherscan for details. TX: ${atomicHash}`);
                 }
                 stepDone("atomicShield", atomicHash);
+                // Save pending state to server + localStorage so resume works
+                // even if user restarts browser or clears history
+                const pendingData: RailgunPendingData = {
+                    walletAddress,
+                    chainId,
+                    atomicHash,
+                    tokenAddress: token.tokenAddress,
+                    tokenSymbol: token.tokenSymbol,
+                    amount,
+                    recipient,
+                };
+                setPendingTransfer(pendingData);
+                try { localStorage.setItem(pendingKey, JSON.stringify(pendingData)); } catch {}
+                saveRailgunPending(pendingData).catch(() => {});
+
                 // Record vault-side event: qTokens left the vault into Railgun pool
                 try {
                     await recordTransaction({
@@ -385,6 +428,11 @@ export default function QryptShieldPanel({
                 });
             } catch {}
 
+            // Clear pending state from server + localStorage - transfer complete
+            setPendingTransfer(null);
+            try { localStorage.removeItem(pendingKey); } catch {}
+            clearRailgunPending(walletAddress, chainId).catch(() => {});
+
             setDoneTxHash(deliverHash);
             setPhase("done");
             onComplete?.();
@@ -446,9 +494,35 @@ export default function QryptShieldPanel({
         );
     }
 
+    const pendingMatchesToken = pendingTransfer && token &&
+        pendingTransfer.tokenAddress.toLowerCase() === token.tokenAddress.toLowerCase();
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             <Header />
+
+            {pendingMatchesToken && (
+                <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 10, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.35)", fontSize: 13, lineHeight: 1.6 }}>
+                    <div style={{ fontWeight: 700, color: PRIMARY, marginBottom: 4 }}>Pending transfer detected</div>
+                    <div style={{ color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>
+                        Your <strong style={{ color: "rgba(255,255,255,0.9)" }}>{pendingTransfer!.amount} {pendingTransfer!.tokenSymbol}</strong> tokens entered the Railgun pool but delivery was not completed.
+                        Enter your vault password and click <strong style={{ color: "rgba(255,255,255,0.9)" }}>Resume</strong> to finish the transfer.
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>
+                            TX: {pendingTransfer!.atomicHash.slice(0, 12)}...{pendingTransfer!.atomicHash.slice(-6)}
+                        </span>
+                        <a
+                            href={`https://${chainId === 11155111 ? "sepolia." : ""}etherscan.io/tx/${pendingTransfer!.atomicHash}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ fontSize: 11, color: PRIMARY, textDecoration: "none" }}
+                        >
+                            View on Etherscan
+                        </a>
+                    </div>
+                </div>
+            )}
 
             {!railgunSupported && (
                 <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 10, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", fontSize: 13, color: "rgba(245,158,11,0.95)", lineHeight: 1.6 }}>
@@ -637,7 +711,7 @@ export default function QryptShieldPanel({
                     }}
                 >
                     <EyeOffIcon size={16} />
-                    Send Privately
+                    {pendingMatchesToken ? "Resume Transfer" : "Send Privately"}
                 </button>
 
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
