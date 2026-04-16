@@ -1,14 +1,14 @@
 /**
- * Railgun integration — built from scratch following official docs:
+ * Railgun integration - built from scratch following official docs:
  * https://docs.railgun.org/developer-guide/wallet/getting-started
  *
  * Key changes from previous implementation:
  * - level-js (IndexedDB) replaces custom in-memory LevelDOWN → wallet persists across sessions
  * - IndexedDB artifact store → ZK circuit files cached, no re-download each session
  * - FallbackProviderJsonConfig with multiple RPCs → resilient to single RPC failures
- * - Groth16 prover injected dynamically — NOT loaded at page boot (saves 676KB on startup)
+ * - Groth16 prover injected dynamically - NOT loaded at page boot (saves 676KB on startup)
  * - setOnBalanceUpdateCallback → event-driven, no polling loop
- * - @railgun-community/wallet is lazy-loaded — only downloads when user first shields
+ * - @railgun-community/wallet is lazy-loaded - only downloads when user first shields
  */
 
 import type { SnarkJSGroth16 } from "@railgun-community/wallet";
@@ -29,7 +29,7 @@ async function wp(): Promise<WalletPkg> {
     if (!_wp) _wp = await import("@railgun-community/wallet");
     return _wp;
 }
-// Synchronous accessor — only valid AFTER wp() has resolved at least once.
+// Synchronous accessor - only valid AFTER wp() has resolved at least once.
 // Safe to call inside any function that runs after ensureRailgunEngine() completes.
 function wpSync(): WalletPkg {
     if (!_wp) throw new Error("Railgun wallet package not yet loaded. Call ensureRailgunEngine() first.");
@@ -49,7 +49,7 @@ export const RAILGUN_CHAIN_MAP: Partial<Record<number, NetworkName>> = {
 };
 
 /**
- * Step 2 — Multi-RPC FallbackProviderJsonConfig per network.
+ * Step 2 - Multi-RPC FallbackProviderJsonConfig per network.
  * Multiple providers with priority/weight for resilience.
  * https://docs.railgun.org/developer-guide/wallet/getting-started/2.-setting-up-networks-and-rpc-providers
  */
@@ -57,9 +57,12 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     1: {
         chainId: 1,
         providers: [
-            { provider: "https://eth.llamarpc.com", priority: 1, weight: 2 },
-            { provider: "https://rpc.ankr.com/eth", priority: 2, weight: 1 },
-            { provider: "https://cloudflare-eth.com", priority: 3, weight: 1 },
+            { provider: "https://ethereum-rpc.publicnode.com", priority: 1, weight: 3 },
+            { provider: "https://eth.drpc.org", priority: 2, weight: 2 },
+            { provider: "https://1rpc.io/eth", priority: 3, weight: 2 },
+            { provider: "https://eth.llamarpc.com", priority: 4, weight: 1 },
+            { provider: "https://rpc.ankr.com/eth", priority: 5, weight: 1 },
+            { provider: "https://rpc.mevblocker.io", priority: 6, weight: 1 },
         ],
     },
     137: {
@@ -96,7 +99,7 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
 
 // Fallback single-URL for any network not in NETWORK_PROVIDERS
 const FALLBACK_RPC: Partial<Record<number, string>> = {
-    1: "https://eth.llamarpc.com",
+    1: "https://ethereum-rpc.publicnode.com",
     137: "https://polygon.llamarpc.com",
     56: "https://binance.llamarpc.com",
     42161: "https://arbitrum.llamarpc.com",
@@ -105,7 +108,7 @@ const FALLBACK_RPC: Partial<Record<number, string>> = {
 
 export const PUBLIC_RPC = FALLBACK_RPC;
 
-// ─── Step 3 — IndexedDB artifact store ───────────────────────────────────────
+// ─── Step 3 - IndexedDB artifact store ───────────────────────────────────────
 /**
  * Persistent artifact store using IndexedDB.
  * ZK circuit artifacts are large (>10 MB) and must be cached across sessions.
@@ -157,7 +160,7 @@ function createArtifactStore(): any {
                 tx.onerror = () => reject(tx.error);
             });
         } catch {
-            // best effort — if IDB fails, SDK will re-download next time
+            // best effort - if IDB fails, SDK will re-download next time
         }
     };
 
@@ -181,7 +184,7 @@ function createArtifactStore(): any {
 
 /**
  * Delete the ZK circuit artifact cache (WASM + zkey files) stored in IndexedDB.
- * Call this when "Invalid Snark Proof" is received — it forces fresh circuit
+ * Call this when "Invalid Snark Proof" is received - it forces fresh circuit
  * downloads on next engine init, which fixes corrupted/outdated artifact caches.
  * Does NOT delete the Railgun wallet DB (wallet data is preserved).
  */
@@ -190,7 +193,7 @@ export async function clearZKArtifactCache(): Promise<void> {
         try {
             const req = indexedDB.deleteDatabase("qryptum-artifacts");
             req.onsuccess = () => resolve();
-            req.onerror = () => resolve(); // best effort — proceed even on error
+            req.onerror = () => resolve(); // best effort - proceed even on error
             req.onblocked = () => resolve();
         } catch {
             resolve();
@@ -208,7 +211,7 @@ const engineWaiters: Array<{ resolve: () => void; reject: (e: Error) => void }> 
 
 /**
  * Steps 3–6 combined: initialize DB, artifact store, engine, and Groth16 prover.
- * Idempotent — safe to call multiple times.
+ * Idempotent - safe to call multiple times.
  */
 export async function ensureRailgunEngine(onProgress?: (msg: string) => void): Promise<void> {
     if (engineState === "ready") return;
@@ -218,7 +221,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
     }
 
     if (engineState === "error") {
-        // Engine failed to start — DB may be in a partial state.
+        // Engine failed to start - DB may be in a partial state.
         // A full page reload is the only safe way to recover.
         throw new Error(
             (engineError?.message ?? "Railgun engine failed to start.") +
@@ -230,7 +233,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
     try {
         onProgress?.("Loading privacy engine...");
 
-        // Load the heavy wallet SDK — first call triggers the chunk download.
+        // Load the heavy wallet SDK - first call triggers the chunk download.
         // Subsequent calls return the cached module instantly.
         const {
             startRailgunEngine,
@@ -240,19 +243,19 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
             getProver,
         } = await wp();
 
-        // Step 3 — Database: level-js → persists wallet in IndexedDB
+        // Step 3 - Database: level-js → persists wallet in IndexedDB
         // https://docs.railgun.org/developer-guide/wallet/getting-started/3.-set-up-database
         const LevelDB = (await import("level-js")).default;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const db = new LevelDB("qryptum-engine") as unknown as any;
 
-        // Step 4 — Persistent artifact store (IndexedDB)
+        // Step 4 - Persistent artifact store (IndexedDB)
         // wpSync() is safe here because wp() has already been awaited above.
         const artifactStore = createArtifactStore();
 
         onProgress?.("Starting Railgun engine...");
 
-        // Step 5 — Start engine
+        // Step 5 - Start engine
         // https://docs.railgun.org/developer-guide/wallet/getting-started/5.-start-the-railgun-privacy-engine
         //
         // POI node: Railgun's official public POI aggregator.
@@ -263,7 +266,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         const poiNodeURLs = ["https://ppoi-agg.horsewithsixlegs.xyz"];
 
         await startRailgunEngine(
-            "qryptum",      // walletSource — max 16 chars, lowercase
+            "qryptum",      // walletSource - max 16 chars, lowercase
             db,
             false,          // shouldDebug
             artifactStore,
@@ -272,14 +275,14 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
             poiNodeURLs,
         );
 
-        // Step 6 — Load Groth16 prover for browser
+        // Step 6 - Load Groth16 prover for browser
         // snarkjs is injected dynamically here (NOT loaded at page boot) to avoid
         // adding 676KB to the initial bundle on every page visit.
         // https://docs.railgun.org/developer-guide/wallet/getting-started/6.-load-a-groth16-prover-for-each-platform
         const groth16 = await (async () => {
             const win = window as unknown as { snarkjs?: { groth16: SnarkJSGroth16 } };
             if (win.snarkjs?.groth16) return win.snarkjs.groth16;
-            // Inject the script tag now — it was removed from index.html to save startup time
+            // Inject the script tag now - it was removed from index.html to save startup time
             if (!document.querySelector('script[data-snarkjs]')) {
                 const s = document.createElement("script");
                 s.src = `${import.meta.env.BASE_URL}snarkjs.min.js`;
@@ -305,7 +308,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         })();
         getProver().setSnarkJSGroth16(groth16);
 
-        // Scan progress callbacks — fires during UTXO + TXID Merkle tree scans
+        // Scan progress callbacks - fires during UTXO + TXID Merkle tree scans
         // Consumers subscribe via subscribeScanProgress() below
         setOnUTXOMerkletreeScanCallback((data) => {
             const pct = Math.round((data.progress ?? 0) * 100);
@@ -316,7 +319,7 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
             _scanListeners.forEach(cb => cb(`Scanning TXID tree... ${pct}%`));
         });
 
-        // Balance update callback — fires whenever a scan completes
+        // Balance update callback - fires whenever a scan completes
         // Consumers subscribe via subscribeBalanceUpdate() below
         setOnBalanceUpdateCallback((event: RailgunBalancesEvent) => {
             _balanceListeners.forEach(cb => cb(event));
@@ -355,9 +358,9 @@ export function subscribeBalanceUpdate(cb: BalanceListener): () => void {
     return () => _balanceListeners.delete(cb);
 }
 
-// ─── Step 8 — Connect network providers ──────────────────────────────────────
+// ─── Step 8 - Connect network providers ──────────────────────────────────────
 
-// Track which chainIds already have a provider loaded — loadProvider triggers
+// Track which chainIds already have a provider loaded - loadProvider triggers
 // a fresh merkletree scan each call, so we must call it exactly once per chain.
 const _loadedProviders = new Set<number>();
 
@@ -369,7 +372,7 @@ export async function loadRailgunProvider(chainId: number, onProgress?: (msg: st
     const networkName = RAILGUN_CHAIN_MAP[chainId];
     if (!networkName) throw new Error(`QryptShield is not available on this network (chainId ${chainId}).`);
 
-    // Already loaded for this chain — skip to avoid duplicate scans
+    // Already loaded for this chain - skip to avoid duplicate scans
     if (_loadedProviders.has(chainId)) return;
 
     const config = NETWORK_PROVIDERS[chainId];
@@ -393,7 +396,7 @@ export function deriveEncryptionKey(signature: string): string {
 /**
  * Load existing wallet from persistent DB, or create a new one.
  * With level-js (IndexedDB), loadWalletByID works across page reloads
- * — no timeout workaround needed.
+ * - no timeout workaround needed.
  */
 export async function getOrCreateRailgunWallet(
     walletAddress: string,
@@ -413,7 +416,7 @@ export async function getOrCreateRailgunWallet(
             const info = await loadWalletByID(rawKey, existingID, false);
             return info.id;
         } catch {
-            // Wallet not in DB (e.g. IndexedDB was cleared) — fall through to create
+            // Wallet not in DB (e.g. IndexedDB was cleared) - fall through to create
             localStorage.removeItem(key);
         }
     }
@@ -426,7 +429,7 @@ export async function getOrCreateRailgunWallet(
     const mnemonic = ethers.Mnemonic.entropyToPhrase(ethers.getBytes(entropy));
 
     // creationBlockNumbers: scan the last 1,000 blocks (~3.3 h on Sepolia) for recent deposits.
-    // With persistent DB this only runs once — subsequent loads use loadWalletByID.
+    // With persistent DB this only runs once - subsequent loads use loadWalletByID.
     let creationBlockNumbers: Record<string, number> | null = null;
     const networkName = chainId ? RAILGUN_CHAIN_MAP[chainId] : undefined;
     const rpcUrl = chainId ? FALLBACK_RPC[chainId] : undefined;
@@ -515,7 +518,7 @@ export async function buildUnshieldTx(params: {
         erc20Recipients,
         [],
         undefined,
-        true,  // sendWithPublicWallet — no broadcaster, user submits TX
+        true,  // sendWithPublicWallet - no broadcaster, user submits TX
         undefined,
         (progress: number) => params.onProgress?.(progress),
     );
@@ -601,7 +604,7 @@ export async function hasRailgunBalance(
                         resolve(true);
                     }
                 } catch {
-                    // balance check failed — keep waiting until timeout
+                    // balance check failed - keep waiting until timeout
                 }
             });
 
@@ -620,8 +623,8 @@ export async function hasRailgunBalance(
  * Strategy:
  * 1. Subscribe to scan progress (UTXO + TXID trees) for real-time % feedback.
  * 2. On each balance update event, check:
- *    a. ANY bucket balance (committed) — token found in tree at all?
- *    b. Spendable bucket — ready for ZK proof?
+ *    a. ANY bucket balance (committed) - token found in tree at all?
+ *    b. Spendable bucket - ready for ZK proof?
  * 3. If committed but NOT spendable after 3-minute grace period, resolve anyway.
  *    This handles "ShieldPending" / "MissingInternalPOI" buckets on testnet where
  *    POI may not auto-clear. The ZK proof step will fail with a clearer error if needed.
@@ -649,7 +652,7 @@ export async function waitForRailgunBalance(
         return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
     }
 
-    // Fast path — balance already spendable (resume scenario)
+    // Fast path - balance already spendable (resume scenario)
     if (tokenAddress && networkName) {
         const immediate = await checkRailgunBalance(walletID, networkName, tokenAddress, true);
         if (immediate > 0n) {
@@ -691,7 +694,7 @@ export async function waitForRailgunBalance(
             onProgress?.(msg + ` (${elapsed()})`);
         });
 
-        // Trigger first scan immediately (incremental — fast)
+        // Trigger first scan immediately (incremental - fast)
         wpSync().refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
 
         // Re-trigger scan every 20 s.
@@ -753,10 +756,10 @@ export async function waitForRailgunBalance(
                 return;
             }
 
-            // UTXO found but not Spendable yet — update progress, keep waiting.
+            // UTXO found but not Spendable yet - update progress, keep waiting.
             // This means it is in ShieldPending / MissingInternalPOI bucket.
             // The SDK will move it to Spendable once the shield maturity period passes
-            // (typically ~5–15 minutes on Sepolia). Do NOT proceed early — the proof
+            // (typically ~5–15 minutes on Sepolia). Do NOT proceed early - the proof
             // step will fail with "balance too low" if Spendable is still 0.
             const sinceCommit = committedAt !== null
                 ? Math.floor((Date.now() - committedAt) / 1000)
