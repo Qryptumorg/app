@@ -1544,21 +1544,46 @@ function DesktopDashboard(p: SharedProps) {
     const [selected, setSelected] = useState<string>("");
     const [sidebarTab, setSidebarTab] = useState<"safes" | "shield" | "air">("safes");
     const [showAirTransferNotice, setShowAirTransferNotice] = useState(false);
-    const [pendingList, setPendingList] = useState<RailgunPendingData[]>([]);
+    const [pendingList, setPendingList] = useState<RailgunPendingData[]>(() => {
+        if (!p.address) return [];
+        try {
+            const lsKey = `qryptum:railgun:pending:${p.address.toLowerCase()}:${p.chainId}`;
+            const raw = localStorage.getItem(lsKey);
+            return raw ? [JSON.parse(raw)] : [];
+        } catch { return []; }
+    });
     const [pendingLoading, setPendingLoading] = useState(false);
     const [selectedPending, setSelectedPending] = useState<RailgunPendingData | null>(null);
 
     const loadPending = useCallback(async () => {
         if (!p.address) return;
         setPendingLoading(true);
-        const rows = await fetchRailgunPending(p.address, p.chainId).catch(() => []);
-        setPendingList(rows);
-        setPendingLoading(false);
+        try {
+            const rows = await fetchRailgunPending(p.address, p.chainId).catch(() => []);
+            const lsKey = `qryptum:railgun:pending:${p.address.toLowerCase()}:${p.chainId}`;
+            try {
+                const raw = localStorage.getItem(lsKey);
+                if (raw) {
+                    const lsEntry = JSON.parse(raw) as RailgunPendingData;
+                    if (!rows.some(r => r.tokenAddress.toLowerCase() === lsEntry.tokenAddress.toLowerCase())) {
+                        rows.unshift(lsEntry);
+                    }
+                }
+            } catch {}
+            setPendingList(rows);
+        } finally {
+            setPendingLoading(false);
+        }
     }, [p.address, p.chainId]);
 
     useEffect(() => {
         if (sidebarTab === "shield") loadPending();
     }, [sidebarTab, loadPending]);
+
+    useEffect(() => {
+        const id = setInterval(() => { if (sidebarTab === "shield" && p.address) loadPending(); }, 30_000);
+        return () => clearInterval(id);
+    }, [sidebarTab, p.address, loadPending]);
 
     useEffect(() => {
         if (!selected && p.tokensWithBalances.length > 0) {
@@ -1571,9 +1596,9 @@ function DesktopDashboard(p: SharedProps) {
     const SAFES_TYPES = ["shield", "unshield", "transfer", "receive"];
     const AIR_TYPES   = ["fund", "voucher", "air-send", "air-receive"];
     const allSelectedTxs = p.transactions.filter(t => t.tokenAddress.toLowerCase() === selected.toLowerCase());
-    const selectedTxs = sidebarTab === "safes"
-        ? allSelectedTxs.filter(tx => SAFES_TYPES.includes(tx.type))
-        : allSelectedTxs.filter(tx => AIR_TYPES.includes(tx.type));
+    const selectedTxs = sidebarTab === "air"
+        ? allSelectedTxs.filter(tx => AIR_TYPES.includes(tx.type))
+        : allSelectedTxs.filter(tx => SAFES_TYPES.includes(tx.type));
 
     const getOffSym = (addr: string) => { const t = p.tokensWithBalances.find(t => t.tokenAddress.toLowerCase() === addr.toLowerCase()); return t ? "off" + t.tokenSymbol : "offToken"; };
     const deskTxLabel = (type: string, tokenAddress: string) =>
@@ -1659,11 +1684,19 @@ function DesktopDashboard(p: SharedProps) {
                         </div>
 
                         {sidebarTab === "shield" ? (
-                            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-                                <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
-                                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
-                                        Transfers interrupted mid-flight appear here automatically. Click to resume.
+                            <>
+                                <div style={{ padding: "10px 14px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.5, margin: "0 0 9px" }}>
+                                        Interrupted transfers appear here. Start a new private transfer below.
                                     </p>
+                                    <button
+                                        onClick={() => { p.setActiveTransferToken(""); p.setActiveModal("qryptshield"); }}
+                                        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px", borderRadius: 8, border: "1px solid rgba(139,92,246,0.35)", background: "rgba(139,92,246,0.1)", cursor: "pointer", color: "#c4b5fd", fontSize: 11, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.2)"; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(139,92,246,0.1)"; }}
+                                    >
+                                        <EyeOffIcon size={11} /> New Shield Transfer
+                                    </button>
                                 </div>
                                 <PB scroll>
                                     {pendingLoading && pendingList.length === 0 ? (
@@ -1675,12 +1708,12 @@ function DesktopDashboard(p: SharedProps) {
                                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 10, padding: "32px 0" }}>
                                             <EyeOffIcon size={28} color="rgba(255,255,255,0.08)" />
                                             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", textAlign: "center" }}>No pending transfers</p>
-                                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", textAlign: "center", lineHeight: 1.5 }}>Start a shield transfer from the right panel</p>
+                                            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", textAlign: "center", lineHeight: 1.5 }}>Click "New Shield Transfer" above to start</p>
                                         </div>
                                     ) : pendingList.map((item, i) => {
                                         const isSel = selectedPending?.tokenAddress === item.tokenAddress;
                                         return (
-                                            <div key={item.tokenAddress} onClick={() => setSelectedPending(isSel ? null : item)} style={{
+                                            <div key={item.tokenAddress} onClick={() => { setSelectedPending(item); setSelected(item.tokenAddress); p.setActiveTransferToken(item.tokenAddress); p.setActiveModal("qryptshield"); }} style={{
                                                 borderBottom: i < pendingList.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                                                 display: "flex", alignItems: "center", justifyContent: "space-between",
                                                 padding: "11px 0", cursor: "pointer",
@@ -1702,7 +1735,7 @@ function DesktopDashboard(p: SharedProps) {
                                         );
                                     })}
                                 </PB>
-                            </div>
+                            </>
                         ) : sidebarTab === "safes" ? (
                             <>
                                 <div style={{ padding: "10px 14px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
@@ -1789,20 +1822,7 @@ function DesktopDashboard(p: SharedProps) {
                     </div>
 
                     <div style={{ ...panelBase }}>
-                        {sidebarTab === "shield" ? (
-                            p.vaultAddress && p.address ? (
-                                <QryptShieldGate
-                                    vaultAddress={p.vaultAddress}
-                                    walletAddress={p.address}
-                                    chainId={p.chainId}
-                                    tokensWithBalances={p.tokensWithBalances}
-                                    vaultVersion={p.vaultVersion ?? "v5"}
-                                    onComplete={() => { loadPending(); p.refetchData(); p.refetchBalances(); }}
-                                />
-                            ) : (
-                                <ModalNoVaultMsg isConnected={p.isConnected} isLoading={p.isVaultLoading} />
-                            )
-                        ) : selectedToken ? (
+                        {selectedToken ? (
                             <>
                                 <div style={{
                                     padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -1811,12 +1831,12 @@ function DesktopDashboard(p: SharedProps) {
                                     <TokenLogo tokenAddress={selectedToken.tokenAddress} tokenSymbol={selectedToken.tokenSymbol} color={selectedToken.color} size={32} />
                                     <div>
                                         <p style={{ fontSize: 15, fontWeight: 700, color: "#d4d6e2" }}>
-                                            {sidebarTab === "safes" ? `q${selectedToken.tokenSymbol}` : selectedToken.tokenSymbol}
+                                            {sidebarTab === "air" ? selectedToken.tokenSymbol : `q${selectedToken.tokenSymbol}`}
                                         </p>
                                         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-                                            {sidebarTab === "safes"
-                                                ? `${formatBalance(selectedToken.shieldedBalance, selectedToken.decimals)} shielded`
-                                                : `${formatBalance(p.airBudgets[selectedToken.tokenAddress] ?? 0n, selectedToken.decimals)} off${selectedToken.tokenSymbol} available`}
+                                            {sidebarTab === "air"
+                                                ? `${formatBalance(p.airBudgets[selectedToken.tokenAddress] ?? 0n, selectedToken.decimals)} off${selectedToken.tokenSymbol} available`
+                                                : `${formatBalance(selectedToken.shieldedBalance, selectedToken.decimals)} shielded`}
                                         </p>
                                     </div>
                                 </div>
@@ -1824,7 +1844,11 @@ function DesktopDashboard(p: SharedProps) {
                                 <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 12, padding: "14px 16px", overflow: "hidden" }}>
                                     <div style={{ flex: "0 0 65%", minWidth: 0, display: "flex", flexDirection: "column", gap: 8, minHeight: 0 }}>
                                         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                                            {sidebarTab === "safes" ? (
+                                            {sidebarTab === "shield" ? (
+                                                <button onClick={() => { p.setActiveTransferToken(selectedToken.tokenAddress); p.setActiveModal("qryptshield"); }} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "13px 4px", borderRadius: 8, border: "1px solid rgba(139,92,246,0.35)", background: "rgba(139,92,246,0.1)", color: "#c4b5fd", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                                                    <EyeOffIcon size={11} /> Shield Transfer
+                                                </button>
+                                            ) : sidebarTab === "safes" ? (
                                                 <>
                                                     <button onClick={() => { p.setActiveShieldToken(selectedToken.tokenAddress); p.setActiveModal("shield"); }} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "13px 4px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.75)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                                                         <ShieldIcon size={11} /> Shield
@@ -1889,10 +1913,19 @@ function DesktopDashboard(p: SharedProps) {
                                 </div>
                             </>
                         ) : (
-                            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>
-                                    {p.tokensWithBalances.length === 0 ? "Shield a token to see details here." : "Select a token to view details"}
-                                </p>
+                            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                                {sidebarTab === "shield" ? (
+                                    <>
+                                        <EyeOffIcon size={32} color="rgba(139,92,246,0.2)" />
+                                        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>
+                                            {p.isConnected ? "Click 'New Shield Transfer' to start a private transfer." : "Connect your wallet to use QryptShield."}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>
+                                        {p.tokensWithBalances.length === 0 ? "Shield a token to see details here." : "Select a token to view details"}
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>
