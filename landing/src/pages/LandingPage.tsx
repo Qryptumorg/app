@@ -289,6 +289,42 @@ export default function LandingPage() {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
+        @keyframes glitch-text {
+          0%, 55%, 100% {
+            text-shadow: none;
+            transform: translate(0);
+            opacity: 1;
+          }
+          56% {
+            text-shadow: -3px 0 rgba(0,255,255,0.7), 3px 0 rgba(255,0,200,0.7);
+            transform: translate(-2px, 0) skewX(-2deg);
+          }
+          58% {
+            text-shadow: 3px 0 rgba(0,255,255,0.7), -3px 0 rgba(255,0,200,0.7);
+            transform: translate(2px, 0);
+          }
+          60% {
+            text-shadow: -2px 0 rgba(0,255,255,0.5), 2px 0 rgba(255,0,200,0.5);
+            transform: translate(0) skewX(1deg);
+            opacity: 0.85;
+          }
+          62% {
+            text-shadow: none;
+            transform: translate(0);
+            opacity: 1;
+          }
+          75% {
+            text-shadow: 2px 0 rgba(0,220,255,0.6), -2px 0 rgba(220,0,255,0.6);
+            transform: translate(-1px, 1px);
+          }
+          77% { text-shadow: none; transform: translate(0); }
+        }
+        @keyframes glitch-scan {
+          0%, 55%, 100% { opacity: 0; }
+          56% { opacity: 0.08; transform: translateY(-20px); }
+          59% { opacity: 0.05; transform: translateY(40px); }
+          61% { opacity: 0; }
+        }
         * { box-sizing: border-box; }
         html, body, #root { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 
@@ -307,10 +343,10 @@ export default function LandingPage() {
         }
         /* LEFT COLUMN */
         .lp-left {
-          width: 58%;
+          width: 60%;
           display: flex; flex-direction: column;
           justify-content: center;
-          padding: 48px 60px 40px 80px;
+          padding: 48px 52px 40px 80px;
         }
         .lp-brand {
           display: flex; align-items: center; gap: 14px;
@@ -320,13 +356,13 @@ export default function LandingPage() {
         .lp-brand-text { display: flex; flex-direction: column; gap: 3px; }
         .lp-brand-name { font-size: 20px; font-weight: 700; letter-spacing: 0.22em; color: #c8d8ea; text-transform: uppercase; }
         .lp-headline { font-size: 11px; color: #3a5878; letter-spacing: 0.08em; text-transform: uppercase; }
-        .lp-title { font-size: 40px; font-weight: 700; color: #d0e2f5; line-height: 1.18; margin-bottom: 12px; }
-        .lp-desc { font-size: 13.5px; color: #3a5272; line-height: 1.78; max-width: 480px; margin-bottom: 28px; }
+        .lp-title { font-size: 54px; font-weight: 700; color: #d0e2f5; line-height: 1.12; margin-bottom: 16px; }
+        .lp-desc { font-size: 14px; color: #3a5272; line-height: 1.78; max-width: 100%; margin-bottom: 28px; }
         .lp-cards {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
-          max-width: 500px;
+          max-width: 100%;
           margin-bottom: 22px;
         }
         .lp-card {
@@ -365,7 +401,7 @@ export default function LandingPage() {
 
         /* RIGHT COLUMN */
         .lp-right {
-          width: 42%;
+          width: 40%;
           position: relative;
           display: flex; align-items: center; justify-content: center;
         }
@@ -375,9 +411,24 @@ export default function LandingPage() {
           padding-top: 30px;
         }
         .lp-lock-label {
-          font-size: 15px; font-weight: 600; letter-spacing: 0.12em;
-          color: rgba(90, 140, 210, 0.75);
+          font-size: 20px; font-weight: 700; letter-spacing: 0.15em;
+          color: rgba(180, 210, 240, 0.9);
           text-transform: uppercase;
+          font-family: 'Courier New', ui-monospace, monospace;
+          background: rgba(60, 100, 170, 0.28);
+          border: 1px solid rgba(80, 130, 200, 0.22);
+          border-radius: 0;
+          padding: 4px 10px;
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+          animation: glitch-text 2.5s steps(1) infinite;
+          position: relative;
+        }
+        .lp-right-scan {
+          position: absolute; inset: 0; z-index: 3; pointer-events: none;
+          background: linear-gradient(to bottom, transparent 50%, rgba(0,180,255,0.04) 50%);
+          background-size: 100% 4px;
+          animation: glitch-scan 2.5s steps(1) infinite;
         }
 
         /* MOBILE — 3 blok, space-between hanya 2 gap */
@@ -418,6 +469,7 @@ export default function LandingPage() {
           .lp-cards {
             grid-template-columns: repeat(2, 1fr);
             gap: 10px; max-width: 100%; margin-bottom: 12px;
+            margin-top: 20px;
           }
           .lp-card {
             padding: 16px 10px; gap: 6px;
@@ -503,6 +555,7 @@ export default function LandingPage() {
 
           {/* ── RIGHT ── */}
           <div className="lp-right">
+            <div className="lp-right-scan" />
             <ScatteredIcons />
             <div className="lp-lock-wrap">
               <div className="lp-lock-label">One-Time Proof Security</div>
