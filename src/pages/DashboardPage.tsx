@@ -1517,29 +1517,67 @@ const COINGECKO_IDS: Record<string, string> = {
     EURC: "euro-coin", WBTC: "wrapped-bitcoin",
     UNI: "uniswap", AAVE: "aave", MATIC: "matic-network",
     SHIB: "shiba-inu", PEPE: "pepe", ARB: "arbitrum", OP: "optimism",
+    RAIL: "railgun-governance-token",
 };
 
-function PriceChart({ symbol, color }: { symbol: string; color: string }) {
+async function fetchChartData(cgId: string | null, tokenAddress: string): Promise<{ prices: number[]; currentPrice: number | null; change24h: number | null }> {
+    // 1. CoinGecko by known ID
+    if (cgId) {
+        try {
+            const r = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=7&interval=daily`);
+            if (r.ok) {
+                const d = await r.json() as { prices: [number, number][] };
+                const prices = d.prices.map(([, p]) => p);
+                if (prices.length > 0) {
+                    const cur = prices.at(-1)!;
+                    const prev = prices.at(-2);
+                    return { prices, currentPrice: cur, change24h: prev !== undefined ? ((cur - prev) / prev) * 100 : null };
+                }
+            }
+        } catch {}
+    }
+    // 2. CoinGecko by contract address
+    try {
+        const r = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${tokenAddress}/market_chart?vs_currency=usd&days=7&interval=daily`);
+        if (r.ok) {
+            const d = await r.json() as { prices: [number, number][] };
+            const prices = d.prices.map(([, p]) => p);
+            if (prices.length > 0) {
+                const cur = prices.at(-1)!;
+                const prev = prices.at(-2);
+                return { prices, currentPrice: cur, change24h: prev !== undefined ? ((cur - prev) / prev) * 100 : null };
+            }
+        }
+    } catch {}
+    // 3. DexScreener — current price only, synthesize flat 7-point line
+    try {
+        const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+        if (r.ok) {
+            const d = await r.json() as { pairs?: Array<{ priceUsd?: string; priceChange?: { h24?: number } }> };
+            const pair = d.pairs?.[0];
+            const price = pair?.priceUsd ? parseFloat(pair.priceUsd) : null;
+            if (price && price > 0) {
+                const change24h = pair?.priceChange?.h24 ?? null;
+                const prevPrice = change24h !== null ? price / (1 + change24h / 100) : price;
+                const prices = [prevPrice, prevPrice, prevPrice, prevPrice, prevPrice, prevPrice, price];
+                return { prices, currentPrice: price, change24h };
+            }
+        }
+    } catch {}
+    return { prices: [], currentPrice: null, change24h: null };
+}
+
+function PriceChart({ symbol, tokenAddress, color }: { symbol: string; tokenAddress: string; color: string }) {
     const cgId = COINGECKO_IDS[symbol?.toUpperCase() ?? ""] ?? null;
     const { data, isLoading } = useQuery({
-        queryKey: ["price-chart", cgId],
-        queryFn: async () => {
-            if (!cgId) return null;
-            const r = await fetch(
-                `https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=7&interval=daily`
-            );
-            if (!r.ok) return null;
-            return r.json() as Promise<{ prices: [number, number][] }>;
-        },
-        enabled: !!cgId,
+        queryKey: ["price-chart", tokenAddress],
+        queryFn: () => fetchChartData(cgId, tokenAddress),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
     });
-    const prices = (data?.prices ?? []).map(([, p]) => p);
-    const currentPrice = prices.at(-1);
-    const prevPrice = prices.at(-2);
-    const change24h = currentPrice !== undefined && prevPrice !== undefined
-        ? ((currentPrice - prevPrice) / prevPrice) * 100 : null;
+    const prices = data?.prices ?? [];
+    const currentPrice = data?.currentPrice ?? null;
+    const change24h = data?.change24h ?? null;
     return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, gap: 8 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", flexShrink: 0 }}>PRICE · 7D</p>
@@ -1974,7 +2012,7 @@ function DesktopDashboard(p: SharedProps) {
                                                 </button>
                                             </div>
                                         )}
-                                        <PriceChart symbol={selectedToken.tokenSymbol} color={selectedToken.color} />
+                                        <PriceChart symbol={selectedToken.tokenSymbol} tokenAddress={selectedToken.tokenAddress} color={selectedToken.color} />
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto" }}>
                                         <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginBottom: 12, flexShrink: 0 }}>HISTORY</p>
@@ -2193,7 +2231,7 @@ function MobileQryptSafe({ p, mobileTab }: { p: SharedProps; mobileTab: "safes" 
                         </>
                     )}
                     <div style={{ height: 180, display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "14px 16px", minHeight: 0 }}>
-                        <PriceChart symbol={selectedToken.tokenSymbol} color={selectedToken.color} />
+                        <PriceChart symbol={selectedToken.tokenSymbol} tokenAddress={selectedToken.tokenAddress} color={selectedToken.color} />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "14px 16px" }}>
                         <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginBottom: 12 }}>HISTORY</p>
@@ -2300,7 +2338,7 @@ function ModalVaults({ p }: { p: SharedProps }) {
                 <div style={{ display: "flex", gap: 12, height: 230 }}>
                     <div style={{ flex: "0 0 65%", minWidth: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "14px 16px" }}>
-                            <PriceChart symbol={selectedToken.tokenSymbol} color={selectedToken.color} />
+                            <PriceChart symbol={selectedToken.tokenSymbol} tokenAddress={selectedToken.tokenAddress} color={selectedToken.color} />
                         </div>
                         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                             <button onClick={() => { p.setActiveShieldToken(selectedToken.tokenAddress); p.setActiveModal("shield"); }} style={{ flex: 1, padding: "14px 6px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.75)", cursor: "pointer", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
