@@ -156,18 +156,28 @@ export default function DashboardPage() {
         return txData?.transactions || [];
     }, [txData]);
 
-    // On-chain vault scan: probe known tokens against vault.qTokens()
+    // On-chain vault scan: probe known tokens + any token from transaction history
     const knownTokens = useMemo(() => KNOWN_TOKENS_BY_CHAIN[chainId ?? 11155111] ?? [], [chainId]);
 
+    const allTokensToProbe = useMemo(() => {
+        const map = new Map<string, { address: string; symbol: string; name: string }>();
+        knownTokens.forEach(t => map.set(t.address.toLowerCase(), t));
+        transactions.forEach(tx => {
+            const key = tx.tokenAddress.toLowerCase();
+            if (!map.has(key)) map.set(key, { address: tx.tokenAddress, symbol: tx.tokenSymbol, name: tx.tokenName });
+        });
+        return Array.from(map.values());
+    }, [knownTokens, transactions]);
+
     const qTokenProbeContracts = useMemo(() => {
-        if (!vaultAddress || !hasVault || knownTokens.length === 0) return [];
-        return knownTokens.map(t => ({
+        if (!vaultAddress || !hasVault || allTokensToProbe.length === 0) return [];
+        return allTokensToProbe.map(t => ({
             address: vaultAddress,
             abi: PERSONAL_VAULT_ABI,
             functionName: "qTokens" as const,
             args: [t.address as `0x${string}`],
         }));
-    }, [vaultAddress, hasVault, knownTokens]);
+    }, [vaultAddress, hasVault, allTokensToProbe]);
 
     const { data: qTokenProbeResults } = useReadContracts({ contracts: qTokenProbeContracts });
 
@@ -320,14 +330,14 @@ export default function DashboardPage() {
         const map: Record<string, string> = {};
         if (!qTokenProbeResults) return map;
         const ZERO = "0x0000000000000000000000000000000000000000";
-        knownTokens.forEach((t, i) => {
+        allTokensToProbe.forEach((t, i) => {
             const qAddr = qTokenProbeResults[i]?.result as string | undefined;
             if (qAddr && qAddr.toLowerCase() !== ZERO) {
                 map[t.address.toLowerCase()] = qAddr;
             }
         });
         return map;
-    }, [qTokenProbeResults, knownTokens]);
+    }, [qTokenProbeResults, allTokensToProbe]);
 
     const tokensWithBalances: TokenWithBalance[] = useMemo(() => {
         return shieldedTokenAddresses
