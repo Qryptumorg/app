@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ShieldIcon } from "lucide-react";
 import { getAddress } from "viem";
 
-// Mainnet checksummed addresses for well-known tokens (used for logo lookup on testnets)
 const SYMBOL_TO_MAINNET: Record<string, string> = {
     USDC:  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     USDT:  "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -19,18 +18,16 @@ const SYMBOL_TO_MAINNET: Record<string, string> = {
     PEPE:  "0x6982508145454Ce325dDbE47a25d4ec3d2311933",
     ARB:   "0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1",
     OP:    "0x4200000000000000000000000000000000000042",
-    RAIL:  "0xe76C6c83af64e4C60245D8C7dE953DF673a7A33D",
 };
 
 function twUrl(address: string): string {
     return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`;
 }
 
-function resolveInitialSrc(tokenAddress: string, tokenSymbol: string): string | null {
-    const sym = tokenSymbol?.toUpperCase() || "";
-    const mainnet = SYMBOL_TO_MAINNET[sym];
-    if (mainnet) return twUrl(mainnet);
-    try { return twUrl(getAddress(tokenAddress)); } catch { return null; }
+function resolveAddress(tokenAddress: string, tokenSymbol: string): string | null {
+    const sym = (tokenSymbol ?? "").toUpperCase();
+    if (SYMBOL_TO_MAINNET[sym]) return SYMBOL_TO_MAINNET[sym];
+    try { return getAddress(tokenAddress); } catch { return null; }
 }
 
 interface TokenLogoProps {
@@ -41,51 +38,54 @@ interface TokenLogoProps {
 }
 
 export default function TokenLogo({ tokenAddress, tokenSymbol, color, size = 32 }: TokenLogoProps) {
-    const [src, setSrc] = useState<string | null>(() => resolveInitialSrc(tokenAddress, tokenSymbol));
-    const [errored, setErrored] = useState(false);
+    const [src, setSrc] = useState<string | null>(null);
+    const [failed, setFailed] = useState(false);
+    const fetchingRef = useRef<string | null>(null);
 
-    // Reset src + error state whenever the token changes
     useEffect(() => {
-        setSrc(resolveInitialSrc(tokenAddress, tokenSymbol));
-        setErrored(false);
+        const resolved = resolveAddress(tokenAddress, tokenSymbol);
+        setSrc(resolved ? twUrl(resolved) : null);
+        setFailed(false);
+        fetchingRef.current = null;
     }, [tokenAddress, tokenSymbol]);
 
-    // For tokens not in the symbol map, try CoinGecko then DexScreener
-    useEffect(() => {
-        if (src) return;
-        let cancelled = false;
+    // Called when img fails to load — walk through fallback chain
+    const handleError = () => {
+        const key = `${tokenAddress}:${tokenSymbol}`;
+        if (fetchingRef.current === key) return;
+        fetchingRef.current = key;
 
         (async () => {
-            // 1. CoinGecko by contract address (mainnet)
+            // 1. CoinGecko by contract address
             try {
                 const res = await fetch(
                     `https://api.coingecko.com/api/v3/coins/ethereum/contract/${tokenAddress}`,
                     { headers: { Accept: "application/json" } }
                 );
-                if (!cancelled && res.ok) {
+                if (res.ok) {
                     const data = await res.json();
-                    const url = data?.image?.large || data?.image?.small;
+                    const url = data?.image?.large || data?.image?.small || data?.image?.thumb;
                     if (url) { setSrc(url); return; }
                 }
             } catch {}
 
-            // 2. DexScreener token endpoint
+            // 2. DexScreener
             try {
                 const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
-                if (!cancelled && res.ok) {
+                if (res.ok) {
                     const data = await res.json();
                     const url = data?.pairs?.[0]?.info?.imageUrl;
                     if (url) { setSrc(url); return; }
                 }
             } catch {}
-        })();
 
-        return () => { cancelled = true; };
-    }, [tokenAddress, src]);
+            setFailed(true);
+        })();
+    };
 
     const r = Math.round(size / 2);
 
-    if (!src || errored) {
+    if (failed || !src) {
         return (
             <div style={{
                 width: size, height: size,
@@ -107,7 +107,7 @@ export default function TokenLogo({ tokenAddress, tokenSymbol, color, size = 32 
             width={size}
             height={size}
             style={{ borderRadius: r, objectFit: "cover", flexShrink: 0 }}
-            onError={() => setErrored(true)}
+            onError={handleError}
         />
     );
 }
