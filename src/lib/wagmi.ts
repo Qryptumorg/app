@@ -1,1 +1,0 @@
-export { wagmiConfig as config, SHIELD_FACTORY_ADDRESSES, SHIELD_FACTORY_V6_ADDRESSES, SUPPORTED_CHAIN_IDS } from "./appkit";
