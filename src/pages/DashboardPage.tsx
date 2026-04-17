@@ -10,7 +10,7 @@ import {
     AlertTriangleIcon, UserIcon, XIcon, PlusIcon, ExternalLinkIcon, ArrowDownIcon,
     WifiOffIcon, ScanLineIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Loader2Icon,
 } from "lucide-react";
-import { getTxEtherscanUrl } from "@/lib/utils";
+import { getTxEtherscanUrl, getAddressEtherscanUrl } from "@/lib/utils";
 import { useVault } from "@/hooks/useVault";
 import type { VaultVersion } from "@/hooks/useVault";
 import ShieldPanel from "@/components/ShieldPanel";
@@ -71,6 +71,7 @@ interface TokenWithBalance {
     shieldedBalance: bigint | undefined;
     decimals: number;
     color: string;
+    qTokenAddress?: string;
 }
 
 type ModalId = "shield" | "transfer" | "unshield" | "vaults" | "settings" | "transfer-select" | "qryptair-sender" | "qryptair-fund" | "qryptair-recipient" | "qryptshield" | "upgrade-v6" | "chain-sync";
@@ -315,6 +316,19 @@ export default function DashboardPage() {
         });
     }, [portfolioData]);
 
+    const qTokenAddressMap = useMemo(() => {
+        const map: Record<string, string> = {};
+        if (!qTokenProbeResults) return map;
+        const ZERO = "0x0000000000000000000000000000000000000000";
+        knownTokens.forEach((t, i) => {
+            const qAddr = qTokenProbeResults[i]?.result as string | undefined;
+            if (qAddr && qAddr.toLowerCase() !== ZERO) {
+                map[t.address.toLowerCase()] = qAddr;
+            }
+        });
+        return map;
+    }, [qTokenProbeResults, knownTokens]);
+
     const tokensWithBalances: TokenWithBalance[] = useMemo(() => {
         return shieldedTokenAddresses
             .map((t, i) => ({
@@ -324,8 +338,9 @@ export default function DashboardPage() {
                 shieldedBalance: balanceResults?.[i]?.result as bigint | undefined,
                 decimals: (decimalsResults?.[i]?.result as number | undefined) ?? 18,
                 color: TOKEN_COLORS[t.index % TOKEN_COLORS.length],
+                qTokenAddress: qTokenAddressMap[t.tokenAddress.toLowerCase()],
             }));
-    }, [shieldedTokenAddresses, balanceResults, decimalsResults]);
+    }, [shieldedTokenAddresses, balanceResults, decimalsResults, qTokenAddressMap]);
 
     const prevModal = useRef<ModalId | null>(null);
     useEffect(() => {
@@ -1915,6 +1930,38 @@ function DesktopDashboard(p: SharedProps) {
                                                     <a href="/qryptair" target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 6, background: "#F59E0B", color: "#000", textDecoration: "none" }}>Open QryptAir</a>
                                                     <button onClick={() => setShowAirTransferNotice(false)} style={{ fontSize: 11, padding: "5px 10px", borderRadius: 6, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>Dismiss</button>
                                                 </div>
+                                            </div>
+                                        )}
+                                        {selectedToken.qTokenAddress && (
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", flexShrink: 0 }}>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <p style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginBottom: 2 }}>q{selectedToken.tokenSymbol} CONTRACT</p>
+                                                    <a href={getAddressEtherscanUrl(selectedToken.qTokenAddress, p.chainId)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, fontFamily: "monospace", color: "#60a5fa", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                        {selectedToken.qTokenAddress.slice(0, 10)}...{selectedToken.qTokenAddress.slice(-8)}
+                                                        <ExternalLinkIcon size={9} />
+                                                    </a>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            await (window as any).ethereum?.request({
+                                                                method: "wallet_watchAsset",
+                                                                params: {
+                                                                    type: "ERC20",
+                                                                    options: {
+                                                                        address: selectedToken.qTokenAddress,
+                                                                        symbol: `q${selectedToken.tokenSymbol}`,
+                                                                        decimals: selectedToken.decimals,
+                                                                    },
+                                                                },
+                                                            });
+                                                        } catch {}
+                                                    }}
+                                                    style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "5px 9px", borderRadius: 6, border: "1px solid rgba(255,153,0,0.3)", background: "rgba(255,153,0,0.08)", color: "#ffa500", cursor: "pointer", fontSize: 10, fontWeight: 600, whiteSpace: "nowrap" }}
+                                                >
+                                                    <svg width="11" height="11" viewBox="0 0 35 33" fill="none"><path d="M32.9582 1L19.8241 10.7183L22.2665 4.99099L32.9582 1Z" fill="#E17726" stroke="#E17726" strokeWidth="0.5"/><path d="M2.04858 1L15.0707 10.809L12.7388 4.99099L2.04858 1Z" fill="#E27625" stroke="#E27625" strokeWidth="0.5"/><path d="M28.2292 23.5334L24.7346 28.872L32.2172 30.9323L34.3625 23.6501L28.2292 23.5334Z" fill="#E27625" stroke="#E27625" strokeWidth="0.5"/><path d="M0.651367 23.6501L2.78287 30.9323L10.2655 28.872L6.7709 23.5334L0.651367 23.6501Z" fill="#E27625" stroke="#E27625" strokeWidth="0.5"/></svg>
+                                                    Add to MetaMask
+                                                </button>
                                             </div>
                                         )}
                                         <PriceChart symbol={selectedToken.tokenSymbol} color={selectedToken.color} />
