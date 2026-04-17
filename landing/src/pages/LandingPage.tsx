@@ -8,7 +8,7 @@ import logoEns from "@/assets/logo-ens.png";
 import logoPinata from "@/assets/logo-pinata.png";
 import logoEthlimo from "@/assets/logo-ethlimo.png";
 
-const qLogo = import.meta.env.BASE_URL + "qryptum-logo.png";
+const qLogo = import.meta.env.BASE_URL + "logo.svg";
 
 // ─── Topographic contour canvas ──────────────────────────────────────────────
 function LiquidCanvas() {
