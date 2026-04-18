@@ -57,9 +57,12 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     1: {
         chainId: 1,
         providers: [
-            // Railway proxy (private dRPC key) injected at priority 1 by loadRailgunProvider.
-            // Public dRPC as sole fallback — no ERR_CONNECTION_CLOSED, no rate-limit.
-            { provider: "https://eth.drpc.org", priority: 2, weight: 1 },
+            // Railway proxy (private MAINNET_RPC_URL) injected at priority 1 by loadRailgunProvider.
+            // 3 public no-key mainnet fallbacks — RAILGUN SDK FallbackProvider needs 2+ static
+            // providers so it doesn't throw "Invalid fallback provider config" if Railway is slow.
+            { provider: "https://eth.drpc.org",         priority: 2, weight: 2 },
+            { provider: "https://rpc.flashbots.net",    priority: 3, weight: 1 },
+            { provider: "https://rpc.mevblocker.io",    priority: 4, weight: 1 },
         ],
     },
     137: {
@@ -490,19 +493,27 @@ export async function getOrCreateRailgunWallet(
     // Existing wallets (loadWalletByID path above) resume from their saved block.
     let creationBlockNumbers: Record<string, number> | null = null;
     const networkName = chainId ? RAILGUN_CHAIN_MAP[chainId] : undefined;
-    const rpcUrl = chainId ? FALLBACK_RPC[chainId] : undefined;
-    if (networkName && rpcUrl) {
-        try {
-            const { JsonRpcProvider } = await import("ethers");
-            const provider = new JsonRpcProvider(rpcUrl);
-            const currentBlock = await provider.getBlockNumber();
-            // 50k blocks ≈ 7 days — enough for recent deposits, far faster than genesis scan
-            creationBlockNumbers = { [networkName]: Math.max(0, currentBlock - 50_000) };
-            console.log('[QryptShield] New wallet creationBlock:', creationBlockNumbers);
-        } catch {
-            // Continue without block range optimization — full scan from genesis
-            console.warn('[QryptShield] Could not get currentBlock, falling back to full scan');
+    if (networkName) {
+        // RAILGUN V2 (TXIDVersion.V2_PoseidonMerkle) deployed at specific blocks per network.
+        // Scanning from the V2 deploy block covers ALL possible RAILGUN V2 deposits:
+        //   Mainnet  ~17,200,000 (May 2023)  — avoids missing deposits older than 7 days
+        //   Sepolia  ~3,000,000  (Mar 2023)  — Sepolia V2 was early, use conservative block
+        //   Others: null → full scan from genesis (safe fallback)
+        // Using currentBlock - 50k (7 days) caused spendable=0 for old deposits because
+        // the UTXO is in a block before the scan window so the engine never found it.
+        const RAILGUN_V2_DEPLOY_BLOCK: Partial<Record<string, number>> = {
+            [NetworkName.Ethereum]:      17_200_000,
+            [NetworkName.EthereumSepolia]: 3_000_000,
+            [NetworkName.Polygon]:       44_000_000,
+            [NetworkName.BNBChain]:      28_000_000,
+            [NetworkName.Arbitrum]:      100_000_000,
+        };
+        const startBlock = RAILGUN_V2_DEPLOY_BLOCK[networkName];
+        if (startBlock !== undefined) {
+            creationBlockNumbers = { [networkName]: startBlock };
+            console.log('[QryptShield] New wallet creationBlock (RAILGUN V2 deploy):', creationBlockNumbers);
         }
+        // If not in map → null → full genesis scan (safe, just slower)
     }
 
     const info = await createRailgunWallet(rawKey, mnemonic, creationBlockNumbers);
