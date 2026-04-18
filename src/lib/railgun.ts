@@ -298,8 +298,12 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         // The second entry is a real retry fallback — SDK cycles through the list
         // on connection errors, giving us two attempts before marking POI unavailable.
         const poiNodeURLs = [
+            // Railway proxy → ppoi-agg.horsewithsixlegs.xyz
+            // Browser XHR drops connection (ERR_CONNECTION_CLOSED) to the aggregator directly.
+            // Node.js server-side fetch works fine. Railway proxy fixes this gap.
+            `${getApiBase()}/poi`,
+            // Direct aggregator as fallback (may fail from browser but SDK retries)
             "https://ppoi-agg.horsewithsixlegs.xyz",
-            "https://ppoi-agg.horsewithsixlegs.xyz", // retry fallback (only known public aggregator)
         ];
 
         await startRailgunEngine(
