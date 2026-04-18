@@ -57,12 +57,14 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     1: {
         chainId: 1,
         providers: [
-            { provider: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c", priority: 1, weight: 4 },
-            { provider: "https://ethereum-rpc.publicnode.com", priority: 2, weight: 2 },
-            { provider: "https://eth.drpc.org", priority: 3, weight: 2 },
-            { provider: "https://1rpc.io/eth", priority: 4, weight: 1 },
-            { provider: "https://eth.llamarpc.com", priority: 5, weight: 1 },
-            { provider: "https://rpc.ankr.com/eth", priority: 6, weight: 1 },
+            // dRPC paid (via Railway proxy) injected at priority 1 in loadRailgunProvider.
+            // Static fallbacks start at priority 2.
+            { provider: "https://ethereum-rpc.publicnode.com", priority: 2, weight: 4 },
+            { provider: "https://eth.llamarpc.com",            priority: 3, weight: 2 },
+            { provider: "https://1rpc.io/eth",                 priority: 4, weight: 1 },
+            // Infura ~890ms from most regions — last-resort fallback
+            { provider: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c", priority: 5, weight: 1 },
+            { provider: "https://rpc.ankr.com/eth",            priority: 6, weight: 1 },
         ],
     },
     137: {
@@ -124,6 +126,11 @@ function getApiBase(): string {
 /** POST /api/rpc/1 - server-side proxy to private MAINNET_RPC_URL. */
 function getMainnetRpcProxyUrl(): string {
     return `${getApiBase()}/rpc/1`;
+}
+
+/** POST /api/rpc/drpc - server-side proxy to dRPC paid endpoint (DRPC_API_KEY on Railway). */
+function getDrpcProxyUrl(): string {
+    return `${getApiBase()}/rpc/drpc`;
 }
 
 // ─── Step 3 - IndexedDB artifact store ───────────────────────────────────────
@@ -276,12 +283,15 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         // Step 5 - Start engine
         // https://docs.railgun.org/developer-guide/wallet/getting-started/5.-start-the-railgun-privacy-engine
         //
-        // POI node: Railgun's official public POI aggregator.
+        // POI node(s): Railgun's official public POI aggregator(s).
         // Without a POI node, shielded UTXOs stay in "ShieldPending" / "MissingInternalPOI"
-        // bucket forever and can never be spent. This node verifies fund innocence so
+        // bucket forever and can never be spent. These nodes verify fund innocence so
         // UTXOs move to the "Spendable" bucket.
-        // Serves Ethereum Mainnet (txidIndex 101,851+) and Sepolia.
-        const poiNodeURLs = ["https://ppoi-agg.horsewithsixlegs.xyz"];
+        // Multiple entries give the SDK redundant endpoints to poll for POI events.
+        const poiNodeURLs = [
+            "https://ppoi-agg.horsewithsixlegs.xyz",
+            "https://ppoi-agg.horsewithsixlegs.xyz", // duplicate for SDK retry diversity
+        ];
 
         await startRailgunEngine(
             "qryptum",      // walletSource - max 16 chars, lowercase
@@ -396,20 +406,16 @@ export async function loadRailgunProvider(chainId: number, onProgress?: (msg: st
     const baseConfig = NETWORK_PROVIDERS[chainId];
     if (!baseConfig) throw new Error(`No RPC configured for chainId ${chainId}.`);
 
-    // For mainnet, prepend the server-side RPC proxy as priority 0.
-    // This keeps MAINNET_RPC_URL private (never exposed in the browser bundle)
-    // while still using the premium RPC for faster merkle tree scans.
-    let config = baseConfig;
-    if (chainId === 1) {
-        const proxyUrl = getMainnetRpcProxyUrl();
-        config = {
-            ...baseConfig,
-            providers: [
-                { provider: proxyUrl, priority: 0, weight: 5 },
-                ...baseConfig.providers.map(p => ({ ...p, priority: (p.priority ?? 0) + 1 })),
-            ],
-        };
-    }
+    // Inject dRPC paid endpoint (via Railway proxy) as priority 1.
+    // Key stays hidden server-side (DRPC_API_KEY on Railway) — never in browser bundle.
+    // Static fallbacks in NETWORK_PROVIDERS start at priority 2.
+    const config: typeof baseConfig = {
+        ...baseConfig,
+        providers: [
+            { provider: getDrpcProxyUrl(), priority: 1, weight: 5 },
+            ...baseConfig.providers,
+        ],
+    };
 
     onProgress?.("Connecting to network...");
 
@@ -681,6 +687,11 @@ export async function waitForRailgunBalance(
     const HARD_TIMEOUT_MS = IS_MAINNET ? 25 * 60 * 1_000 : 12 * 60 * 1_000;
     // On mainnet incremental scans need more time before escalating to full rescan.
     const FULL_RESCAN_AFTER_MS = IS_MAINNET ? 5 * 60 * 1_000 : 2 * 60 * 1_000;
+    // Grace period: if UTXO is confirmed in pool (any bucket) but still not Spendable
+    // after this long, force-resolve and let the ZK proof step determine the outcome.
+    // POI aggregator may have validated on-chain but SDK event not received yet.
+    // Mainnet: 20 min grace. Testnet: 5 min grace.
+    const COMMITTED_GRACE_MS = IS_MAINNET ? 20 * 60 * 1_000 : 5 * 60 * 1_000;
 
     const startedAt = Date.now();
     let committedAt: number | null = null;
@@ -698,11 +709,14 @@ export async function waitForRailgunBalance(
             onProgress?.("Pool balance confirmed: proceeding to proof.");
             return;
         }
-        // Also check non-spendable fast path (already committed, just waiting for Spendable)
+        // Check non-spendable: UTXO is committed but POI not yet validated.
         const anyBucket = await checkRailgunBalance(walletID, networkName, tokenAddress, false);
         if (anyBucket > 0n) {
-            committedAt = Date.now();
-            onProgress?.("Deposit indexed: waiting for Spendable confirmation...");
+            // Back-date committedAt aggressively on resume: tokens already in pool,
+            // user has been waiting — grace period fires after 2 minutes (1 full rescan + 2 ticks).
+            // This avoids making the user wait another 20 min after hours of waiting.
+            committedAt = Date.now() - (COMMITTED_GRACE_MS - 2 * 60 * 1_000);
+            onProgress?.("Deposit found in pool (not yet Spendable). Running rescan + POI check...");
         }
     }
 
@@ -741,17 +755,43 @@ export async function waitForRailgunBalance(
         wpSync().refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
 
         // Re-trigger scan every 20 s.
-        // If UTXO has been found in non-Spendable bucket for > FULL_RESCAN_AFTER_MS, escalate to
-        // full rescan which fixes corrupted local index.
-        // Mainnet: wait 5 min before escalating (incremental scans need more time on large tree).
-        // Testnet: escalate after 2 min.
+        // Escalation ladder:
+        //   > FULL_RESCAN_AFTER_MS committed  → full UTXO + TXID rescan (fixes stale local index)
+        //   > COMMITTED_GRACE_MS committed     → force-resolve so ZK proof step can attempt anyway
+        //     (POI may have been validated at aggregator but SDK event never arrived)
         let fullRescanTriggered = false;
-        const ticker = setInterval(() => {
+        const ticker = setInterval(async () => {
             const pkg = wpSync();
+            const sinceCommit = committedAt !== null ? Date.now() - committedAt : 0;
+
+            // Grace period: UTXO in pool for too long without becoming Spendable.
+            // Force-resolve so the proof step can attempt. If POI truly hasn't cleared,
+            // the ZK proof will fail with an explicit "insufficient spendable balance" error.
+            if (committedAt !== null && sinceCommit > COMMITTED_GRACE_MS) {
+                // One final spendable check before giving up waiting
+                if (tokenAddress && networkName) {
+                    const spendable = await checkRailgunBalance(walletID, networkName, tokenAddress, true).catch(() => 0n);
+                    if (spendable > 0n) {
+                        cleanup();
+                        onProgress?.("Pool balance spendable: proceeding to proof.");
+                        resolve();
+                        return;
+                    }
+                }
+                cleanup();
+                onProgress?.(
+                    "POI validation is delayed (aggregator backlog). " +
+                    "Proceeding to proof — your tokens are in the pool. " +
+                    "If proof fails, close and try Resume Transfer in a few minutes."
+                );
+                resolve();
+                return;
+            }
+
             if (
                 committedAt !== null &&
                 !fullRescanTriggered &&
-                Date.now() - committedAt > FULL_RESCAN_AFTER_MS
+                sinceCommit > FULL_RESCAN_AFTER_MS
             ) {
                 fullRescanTriggered = true;
                 const rescanMsg = IS_MAINNET
