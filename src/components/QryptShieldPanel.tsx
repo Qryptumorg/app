@@ -122,13 +122,16 @@ export default function QryptShieldPanel({
     const [phase, setPhase] = useState<"form" | "running" | "done" | "error">("form");
     const [steps, setSteps] = useState<Step[]>(INITIAL_STEPS);
     const [fatalError, setFatalError] = useState<string | null>(null);
-    // 3-minute timeout: surface "close and come back" UI early.
+    // 3-minute timeout: surface "close and come back" UI early for first-time scan.
     // First-time IndexedDB build processes 375k+ historical RAILGUN commitments
     // through WASM Poseidon hashing (~1-3 hours). Progress is saved to IndexedDB
     // so the scan resumes exactly where it left off on every subsequent page load.
     // On return visits the index is already complete and sync takes seconds.
+    // utxoInPool: true when deposit was indexed in pool but awaiting POI validation.
+    // POI validation on mainnet takes 30-60 min (Subsquid lag + aggregator batch cycle).
     const [syncTimedOut, setSyncTimedOut] = useState(false);
     const [syncProgress, setSyncProgress] = useState(0);
+    const [utxoInPool, setUtxoInPool] = useState(false);
     const SYNC_USER_TIMEOUT_MS = 3 * 60 * 1_000; // 3 min - fail fast, DB resumes
 
     useEffect(() => {
@@ -433,11 +436,18 @@ export default function QryptShieldPanel({
                     if (pctMatch) setSyncProgress(parseInt(pctMatch[1], 10));
                     updateStep("sync", { detail: msg });
                 });
+                const balanceProgressHandler = (msg: string) => {
+                    // Detect when UTXO is found in pool (MissingInternalPOI / ShieldPending)
+                    if (msg.includes("in pool") || msg.includes("Deposit indexed")) {
+                        setUtxoInPool(true);
+                    }
+                    updateStep("sync", { detail: msg });
+                };
                 const syncRace = await Promise.race([
                     waitForRailgunBalance(
                         railgunWalletID,
                         chainId,
-                        msg => updateStep("sync", { detail: msg }),
+                        balanceProgressHandler,
                         token.tokenAddress,
                     ).then(() => null).finally(() => unsubScanProgress()),
                     new Promise<typeof SYNC_TIMED_OUT>(res =>
@@ -446,7 +456,6 @@ export default function QryptShieldPanel({
                 ]);
                 if (syncRace === SYNC_TIMED_OUT) {
                     unsubScanProgress();
-                    updateStep("sync", { detail: "Index still building in background. Your tokens are safe." });
                     setSyncTimedOut(true);
                     return;
                 }
@@ -545,23 +554,40 @@ export default function QryptShieldPanel({
                 <Stepper steps={steps} chainId={chainId} />
                 {syncTimedOut && (
                     <div style={{ marginTop: 16, padding: "14px 16px", borderRadius: 12, background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.3)" }}>
-                        <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, color: "#a78bfa" }}>
-                            Privacy index building in background
-                            {syncProgress > 0 && <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.5)" }}> — {syncProgress}% complete</span>}
-                        </p>
-                        <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
-                            Your tokens are safe in the Railgun pool. This panel shielded them successfully.
-                        </p>
-                        <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                            <strong style={{ color: "rgba(255,255,255,0.6)" }}>First-time setup</strong> hashes 375k+ historical commitments in your browser (~1-3 hours total). The index is saved to your browser storage — every time you return, the scan resumes from where it stopped. <strong style={{ color: "rgba(255,255,255,0.6)" }}>Second visit onwards is instant.</strong>
-                        </p>
-                        <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                            Close this panel and come back later — tap <strong style={{ color: "rgba(255,255,255,0.7)" }}>Resume Transfer</strong> on the form to continue from where you left off.
-                        </p>
+                        {utxoInPool ? (
+                            <>
+                                <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, color: "#a78bfa" }}>
+                                    Deposit found - awaiting POI validation
+                                </p>
+                                <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+                                    Your deposit is confirmed in the Railgun pool. It is waiting for the <strong style={{ color: "rgba(255,255,255,0.7)" }}>Proof of Innocence (POI)</strong> aggregator to validate it before it becomes spendable.
+                                </p>
+                                <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                                    On mainnet this takes <strong style={{ color: "rgba(255,255,255,0.6)" }}>30-60 minutes</strong> after deposit confirmation (indexer lag + aggregator batch cycle). Your tokens are safe. Come back in 30-60 minutes and tap <strong style={{ color: "rgba(255,255,255,0.7)" }}>Resume Transfer</strong>.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, color: "#a78bfa" }}>
+                                    Privacy index building in background
+                                    {syncProgress > 0 && <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.5)" }}> — {syncProgress}% complete</span>}
+                                </p>
+                                <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+                                    Your tokens are safe in the Railgun pool. This panel shielded them successfully.
+                                </p>
+                                <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                                    <strong style={{ color: "rgba(255,255,255,0.6)" }}>First-time setup</strong> hashes 375k+ historical commitments in your browser (~1-3 hours total). The index is saved to your browser storage so every return visit resumes from where it stopped. <strong style={{ color: "rgba(255,255,255,0.6)" }}>Second visit onwards is instant.</strong>
+                                </p>
+                                <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                                    Close this panel and come back later -- tap <strong style={{ color: "rgba(255,255,255,0.7)" }}>Resume Transfer</strong> on the form to continue from where you left off.
+                                </p>
+                            </>
+                        )}
                         <button
                             onClick={() => {
                                 setSyncTimedOut(false);
                                 setSyncProgress(0);
+                                setUtxoInPool(false);
                                 setPhase("form");
                                 setSteps(INITIAL_STEPS.map(s => ({ ...s })));
                             }}
