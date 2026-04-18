@@ -34,24 +34,7 @@ function milestoneFor(msg: string): number | null {
 }
 
 export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptShieldLoaderProps) {
-    // Guard: QryptShield requires Ethereum Mainnet — Sepolia RAILGUN setup fails
-    // because the Sepolia proxy contract's unshieldFee() returns empty (BAD_DATA).
-    // USDC deposits are on mainnet only. Show a clear prompt to switch networks.
-    if (chainId && chainId !== 1) {
-        return (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 320, gap: 16, padding: 32, textAlign: "center" }}>
-                <div style={{ fontSize: 40 }}>⛓️</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>Switch to Ethereum Mainnet</div>
-                <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", maxWidth: 280 }}>
-                    QryptShield only operates on Ethereum Mainnet.<br />
-                    Your wallet is on chain {chainId}. Please switch network in your wallet.
-                </div>
-                <button onClick={onCancel} style={{ marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 14 }}>
-                    Cancel
-                </button>
-            </div>
-        );
-    }
+
     const [status, setStatus] = useState("Loading privacy engine...");
     const [loadState, setLoadState] = useState<LoadState>("loading");
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
