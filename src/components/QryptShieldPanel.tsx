@@ -12,6 +12,7 @@ import { PERSONAL_VAULT_ABI, getVaultABI } from "@/lib/abi";
 import { validatePasswordFormat, hashPassword, peekNextProof, consumeProofAtPosition } from "@/lib/password";
 import {
     ensureRailgunEngine,
+    resetEngineState,
     loadRailgunProvider,
     deriveEncryptionKey,
     getOrCreateRailgunWallet,
@@ -542,7 +543,7 @@ export default function QryptShieldPanel({
                         <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{fatalError}</p>
                         <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 16 }}>
                             <button
-                                onClick={() => { setPhase("form"); setSteps(INITIAL_STEPS.map(s => ({ ...s }))); }}
+                                onClick={() => { resetEngineState(); setPhase("form"); setSteps(INITIAL_STEPS.map(s => ({ ...s }))); }}
                                 style={{ fontSize: 12, fontWeight: 700, color: PRIMARY, background: "none", border: "none", cursor: "pointer", padding: 0 }}
                             >
                                 Try again
