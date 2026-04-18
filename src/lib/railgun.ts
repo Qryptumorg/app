@@ -675,10 +675,15 @@ export async function hasRailgunBalance(
  * 2. On each balance update event, check:
  *    a. ANY bucket balance (committed) - token found in tree at all?
  *    b. Spendable bucket - ready for ZK proof?
- * 3. If committed but NOT spendable after 3-minute grace period, resolve anyway.
- *    This handles "ShieldPending" / "MissingInternalPOI" buckets on testnet where
- *    POI may not auto-clear. The ZK proof step will fail with a clearer error if needed.
- * 4. Hard timeout: 25 minutes on mainnet (POI validation takes longer), 12 minutes on testnet.
+ * 3. NEVER proceed to ZK proof unless balance is Spendable. MissingInternalPOI means
+ *    the POI aggregator has not yet validated the shield. Proceeding early causes proof failure.
+ * 4. Hard timeout: 90 minutes on mainnet, 15 minutes on testnet.
+ *    POI aggregator processing timeline on mainnet:
+ *    - Shield TX confirmed: T+0
+ *    - Shield maturity (10 blocks): T+2 min
+ *    - Subsquid indexes fresh shield: T+22 min (Subsquid lags ~22 min behind mainnet)
+ *    - POI aggregator picks up and validates shield: T+22 to T+60 min (aggregator batch cycle)
+ *    - Total expected wait: 30-60 min. We wait up to 90 min before giving up.
  */
 export async function waitForRailgunBalance(
     walletID: string,
@@ -692,17 +697,12 @@ export async function waitForRailgunBalance(
     const networkName = RAILGUN_CHAIN_MAP[chainId];
     const chain = { type: ChainType.EVM, id: chainId };
 
-    // Mainnet POI validation runs in batches off-chain and commonly takes 15-25 min.
+    // Mainnet POI pipeline: Subsquid ~22-min lag + aggregator batch cycle = 30-60 min total.
     // Testnet traffic is sparse so the aggregator approves shields much faster.
     const IS_MAINNET = chainId === 1;
-    const HARD_TIMEOUT_MS = IS_MAINNET ? 25 * 60 * 1_000 : 12 * 60 * 1_000;
+    const HARD_TIMEOUT_MS = IS_MAINNET ? 90 * 60 * 1_000 : 15 * 60 * 1_000;
     // On mainnet incremental scans need more time before escalating to full rescan.
-    const FULL_RESCAN_AFTER_MS = IS_MAINNET ? 5 * 60 * 1_000 : 2 * 60 * 1_000;
-    // Grace period: if UTXO is confirmed in pool (any bucket) but still not Spendable
-    // after this long, force-resolve and let the ZK proof step determine the outcome.
-    // POI aggregator may have validated on-chain but SDK event not received yet.
-    // Mainnet: 20 min grace. Testnet: 5 min grace.
-    const COMMITTED_GRACE_MS = IS_MAINNET ? 20 * 60 * 1_000 : 5 * 60 * 1_000;
+    const FULL_RESCAN_AFTER_MS = IS_MAINNET ? 8 * 60 * 1_000 : 2 * 60 * 1_000;
 
     const startedAt = Date.now();
     let committedAt: number | null = null;
@@ -723,11 +723,8 @@ export async function waitForRailgunBalance(
         // Check non-spendable: UTXO is committed but POI not yet validated.
         const anyBucket = await checkRailgunBalance(walletID, networkName, tokenAddress, false);
         if (anyBucket > 0n) {
-            // Back-date committedAt aggressively on resume: tokens already in pool,
-            // user has been waiting — grace period fires after 2 minutes (1 full rescan + 2 ticks).
-            // This avoids making the user wait another 20 min after hours of waiting.
-            committedAt = Date.now() - (COMMITTED_GRACE_MS - 2 * 60 * 1_000);
-            onProgress?.("Deposit found in pool (not yet Spendable). Running rescan + POI check...");
+            committedAt = Date.now();
+            onProgress?.("Deposit found in pool (not yet Spendable). Waiting for POI validation...");
         }
     }
 
@@ -744,19 +741,18 @@ export async function waitForRailgunBalance(
         // Hard timeout
         const hardTimer = setTimeout(() => {
             cleanup();
-            const timeoutMin = IS_MAINNET ? "25" : "12";
-            // Distinguish: did we find the UTXO (in some bucket) or never find it?
+            const timeoutMin = IS_MAINNET ? "90" : "15";
             if (committedAt !== null) {
                 reject(new Error(
-                    `Your UTXO is in the Railgun pool but not yet Spendable after ${timeoutMin} minutes. ` +
-                    "This is normal on mainnet - POI validation by the Railgun aggregator can take up to 30 min. " +
-                    "Your tokens are safe. Close this dialog and try QryptShield again in 5-10 minutes."
+                    `Your deposit is in the Railgun pool but not yet Spendable after ${timeoutMin} minutes. ` +
+                    "The POI aggregator validates shields in batches and can take 30-90 min on mainnet. " +
+                    "Your tokens are safe. Close this dialog and reopen QryptShield in 30-60 minutes."
                 ));
             } else {
                 reject(new Error(
-                    `Railgun pool sync timed out: UTXO not indexed after ${timeoutMin} minutes. ` +
-                    "Your tokens are safe in the Railgun pool - do not retry the deposit. " +
-                    "Close this dialog and try QryptShield again (it will resume from Step 3)."
+                    `Railgun sync timed out: UTXO not indexed after ${timeoutMin} minutes. ` +
+                    "Your tokens are safe in the Railgun pool. Do NOT retry the deposit. " +
+                    "Close and reopen QryptShield in 30-60 minutes (it will resume from Step 3)."
                 ));
             }
         }, HARD_TIMEOUT_MS);
@@ -770,38 +766,13 @@ export async function waitForRailgunBalance(
         wpSync().refreshBalances(chain, [walletID]).catch(() => { /* best effort */ });
 
         // Re-trigger scan every 20 s.
-        // Escalation ladder:
-        //   > FULL_RESCAN_AFTER_MS committed  → full UTXO + TXID rescan (fixes stale local index)
-        //   > COMMITTED_GRACE_MS committed     → force-resolve so ZK proof step can attempt anyway
-        //     (POI may have been validated at aggregator but SDK event never arrived)
+        // Escalation: after FULL_RESCAN_AFTER_MS committed, run full UTXO+TXID rescan.
+        // We NEVER force-proceed to ZK proof - MissingInternalPOI means the aggregator
+        // has not validated the shield yet. Proceeding early causes proof failure.
         let fullRescanTriggered = false;
         const ticker = setInterval(async () => {
             const pkg = wpSync();
             const sinceCommit = committedAt !== null ? Date.now() - committedAt : 0;
-
-            // Grace period: UTXO in pool for too long without becoming Spendable.
-            // Force-resolve so the proof step can attempt. If POI truly hasn't cleared,
-            // the ZK proof will fail with an explicit "insufficient spendable balance" error.
-            if (committedAt !== null && sinceCommit > COMMITTED_GRACE_MS) {
-                // One final spendable check before giving up waiting
-                if (tokenAddress && networkName) {
-                    const spendable = await checkRailgunBalance(walletID, networkName, tokenAddress, true).catch(() => 0n);
-                    if (spendable > 0n) {
-                        cleanup();
-                        onProgress?.("Pool balance spendable: proceeding to proof.");
-                        resolve();
-                        return;
-                    }
-                }
-                cleanup();
-                onProgress?.(
-                    "POI validation is delayed (aggregator backlog). " +
-                    "Proceeding to proof — your tokens are in the pool. " +
-                    "If proof fails, close and try Resume Transfer in a few minutes."
-                );
-                resolve();
-                return;
-            }
 
             if (
                 committedAt !== null &&
@@ -859,16 +830,19 @@ export async function waitForRailgunBalance(
             }
 
             // UTXO found but not Spendable yet - update progress, keep waiting.
-            // This means it is in ShieldPending / MissingInternalPOI bucket.
-            // The SDK will move it to Spendable once the shield maturity period passes
-            // (typically ~5–15 minutes on Sepolia). Do NOT proceed early - the proof
-            // step will fail with "balance too low" if Spendable is still 0.
-            const sinceCommit = committedAt !== null
+            // This means it is in ShieldPending (10-block maturity) or MissingInternalPOI.
+            // MissingInternalPOI: POI aggregator has not yet validated this shield.
+            // Timeline on mainnet: Subsquid lags ~22 min, aggregator cycle adds 15-60 min.
+            // NEVER proceed early - ZK proof fails if balance is not Spendable.
+            const sinceCommitSec = committedAt !== null
                 ? Math.floor((Date.now() - committedAt) / 1000)
                 : 0;
+            const sinceCommitDisplay = sinceCommitSec >= 60
+                ? `${Math.floor(sinceCommitSec / 60)}m ${sinceCommitSec % 60}s`
+                : `${sinceCommitSec}s`;
             const maturingMsg = IS_MAINNET
-                ? `Deposit in pool - awaiting POI validation by Railgun aggregator (${sinceCommit}s, normal on mainnet). (${elapsed()})`
-                : `UTXO found in pool (maturing... ${sinceCommit}s). Waiting for Spendable confirmation. (${elapsed()})`;
+                ? `Deposit in pool - awaiting POI validation (${sinceCommitDisplay} elapsed, expected 30-60 min). (${elapsed()})`
+                : `UTXO found in pool (maturing... ${sinceCommitDisplay}). Waiting for Spendable. (${elapsed()})`;
             onProgress?.(maturingMsg);
         });
     });
