@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2Icon, AlertCircleIcon } from "lucide-react";
 
 const PRIMARY = "#8B5CF6";
@@ -11,31 +11,86 @@ interface QryptShieldLoaderProps {
     onCancel?: () => void;
 }
 
+// Message → target progress milestones
+const MILESTONES: { match: string; pct: number }[] = [
+    { match: "Loading privacy engine",  pct: 8  },
+    { match: "Starting Railgun engine", pct: 28 },
+    { match: "Connecting to network",   pct: 55 },
+    { match: "Privacy engine ready",    pct: 100 },
+];
+
+function milestoneFor(msg: string): number | null {
+    for (const m of MILESTONES) {
+        if (msg.includes(m.match)) return m.pct;
+    }
+    // Parse explicit % from message (e.g. "Scanning commitments: 72%")
+    const match = msg.match(/(\d+)%/);
+    if (match) {
+        const raw = parseInt(match[1], 10);
+        // Map 0-100 of scan phase into 28-55 range (between engine ready and network connect)
+        return Math.round(28 + (raw / 100) * 27);
+    }
+    return null;
+}
+
 export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptShieldLoaderProps) {
     const [status, setStatus] = useState("Loading privacy engine...");
     const [loadState, setLoadState] = useState<LoadState>("loading");
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [progress, setProgress] = useState(2);
+
+    // targetRef holds the milestone we're smoothly animating toward
+    const targetRef = useRef(2);
+    const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Smooth ticker: nudge progress toward targetRef every 80ms
+    useEffect(() => {
+        tickRef.current = setInterval(() => {
+            setProgress(prev => {
+                const target = targetRef.current;
+                if (prev >= target) return prev;
+                // Fast when far, slow when close
+                const step = Math.max(0.3, (target - prev) * 0.06);
+                return Math.min(target, prev + step);
+            });
+        }, 80);
+        return () => { if (tickRef.current) clearInterval(tickRef.current); };
+    }, []);
+
+    function advanceTo(pct: number) {
+        // Only move forward, never back
+        targetRef.current = Math.max(targetRef.current, pct);
+    }
 
     useEffect(() => {
         let cancelled = false;
 
+        function onMsg(msg: string) {
+            if (cancelled) return;
+            setStatus(msg);
+            const pct = milestoneFor(msg);
+            if (pct !== null) advanceTo(pct);
+        }
+
         async function init() {
             try {
-                // Dynamic import — railgun 22MB does NOT block initial bundle load
+                advanceTo(5);
                 const { ensureRailgunEngine, loadRailgunProvider } = await import("@/lib/railgun");
 
-                await ensureRailgunEngine(msg => {
-                    if (!cancelled) setStatus(msg);
-                });
+                await ensureRailgunEngine(onMsg);
+                advanceTo(50);
 
                 if (chainId) {
-                    await loadRailgunProvider(chainId, msg => {
-                        if (!cancelled) setStatus(msg);
-                    });
+                    await loadRailgunProvider(chainId, onMsg);
                 }
+                advanceTo(95);
 
                 if (!cancelled) {
-                    setStatus("Privacy engine ready.");
+                    onMsg("Privacy engine ready.");
+                    // Brief pause so user sees 100% before transitioning
+                    await new Promise(r => setTimeout(r, 300));
+                    advanceTo(100);
+                    await new Promise(r => setTimeout(r, 250));
                     setLoadState("ready");
                 }
             } catch (err) {
@@ -49,6 +104,11 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
         init();
         return () => { cancelled = true; };
     }, [chainId]);
+
+    // Display percentage: round to nearest integer, cap at 99 while still loading
+    const displayPct = loadState === "ready" ? 100
+        : loadState === "error" ? null
+        : Math.min(99, Math.round(progress));
 
     return (
         <div style={{
@@ -67,8 +127,6 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
                     alt="Qryptum"
                     style={{ borderRadius: 12, display: "block" }}
                 />
-                {/* marginLeft 4px (from Qryptum), marginRight 16px (before Railgun)
-                    places "+" center at midpoint between both logo centers */}
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
                      style={{ flexShrink: 0, marginLeft: 4, marginRight: 16 }}>
                     <path d="M2 8h12M8 2v12" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
@@ -93,7 +151,7 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
             </p>
 
             <p style={{
-                margin: "0 0 28px",
+                margin: "0 0 20px",
                 color: "rgba(255,255,255,0.38)",
                 fontSize: 12,
                 textAlign: "center",
@@ -105,21 +163,38 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
             </p>
 
             {loadState === "loading" && (
-                <div style={{
-                    width: 160,
-                    height: 2,
-                    borderRadius: 999,
-                    background: "rgba(255,255,255,0.06)",
-                    overflow: "hidden",
-                    marginBottom: 32,
-                }}>
+                <div style={{ width: 200, marginBottom: 28 }}>
+                    {/* Track */}
                     <div style={{
-                        height: "100%",
-                        width: "30%",
+                        width: "100%",
+                        height: 4,
                         borderRadius: 999,
-                        background: `linear-gradient(90deg, transparent, ${PRIMARY}, #a78bfa, transparent)`,
-                        animation: "qs-scan 1.5s cubic-bezier(.45,0,.55,1) infinite",
-                    }} />
+                        background: "rgba(255,255,255,0.07)",
+                        overflow: "hidden",
+                        marginBottom: 7,
+                    }}>
+                        {/* Fill */}
+                        <div style={{
+                            height: "100%",
+                            width: `${progress}%`,
+                            borderRadius: 999,
+                            background: `linear-gradient(90deg, #7c3aed, ${PRIMARY}, #a78bfa)`,
+                            transition: "width 0.08s linear",
+                            boxShadow: `0 0 8px rgba(139,92,246,0.6)`,
+                        }} />
+                    </div>
+                    {/* Percentage label */}
+                    <p style={{
+                        margin: 0,
+                        textAlign: "right",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "rgba(139,92,246,0.7)",
+                        letterSpacing: "0.04em",
+                        fontVariantNumeric: "tabular-nums",
+                    }}>
+                        {displayPct}%
+                    </p>
                 </div>
             )}
 
@@ -227,13 +302,6 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
                     </button>
                 </div>
             )}
-
-            <style>{`
-                @keyframes qs-scan {
-                    0%   { transform: translateX(-150%); }
-                    100% { transform: translateX(650%); }
-                }
-            `}</style>
         </div>
     );
 }
