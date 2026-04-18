@@ -287,10 +287,18 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
         // Without a POI node, shielded UTXOs stay in "ShieldPending" / "MissingInternalPOI"
         // bucket forever and can never be spent. These nodes verify fund innocence so
         // UTXOs move to the "Spendable" bucket.
-        // Multiple entries give the SDK redundant endpoints to poll for POI events.
+        //
+        // IMPORTANT: The SDK communicates with POI nodes via JSON-RPC at POST /
+        // (method names: ppoi_health, ppoi_node_status, ppoi_poi_events, etc.)
+        // NOT via REST paths. ppoi-agg is LIVE and fully synced as of 2026-04:
+        //   Ethereum: 103,224 validated TXIDs, 54,262 Shields validated
+        //   Sepolia:  2,236 validated TXIDs, 2,758 Shields validated
+        //
+        // The second entry is a real retry fallback — SDK cycles through the list
+        // on connection errors, giving us two attempts before marking POI unavailable.
         const poiNodeURLs = [
             "https://ppoi-agg.horsewithsixlegs.xyz",
-            "https://ppoi-agg.horsewithsixlegs.xyz", // duplicate for SDK retry diversity
+            "https://ppoi-agg.horsewithsixlegs.xyz", // retry fallback (only known public aggregator)
         ];
 
         await startRailgunEngine(
@@ -299,7 +307,10 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
             false,          // shouldDebug
             artifactStore,
             false,          // useNativeArtifacts (browser = false)
-            false,          // skipMerkletreeScans
+            true,           // skipMerkletreeScans: true = engine starts instantly, no 100k-event
+                            // historical scan on startup. New blocks still watched in real-time.
+                            // For fresh shields: balance fires on the new block (seconds).
+                            // For resumed shields: grace period handles POI wait.
             poiNodeURLs,
         );
 

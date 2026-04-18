@@ -223,8 +223,26 @@ export default function QryptShieldPanel({
             // If session is cached (i.e. user clicked "Try again") skip all
             // MetaMask signs - engine is already running and keys are derived.
             stepActive("engine", "Loading privacy engine...");
-            await ensureRailgunEngine(msg => updateStep("engine", { detail: msg }));
-            await loadRailgunProvider(chainId, msg => updateStep("engine", { detail: msg }));
+
+            // Engine init + RPC connection with 3-minute hard timeout.
+            // skipMerkletreeScans=true means NO historical 100k-event scan on startup,
+            // so this should complete in seconds. The timeout is a safety net for
+            // slow RPC connections or WASM load issues.
+            const ENGINE_TIMEOUT_MS = 3 * 60 * 1_000;
+            const engineTimeout = new Promise<"timeout">(res =>
+                setTimeout(() => res("timeout"), ENGINE_TIMEOUT_MS)
+            );
+            const engineInit = (async () => {
+                await ensureRailgunEngine(msg => updateStep("engine", { detail: msg }));
+                await loadRailgunProvider(chainId, msg => updateStep("engine", { detail: msg }));
+                return "done" as const;
+            })();
+            const engineResult = await Promise.race([engineInit, engineTimeout]);
+            if (engineResult === "timeout") {
+                updateStep("engine", {
+                    detail: "Network connection slow - proceeding anyway. Shield may take longer.",
+                });
+            }
 
             if (!sessionRef.current) {
                 // First run - need both MetaMask signs (deterministic, cached after this)
