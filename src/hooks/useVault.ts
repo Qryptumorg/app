@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount, useChainId, useReadContract } from "wagmi";
 import { SHIELD_FACTORY_ADDRESSES, SHIELD_FACTORY_V6_ADDRESSES } from "@/lib/wagmi";
 import { SHIELD_FACTORY_ABI, SHIELD_FACTORY_V6_ABI } from "@/lib/abi";
-import { fetchVault } from "@/lib/api";
+import { fetchVault, registerVault } from "@/lib/api";
 
 export type VaultVersion = "v5" | "v6" | null;
 
@@ -84,6 +85,20 @@ export function useVault() {
         (!!v6FactoryAddress && hasV6Vault === undefined) ||
         (!!v5FactoryAddress && hasV5Vault === undefined)
     );
+
+    // Auto-register vault in backend when wallet is connected but no record exists yet.
+    // vaultRecord === null  → fetchVault resolved with 404 (no backend record)
+    // vaultRecord === undefined → query not yet resolved, skip
+    useEffect(() => {
+        if (!address || !isConnected || vaultRecord !== null) return;
+        registerVault({
+            walletAddress: address,
+            vaultContractAddress: (vaultAddress as string) ?? "",
+            networkId: chainId,
+        }).catch(() => {
+            // silent fail — will be retried on next render cycle
+        });
+    }, [address, isConnected, vaultRecord, vaultAddress, chainId]);
 
     const refetch = () => {
         refetchV6();
