@@ -129,6 +129,19 @@ export default function QryptShieldPanel({
     useEffect(() => {
         onLockChange?.(phase === "running");
     }, [phase, onLockChange]);
+
+    // Warm-up: start the RAILGUN engine and Merkle tree scan immediately on
+    // component mount, before the user clicks anything. The scan processes
+    // 270k+ historical events in WASM (Poseidon hashing each commitment).
+    // Starting it early gives the scan a head-start so by the time the user
+    // signs MetaMask and submits the shield TX, the tree is already partially
+    // or fully synced. Errors are swallowed (warm-up is best-effort).
+    useEffect(() => {
+        if (!RAILGUN_CHAIN_MAP[chainId]) return;
+        ensureRailgunEngine().catch(() => {});
+        loadRailgunProvider(chainId).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chainId]);
     const [doneTxHash, setDoneTxHash] = useState<string>("");
 
     // Pending transfer - server is primary (survives clear history), localStorage is fast local cache

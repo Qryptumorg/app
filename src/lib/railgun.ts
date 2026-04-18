@@ -307,10 +307,10 @@ export async function ensureRailgunEngine(onProgress?: (msg: string) => void): P
             false,          // shouldDebug
             artifactStore,
             false,          // useNativeArtifacts (browser = false)
-            true,           // skipMerkletreeScans: true = engine starts instantly, no 100k-event
-                            // historical scan on startup. New blocks still watched in real-time.
-                            // For fresh shields: balance fires on the new block (seconds).
-                            // For resumed shields: grace period handles POI wait.
+            false,          // skipMerkletreeScans: false = full UTXO+TXID Merkle tree sync.
+                            // loadProvider() returns immediately; scan runs in background.
+                            // Required for: finding historical UTXOs, building ZK unshield proofs,
+                            // and detecting committed-but-not-spendable UTXOs via balance callbacks.
             poiNodeURLs,
         );
 
