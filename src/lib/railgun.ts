@@ -461,6 +461,7 @@ export async function getOrCreateRailgunWallet(
     encryptionKey: string,
     chainId?: number,
     onProgress?: (msg: string) => void,
+    startBlock?: number,
 ): Promise<string> {
     const key = `${WALLET_ID_KEY}_${walletAddress.toLowerCase()}`;
     const rawKey = encryptionKey.startsWith("0x") ? encryptionKey.slice(2) : encryptionKey;
@@ -494,26 +495,42 @@ export async function getOrCreateRailgunWallet(
     let creationBlockNumbers: Record<string, number> | null = null;
     const networkName = chainId ? RAILGUN_CHAIN_MAP[chainId] : undefined;
     if (networkName) {
-        // RAILGUN V2 (TXIDVersion.V2_PoseidonMerkle) deployed at specific blocks per network.
-        // Scanning from the V2 deploy block covers ALL possible RAILGUN V2 deposits:
-        //   Mainnet  ~17,200,000 (May 2023)  — avoids missing deposits older than 7 days
-        //   Sepolia  ~3,000,000  (Mar 2023)  — Sepolia V2 was early, use conservative block
-        //   Others: null → full scan from genesis (safe fallback)
-        // Using currentBlock - 50k (7 days) caused spendable=0 for old deposits because
-        // the UTXO is in a block before the scan window so the engine never found it.
-        const RAILGUN_V2_DEPLOY_BLOCK: Partial<Record<string, number>> = {
-            [NetworkName.Ethereum]:      17_200_000,
-            [NetworkName.EthereumSepolia]: 3_000_000,
-            [NetworkName.Polygon]:       44_000_000,
-            [NetworkName.BNBChain]:      28_000_000,
-            [NetworkName.Arbitrum]:      100_000_000,
-        };
-        const startBlock = RAILGUN_V2_DEPLOY_BLOCK[networkName];
         if (startBlock !== undefined) {
+            // Caller resolved the exact TX block of the user's deposit — start scan right there.
+            // This is the most precise option: no wasted scan before the deposit, no missed UTXOs.
             creationBlockNumbers = { [networkName]: startBlock };
-            console.log('[QryptShield] New wallet creationBlock (RAILGUN V2 deploy):', creationBlockNumbers);
+            console.log('[QryptShield] New wallet creationBlock (from deposit TX):', creationBlockNumbers);
+        } else {
+            // No deposit TX known yet — scan from current block.
+            // Any shield done in this session will be at a future block, so no history needed.
+            // If user later presses Reset scan with an existing deposit, the panel must supply startBlock.
+            // RAILGUN V2 deploy blocks are the absolute safety floor (never scan below these):
+            //   Mainnet ~17,200,000 (May 2023), Sepolia ~3,000,000, Polygon ~44M, BSC ~28M, Arb ~100M
+            const RAILGUN_V2_FLOOR: Partial<Record<string, number>> = {
+                [NetworkName.Ethereum]:        17_200_000,
+                [NetworkName.EthereumSepolia]:  3_000_000,
+                [NetworkName.Polygon]:         44_000_000,
+                [NetworkName.BNBChain]:        28_000_000,
+                [NetworkName.Arbitrum]:       100_000_000,
+            };
+            try {
+                const { JsonRpcProvider } = await import("ethers");
+                const rpcUrl = FALLBACK_RPC[chainId!];
+                const provider = rpcUrl ? new JsonRpcProvider(rpcUrl) : null;
+                const currentBlock = provider ? await provider.getBlockNumber() : null;
+                const floor = RAILGUN_V2_FLOOR[networkName] ?? 0;
+                const block = currentBlock !== null ? Math.max(floor, currentBlock) : floor;
+                creationBlockNumbers = { [networkName]: block };
+                console.log('[QryptShield] New wallet creationBlock (current block):', creationBlockNumbers);
+            } catch {
+                const floor = RAILGUN_V2_FLOOR[networkName];
+                if (floor !== undefined) {
+                    creationBlockNumbers = { [networkName]: floor };
+                    console.warn('[QryptShield] Could not get currentBlock, using V2 floor:', creationBlockNumbers);
+                }
+                // else null → full genesis scan
+            }
         }
-        // If not in map → null → full genesis scan (safe, just slower)
     }
 
     const info = await createRailgunWallet(rawKey, mnemonic, creationBlockNumbers);
