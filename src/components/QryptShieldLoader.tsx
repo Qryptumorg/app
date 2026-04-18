@@ -300,6 +300,28 @@ export default function QryptShieldLoader({ chainId, onReady, onCancel }: QryptS
                     >
                         Clear ZK cache
                     </button>
+                    <span style={{ color: "rgba(255,255,255,0.1)", fontSize: 11 }}>·</span>
+                    <button
+                        onClick={async () => {
+                            // Delete qryptum-engine IndexedDB (stale UTXO scan state)
+                            await new Promise<void>((resolve) => {
+                                const req = indexedDB.deleteDatabase("qryptum-engine");
+                                req.onsuccess = () => resolve();
+                                req.onerror = () => resolve();
+                                req.onblocked = () => resolve();
+                            });
+                            // Clear wallet ID from localStorage so wallet is re-created
+                            // with the new 50k-block scan window
+                            Object.keys(localStorage)
+                                .filter(k => k.startsWith("qryptum_rg_wallet_id"))
+                                .forEach(k => localStorage.removeItem(k));
+                            window.location.reload();
+                        }}
+                        style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", fontSize: 11, cursor: "pointer", padding: 0 }}
+                        title="Stuck for 30+ min? Delete stale scan state and rescan from 7-day window"
+                    >
+                        Reset scan
+                    </button>
                 </div>
             )}
         </div>
