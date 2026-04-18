@@ -262,11 +262,31 @@ export default function QryptShieldPanel({
                     message: "Qryptum: authorize privacy wallet",
                 });
                 const encryptionKey = deriveEncryptionKey(encKeySignature);
+                // Resolve deposit TX block so the RAILGUN wallet scans from exactly that
+                // block forward — fastest possible scan, no wasted history.
+                let depositStartBlock: number | undefined;
+                const atomicHashForBlock = serverPending?.atomicHash
+                    ?? (pendingTransfer?.atomicHash as string | undefined);
+                if (atomicHashForBlock && publicClient) {
+                    try {
+                        const receipt = await publicClient.getTransactionReceipt({
+                            hash: atomicHashForBlock as `0x${string}`,
+                        });
+                        if (receipt?.blockNumber) {
+                            depositStartBlock = Number(receipt.blockNumber);
+                            console.log('[QryptShield] Deposit TX block resolved:', depositStartBlock);
+                        }
+                    } catch {
+                        // Non-critical: if lookup fails, getOrCreateRailgunWallet uses current block
+                    }
+                }
+
                 const railgunWalletID = await getOrCreateRailgunWallet(
                     walletAddress,
                     encryptionKey,
                     chainId,
                     msg => updateStep("engine", { detail: msg }),
+                    depositStartBlock,
                 );
                 const railgunAddress = getRailgunWalletAddress(railgunWalletID);
 
