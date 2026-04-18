@@ -59,7 +59,7 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
         providers: [
             // dRPC paid (via Railway proxy) injected at priority 1 in loadRailgunProvider.
             // Static fallbacks start at priority 2.
-            { provider: "https://ethereum-rpc.publicnode.com", priority: 2, weight: 4 },
+            { provider: "https://rpc.mevblocker.io",           priority: 2, weight: 4 },
             // dRPC public endpoint — no auth, higher rate limits, CORS OK
             { provider: "https://eth.drpc.org",                priority: 3, weight: 3 },
             { provider: "https://cloudflare-eth.com",          priority: 4, weight: 2 },
