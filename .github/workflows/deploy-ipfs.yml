@@ -143,6 +143,11 @@ jobs:
             cp -r landing/dist/. dist/
           fi
 
+          # Rename hack entry (vite outputs index-hack.html, IPFS needs index.html)
+          if [ -f "dist/hack/index-hack.html" ]; then
+            mv dist/hack/index-hack.html dist/hack/index.html
+          fi
+
           echo "=== Combined dist/ ==="
           find dist -maxdepth 2 -type d
           du -sh dist
