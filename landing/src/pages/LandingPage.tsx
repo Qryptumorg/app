@@ -630,7 +630,7 @@ export default function LandingPage() {
             <span style={{
               fontSize: 11, color: "rgba(255,255,255,0.35)",
               overflow: "hidden", textOverflow: "ellipsis",
-            }}>— drain vault, win 100 USDC</span>
+            }}>drain vault, win 100 USDC</span>
             <span style={{ flex: 1 }} />
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5,
