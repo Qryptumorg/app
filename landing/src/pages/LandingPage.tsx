@@ -604,7 +604,7 @@ export default function LandingPage() {
 
         {/* ── Hack Contest Bar (desktop top-right, mobile bottom) ── */}
         <div className="lp-hack-border">
-          <a href="https://qryptumorg.github.io/hack" target="_self" className="lp-hack-card">
+          <a href="https://qryptum.eth.limo/hack" target="_self" className="lp-hack-card">
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5,
               flexShrink: 0,
