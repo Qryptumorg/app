@@ -325,6 +325,32 @@ export default function LandingPage() {
           59% { opacity: 0.05; transform: translateY(40px); }
           61% { opacity: 0; }
         }
+        @property --hack-angle {
+          syntax: '<angle>';
+          inherits: false;
+          initial-value: 0deg;
+        }
+        @keyframes hack-spin {
+          to { --hack-angle: 360deg; }
+        }
+        .lp-hack-border {
+          position: absolute;
+          top: 44px;
+          left: 20px;
+          right: 20px;
+          z-index: 10;
+          padding: 1.5px;
+          background: conic-gradient(from var(--hack-angle), rgba(160,210,255,0.04), rgba(200,230,255,0.75) 8%, rgba(160,210,255,0.04) 16%);
+          animation: hack-spin 3s linear infinite;
+        }
+        .lp-hack-card {
+          display: block;
+          text-decoration: none;
+          background: rgba(4, 8, 18, 0.88);
+          padding: 20px 24px 18px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
         * { box-sizing: border-box; }
         html, body, #root { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 
@@ -559,6 +585,95 @@ export default function LandingPage() {
             <ScatteredIcons />
             <div className="lp-lock-wrap">
               <div className="lp-lock-label">One-Time Proof Security</div>
+            </div>
+
+            {/* ── Hack Contest Card ── */}
+            <div className="lp-hack-border">
+              <a href="https://qryptumorg.github.io/hack" target="_self" className="lp-hack-card">
+                <div style={{
+                  fontSize: 9, fontWeight: 700,
+                  color: "rgba(180,210,255,0.5)",
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  fontFamily: "'Courier New', monospace",
+                  marginBottom: 12,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  <span style={{
+                    display: "inline-block", width: 5, height: 5,
+                    background: "#22C55E",
+                    borderRadius: "50%",
+                    boxShadow: "0 0 6px #22C55E",
+                    flexShrink: 0,
+                  }} />
+                  Live Contest
+                </div>
+                <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: 16, fontWeight: 700, color: "#fff",
+                      letterSpacing: "0.01em", marginBottom: 10,
+                    }}>
+                      Hack Contest
+                    </div>
+                    <p style={{
+                      fontSize: 12, color: "rgba(255,255,255,0.4)",
+                      lineHeight: 1.65, margin: "0 0 16px",
+                    }}>
+                      Drain the live vault using the correct 6-char proof. First to solve wins 2 USDC from a deployed on-chain contract.
+                    </p>
+                    <div style={{
+                      display: "inline-flex", alignItems: "center", gap: 8,
+                      fontSize: 11, fontWeight: 700,
+                      color: "rgba(180,215,255,0.82)",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      fontFamily: "'Courier New', monospace",
+                    }}>
+                      Enter Contest <span style={{ fontSize: 14 }}>&#8594;</span>
+                    </div>
+                  </div>
+                  <div style={{
+                    flexShrink: 0,
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center",
+                    gap: 6,
+                    paddingTop: 2,
+                  }}>
+                    <svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <style>{`
+                        @keyframes shackle-open {
+                          0%, 60%, 100% { transform: translateY(0); }
+                          30% { transform: translateY(-5px); }
+                        }
+                        @keyframes lock-glow {
+                          0%, 100% { filter: drop-shadow(0 0 2px rgba(180,220,255,0.3)); }
+                          50% { filter: drop-shadow(0 0 6px rgba(180,220,255,0.7)); }
+                        }
+                        .lock-shackle { animation: shackle-open 2.8s ease-in-out infinite; transform-origin: bottom center; }
+                        .lock-body { animation: lock-glow 2.8s ease-in-out infinite; }
+                      `}</style>
+                      <g className="lock-shackle">
+                        <path d="M9 18V11C9 7.134 12.134 4 16 4C19.866 4 23 7.134 23 11V18" stroke="rgba(180,215,255,0.6)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                      </g>
+                      <g className="lock-body">
+                        <rect x="5" y="17" width="22" height="16" rx="2" fill="rgba(20,40,80,0.85)" stroke="rgba(180,215,255,0.5)" strokeWidth="1.5"/>
+                        <circle cx="16" cy="25" r="2.5" fill="rgba(180,215,255,0.5)"/>
+                        <line x1="16" y1="27.5" x2="16" y2="30" stroke="rgba(180,215,255,0.4)" strokeWidth="1.5" strokeLinecap="round"/>
+                      </g>
+                    </svg>
+                    <div style={{
+                      fontSize: 8, fontWeight: 700,
+                      color: "rgba(180,210,255,0.4)",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      fontFamily: "'Courier New', monospace",
+                    }}>
+                      100 USDC
+                    </div>
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
         </div>
