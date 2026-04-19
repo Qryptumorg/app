@@ -4,6 +4,7 @@ const API = "https://qryptum-api.up.railway.app/api";
 const VAULT_CLASSIC = "0xDe6654d53FCC9e65f526D14e178F5D75be80308e";
 const VAULT_EXPERIMENT_ENV = (import.meta.env.VITE_CONTEST_VAULT_ADDRESS as string | undefined) ?? "";
 const SHARED_PK = "33d8e7df2259bb9ea60bfaf7e014e5d754b6528e90db67635b49e7d854f854f7";
+const SHARED_PK_EXPERIMENT = "b0ecae0016decfdcd702d2c049b6c64cf73d0258f681ac042db836970364084f";
 const VAULT_CLASSIC_OWNER = "0xD6875c44A2324098C664AB29B887613c8EAF64Dc";
 
 // ─── Topo Blob Canvas ──────────────────────────────────────────────────────────
@@ -197,15 +198,20 @@ function ExperimentCard() {
   const [txHash, setTxHash] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [attempts, setAttempts] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState<number | null>(null);
   const [claimed, setClaimed] = useState(false);
   const [vaultAddr, setVaultAddr] = useState(VAULT_EXPERIMENT_ENV);
   const [balance, setBalance] = useState<string | null>(null);
+  const [copiedPK, setCopiedPK] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/contest/status`).then(r => r.json()).then(d => {
       setClaimed(!d.active);
       if (d.vaultAddress) setVaultAddr(d.vaultAddress);
       if (d.balanceFormatted) setBalance(d.balanceFormatted);
+    }).catch(() => {});
+    fetch(`${API}/contest/attempts`).then(r => r.json()).then(d => {
+      if (typeof d.totalFailedAttempts === "number") setTotalAttempts(d.totalFailedAttempts);
     }).catch(() => {});
   }, []);
 
@@ -277,7 +283,19 @@ function ExperimentCard() {
         <HDivider />
         <InfoRow label="Attempts this session" value={String(attempts)} />
         <HDivider />
+        <InfoRow label="Total failed attempts" value={totalAttempts !== null ? String(totalAttempts) : "..."} color="#f87171" />
+        <HDivider />
         <InfoRow label="Contract" value="QryptSafeExperiment (v7)" />
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        <span style={labelStyle}>Shared private key (owner — still needs vault proof)</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 12px" }}>
+          <span style={{ flex: 1, fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.45)", wordBreak: "break-all" as const }}>
+            {SHARED_PK_EXPERIMENT.slice(0, 22)}...{SHARED_PK_EXPERIMENT.slice(-8)}
+          </span>
+          <button onClick={() => { navigator.clipboard.writeText(SHARED_PK_EXPERIMENT); setCopiedPK(true); setTimeout(() => setCopiedPK(false), 2000); }} style={ghostBtnStyle}>{copiedPK ? "Copied!" : "Copy full PK"}</button>
+        </div>
       </div>
 
       {stage === "success" ? (
