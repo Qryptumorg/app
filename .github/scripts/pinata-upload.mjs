@@ -45,20 +45,27 @@ const jwt = process.env.PINATA_JWT;
 const sha = (process.env.COMMIT_SHA || 'unknown').slice(0, 7);
 const folder = 'qryptum-hub-' + sha;
 
-// --- 1. Delete old pins ---
-console.log('Fetching existing pins to clean up...');
-const listRes = await fetch('https://api.pinata.cloud/pinning/pinList?status=pinned&pageLimit=1000', {
-  headers: { Authorization: 'Bearer ' + jwt },
-});
-const listData = await listRes.json();
-const oldPins = (listData.rows || []).filter(p => p.metadata?.name?.startsWith('qryptum-hub-'));
-console.log('Old pins to delete:', oldPins.length);
-for (const pin of oldPins) {
+// --- 1. Delete ALL old pins to stay under account limit ---
+console.log('Fetching all existing pins to clean up...');
+let offset = 0;
+let allPins = [];
+while (true) {
+  const listRes = await fetch('https://api.pinata.cloud/pinning/pinList?status=pinned&pageLimit=1000&pageOffset=' + offset, {
+    headers: { Authorization: 'Bearer ' + jwt },
+  });
+  const listData = await listRes.json();
+  const rows = listData.rows || [];
+  allPins = allPins.concat(rows);
+  if (rows.length < 1000) break;
+  offset += 1000;
+}
+console.log('Total pins to delete:', allPins.length);
+for (const pin of allPins) {
   const delRes = await fetch('https://api.pinata.cloud/pinning/unpin/' + pin.ipfs_pin_hash, {
     method: 'DELETE',
     headers: { Authorization: 'Bearer ' + jwt },
   });
-  console.log('Deleted', pin.ipfs_pin_hash, '->', delRes.status);
+  console.log('Deleted', pin.ipfs_pin_hash, pin.metadata?.name || '', '->', delRes.status);
 }
 
 // --- 2. Upload ---
