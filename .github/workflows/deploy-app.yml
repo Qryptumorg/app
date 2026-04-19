@@ -67,25 +67,12 @@ jobs:
         run: pnpm run build
 
       # ── 3. BUILD HACK (minimal standalone, no WalletConnect) ─────────
-      - name: Verify hack source
-        run: |
-          echo "=== HackContestPage.tsx first 10 lines ==="
-          head -10 src/pages/HackContestPage.tsx
-          echo "=== Contains b0ecae ==="
-          grep -c "b0ecae" src/pages/HackContestPage.tsx || echo "NOT FOUND"
-
       - name: Build Hack (base /hack/)
         env:
           NODE_ENV: production
           BASE_PATH: /hack/
         run: pnpm run build:hack
 
-      - name: Verify hack output
-        run: |
-          echo "=== dist/hack contents ==="
-          ls -la dist/hack/assets/ 2>/dev/null || echo "NO dist/hack/assets/"
-          echo "=== b0ecae in bundle ==="
-          grep -rl "b0ecae" dist/hack/ || echo "NOT IN ANY FILE"
 
       # ── 4. ASSEMBLE PAGES ────────────────────────────────────────────
       # _pages/            = landing  -> /app/
