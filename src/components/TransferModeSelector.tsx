@@ -15,6 +15,7 @@ const MODES = [
         icon: <ShieldIcon size={18} color="#22C55E" />,
         description: "Init-finalize vault proof. Private, on-chain, gas required for both steps.",
         badge: null,
+        networkBadge: null,
         disabled: false,
         requiresVault: true,
     },
@@ -27,6 +28,7 @@ const MODES = [
         icon: <SendIcon size={18} color="#F59E0B" />,
         description: "Sign an offline voucher + QR code. Sender pays zero gas.",
         badge: "Beta",
+        networkBadge: null,
         disabled: false,
         requiresVault: false,
     },
@@ -39,6 +41,7 @@ const MODES = [
         icon: <EyeOffIcon size={18} color="#8B5CF6" />,
         description: "Railgun ZK privacy pool. Full on-chain anonymity, ZK proof generated locally.",
         badge: "Beta",
+        networkBadge: "Sepolia only",
         disabled: false,
         requiresVault: false,
     },
@@ -81,7 +84,7 @@ export default function TransferModeSelector({ hasVault, onSelect }: TransferMod
                         </div>
 
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: mode.color, whiteSpace: "nowrap" }}>
                                     {mode.label}
                                 </span>
@@ -93,6 +96,17 @@ export default function TransferModeSelector({ hasVault, onSelect }: TransferMod
                                         flexShrink: 0,
                                     }}>
                                         {mode.badge}
+                                    </span>
+                                )}
+                                {mode.networkBadge && (
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 700, color: "#F59E0B",
+                                        background: "rgba(245,158,11,0.1)",
+                                        border: "1px solid rgba(245,158,11,0.35)",
+                                        borderRadius: 20, padding: "1px 7px", letterSpacing: "0.05em",
+                                        flexShrink: 0,
+                                    }}>
+                                        {mode.networkBadge}
                                     </span>
                                 )}
                             </div>
