@@ -57,14 +57,8 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     1: {
         chainId: 1,
         providers: [
-            // dRPC paid (via Railway proxy) injected at priority 1 in loadRailgunProvider.
-            // Static fallbacks start at priority 2.
-            { provider: "https://ethereum-rpc.publicnode.com", priority: 2, weight: 4 },
-            { provider: "https://eth.llamarpc.com",            priority: 3, weight: 2 },
-            { provider: "https://1rpc.io/eth",                 priority: 4, weight: 1 },
-            // Infura ~890ms from most regions — last-resort fallback
-            { provider: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c", priority: 5, weight: 1 },
-            { provider: "https://rpc.ankr.com/eth",            priority: 6, weight: 1 },
+            // dRPC (via Railway /api/rpc/drpc proxy) injected at priority 1 in loadRailgunProvider.
+            // No static public fallbacks - all mainnet traffic goes through dRPC.
         ],
     },
     137: {
@@ -91,23 +85,20 @@ const NETWORK_PROVIDERS: Partial<Record<number, FallbackProviderJsonConfig>> = {
     11155111: {
         chainId: 11155111,
         providers: [
-            // Public fallbacks — proxy (injected at priority 1 in loadRailgunProvider) takes precedence.
+            // dRPC Sepolia (via Railway /api/rpc/11155111 proxy) injected at priority 1 in loadRailgunProvider.
+            // No static public fallbacks - all sepolia traffic goes through dRPC.
             // maxLogsPerBatch: 1 per Railgun docs recommendation for stability.
-            { provider: "https://ethereum-sepolia-rpc.publicnode.com", priority: 2, weight: 2, maxLogsPerBatch: 1 },
-            { provider: "https://rpc.sepolia.org",                     priority: 3, weight: 1, maxLogsPerBatch: 1 },
-            { provider: "https://rpc2.sepolia.org",                    priority: 4, weight: 1, maxLogsPerBatch: 1 },
-            { provider: "https://sepolia.drpc.org",                    priority: 5, weight: 1, maxLogsPerBatch: 1 },
         ],
     },
 };
 
-// Fallback single-URL for any network not in NETWORK_PROVIDERS
+// Fallback single-URL for chains without a dedicated Railway proxy route.
+// Mainnet (1) and Sepolia (11155111) are intentionally omitted - they use
+// getDrpcProxyUrl() / getSepoliaRpcProxyUrl() so keys stay server-side.
 const FALLBACK_RPC: Partial<Record<number, string>> = {
-    1: "https://mainnet.infura.io/v3/2002e3032d0d4a62b933ed350e51de7c",
     137: "https://polygon.llamarpc.com",
     56: "https://binance.llamarpc.com",
     42161: "https://arbitrum.llamarpc.com",
-    11155111: "https://ethereum-sepolia-rpc.publicnode.com",
 };
 
 export const PUBLIC_RPC = FALLBACK_RPC;
@@ -147,7 +138,7 @@ function getDrpcProxyUrl(): string {
     return `${getApiBase()}/rpc/drpc`;
 }
 
-/** POST /api/rpc/11155111 - server-side proxy to SEPOLIA_RPC_URL (Alchemy). */
+/** POST /api/rpc/11155111 - server-side proxy to DRPC_SEPOLIA_URL. */
 function getSepoliaRpcProxyUrl(): string {
     return `${getApiBase()}/rpc/11155111`;
 }
@@ -506,7 +497,11 @@ export async function getOrCreateRailgunWallet(
     // With persistent DB this only runs once - subsequent loads use loadWalletByID.
     let creationBlockNumbers: Record<string, number> | null = null;
     const networkName = chainId ? RAILGUN_CHAIN_MAP[chainId] : undefined;
-    const rpcUrl = chainId ? FALLBACK_RPC[chainId] : undefined;
+    // Use dRPC proxy for mainnet/sepolia; public fallback only for other chains.
+    const rpcUrl = chainId === 1            ? getDrpcProxyUrl()
+                 : chainId === 11155111     ? getSepoliaRpcProxyUrl()
+                 : chainId                  ? FALLBACK_RPC[chainId]
+                 : undefined;
     if (networkName && rpcUrl) {
         try {
             const { JsonRpcProvider } = await import("ethers");
