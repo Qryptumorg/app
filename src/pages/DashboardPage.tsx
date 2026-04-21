@@ -8,7 +8,7 @@ import {
     ShieldIcon, SendIcon, SettingsIcon,
     WalletIcon, LogOutIcon, CopyIcon, CheckIcon, LockIcon,
     AlertTriangleIcon, UserIcon, XIcon, PlusIcon, ExternalLinkIcon, ArrowDownIcon,
-    WifiOffIcon, ScanLineIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Loader2Icon,
+    WifiOffIcon, ScanLineIcon, RefreshCwIcon, EyeIcon, EyeOffIcon, Loader2Icon, MinusIcon,
 } from "lucide-react";
 import { getTxEtherscanUrl, getAddressEtherscanUrl } from "@/lib/utils";
 import { useVault } from "@/hooks/useVault";
@@ -465,7 +465,24 @@ export default function DashboardPage() {
 
     return (
         <div style={{ minHeight: "100vh", background: "#000", fontFamily: "'Inter', sans-serif", display: "flex", flexDirection: "column" }}>
-            {!SUPPORTED_CHAIN_IDS.includes(chainId) && isConnected && (
+            {/* Floating pill: visible when a QryptShield transfer is running and the modal is minimized */}
+            {qryptShieldLocked && activeModal !== "qryptshield" && (
+                <button
+                    onClick={() => setActiveModal("qryptshield")}
+                    style={{
+                        position: "fixed", bottom: isMobile ? 82 : 24, right: 20, zIndex: 60,
+                        display: "flex", alignItems: "center", gap: 8,
+                        background: "rgba(10,8,20,0.95)", border: "1px solid rgba(139,92,246,0.5)",
+                        borderRadius: 24, padding: "9px 16px",
+                        cursor: "pointer", boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.15)",
+                    }}
+                >
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#8B5CF6", flexShrink: 0, animation: "pulse 1.4s ease-in-out infinite" }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#c4b5fd" }}>Transfer in progress</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>tap to open</span>
+                </button>
+            )}
+                        {!SUPPORTED_CHAIN_IDS.includes(chainId) && isConnected && (
                 <div style={{
                     background: "rgba(248,113,113,0.08)", borderBottom: "1px solid rgba(248,113,113,0.25)",
                     padding: "10px 20px", display: "flex", alignItems: "center", gap: 8,
@@ -686,7 +703,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
     return (
         <>
             <div
-                onClick={isLocked ? undefined : p.closeModal}
+                onClick={isLocked ? () => p.setActiveModal(null) : p.closeModal}
                 style={{
                     position: "fixed", inset: 0, zIndex: 40,
                     background: "rgba(0,0,0,0.72)",
@@ -732,17 +749,21 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                         )}
                     </div>
                     {isLocked ? (
-                        <div
-                            title="Cannot close while transfer is in progress"
+                        <button
+                            onClick={() => p.setActiveModal(null)}
+                            title="Minimize. Transfer continues in background."
                             style={{
                                 background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)",
                                 borderRadius: 8, width: 32, height: 32,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                cursor: "not-allowed", color: "rgba(139,92,246,0.5)",
+                                cursor: "pointer", color: "rgba(139,92,246,0.7)",
+                                transition: "background 0.15s, color 0.15s",
                             }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.18)"; e.currentTarget.style.color = "#c4b5fd"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(139,92,246,0.08)"; e.currentTarget.style.color = "rgba(139,92,246,0.7)"; }}
                         >
-                            <LockIcon size={13} />
-                        </div>
+                            <MinusIcon size={14} />
+                        </button>
                     ) : (
                         <button
                             onClick={p.closeModal}
@@ -1113,12 +1134,17 @@ function MobileLayout(p: SharedProps) {
             </header>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 90px" }}>
-                {mobileNavTab === "profile"
-                    ? <MobileProfileTab p={p} />
-                    : mobileNavTab === "shield"
-                        ? <QryptShieldTabMobile p={p} />
-                        : <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
-                }
+                {/* QryptShieldTabMobile stays mounted when qryptShieldLocked so
+                     the in-progress transfer is not interrupted when user navigates away. */}
+                {(mobileNavTab === "shield" || p.qryptShieldLocked) && (
+                    <div style={{ display: mobileNavTab === "shield" ? "block" : "none" }}>
+                        <QryptShieldTabMobile p={p} />
+                    </div>
+                )}
+                {mobileNavTab === "profile" && <MobileProfileTab p={p} />}
+                {mobileNavTab !== "profile" && mobileNavTab !== "shield" && (
+                    <MobileQryptSafe p={p} mobileTab={mobileNavTab === "air" ? "air" : "safes"} />
+                )}
             </div>
 
             {p.isConnected && (
