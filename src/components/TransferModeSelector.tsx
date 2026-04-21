@@ -41,7 +41,7 @@ const MODES = [
         icon: <EyeOffIcon size={18} color="#8B5CF6" />,
         description: "Railgun ZK privacy pool. Full on-chain anonymity, ZK proof generated locally.",
         badge: "Beta",
-        networkBadge: "Sepolia only",
+        networkBadge: null,
         disabled: false,
         requiresVault: false,
     },
