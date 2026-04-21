@@ -581,7 +581,7 @@ export default function QryptShieldPanel({
                                     Your deposit is confirmed in the Railgun pool. It is waiting for the <strong style={{ color: "rgba(255,255,255,0.7)" }}>Proof of Innocence (POI)</strong> aggregator to validate it before it becomes spendable.
                                 </p>
                                 <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                                    On mainnet this takes <strong style={{ color: "rgba(255,255,255,0.6)" }}>30-60 minutes</strong> after deposit confirmation (indexer lag + aggregator batch cycle). Your tokens are safe. Come back in 30-60 minutes and tap <strong style={{ color: "rgba(255,255,255,0.7)" }}>Resume Transfer</strong>.
+                                    On mainnet this normally takes <strong style={{ color: "rgba(255,255,255,0.6)" }}>30-60 minutes</strong> after deposit confirmation (Subsquid indexer lag + POI aggregator batch cycle). Your tokens are safe. <strong style={{ color: "rgba(255,255,255,0.7)" }}>This panel is checking automatically every 2 minutes</strong> and will proceed to proof generation and delivery on its own the moment POI clears. You can minimize and leave.
                                 </p>
                             </>
                         ) : (
@@ -597,7 +597,7 @@ export default function QryptShieldPanel({
                                     <strong style={{ color: "rgba(255,255,255,0.6)" }}>First-time setup</strong> hashes 375k+ historical commitments in your browser (~1-3 hours total). The index is saved to your browser storage so every return visit resumes from where it stopped. <strong style={{ color: "rgba(255,255,255,0.6)" }}>Second visit onwards is instant.</strong>
                                 </p>
                                 <p style={{ margin: "0 0 12px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                                    Close this panel and come back later -- tap <strong style={{ color: "rgba(255,255,255,0.7)" }}>Resume Transfer</strong> on the form to continue from where you left off.
+                                    You can minimize this panel. The process continues in background and will auto-complete once the index is ready. No action needed.
                                 </p>
                             </>
                         )}
@@ -606,13 +606,15 @@ export default function QryptShieldPanel({
                                 if (onMinimize) {
                                     onMinimize();
                                 } else {
+                                    // Just hide the banner - do NOT reset phase to "form".
+                                    // The background flow (await balanceWait) is still running
+                                    // and will auto-proceed to steps 4 and 5 when POI validates.
                                     setSyncTimedOut(false);
-                                    setPhase("form");
                                 }
                             }}
                             style={{ fontSize: 12, fontWeight: 700, color: "#a78bfa", background: "none", border: "1px solid rgba(139,92,246,0.4)", borderRadius: 8, cursor: "pointer", padding: "6px 16px" }}
                         >
-                            OK, I will check back later
+                            Got it, run in background
                         </button>
                     </div>
                 )}
