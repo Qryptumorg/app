@@ -1,6 +1,7 @@
 import { keccak256, toBytes, encodePacked, toHex } from "viem";
 import type { PublicClient } from "viem";
 import { generateH0Api } from "@/lib/api";
+import { dbSetChainPos, dbGetChainPos, dbDelChainPos } from "@/lib/localDb";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -138,10 +139,12 @@ export function getChainPosition(vaultAddress: string): number | null {
 
 export function setChainPosition(vaultAddress: string, position: number): void {
     localStorage.setItem(posKey(vaultAddress), String(position));
+    dbSetChainPos(posKey(vaultAddress), position).catch(() => {});
 }
 
 export function clearChainState(vaultAddress: string): void {
     localStorage.removeItem(posKey(vaultAddress));
+    dbDelChainPos(posKey(vaultAddress)).catch(() => {});
 }
 
 /**
@@ -226,6 +229,12 @@ export async function peekNextProof(
                 );
             }
         }
+    }
+
+    // Restore position from IndexedDB if localStorage was cleared.
+    if (getChainPosition(walletAddress) === null) {
+        const dbPos = await dbGetChainPos(posKey(walletAddress));
+        if (dbPos !== null) localStorage.setItem(posKey(walletAddress), String(dbPos));
     }
 
     const pos = getChainPosition(walletAddress);
