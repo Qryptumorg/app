@@ -4,8 +4,6 @@ import { injected } from "wagmi/connectors";
 import { createAppKit } from "@reown/appkit";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 
-// Mirror getApiBase() from railgun.ts - strip any trailing /api first, then re-add.
-// Prevents double /api/api path when VITE_API_BASE already contains /api.
 function getApiBase(): string {
     const rawBase = (import.meta.env.VITE_API_BASE as string | undefined)
         ?.replace(/\/api\/?$/, "")
@@ -18,8 +16,6 @@ function getApiBase(): string {
     return "https://qryptum-api.up.railway.app/api";
 }
 
-// Route through Railway dRPC proxy - no public RPC fallbacks.
-// Mainnet (1) uses /api/rpc/drpc (DRPC_API_KEY). Sepolia uses /api/rpc/11155111 (DRPC_SEPOLIA_URL).
 function rpcUrl(chainId: number): string {
     if (chainId === 1) return `${getApiBase()}/rpc/drpc`;
     return `${getApiBase()}/rpc/${chainId}`;
@@ -38,7 +34,41 @@ export let wagmiConfig: ReturnType<typeof createConfig> = _defaultConfig;
 export let hasAppKit = false;
 export let appKitModal: any = null;
 
+let _initialized = false;
+
+function dedupeReownPreloads(): void {
+    if (typeof document === "undefined") return;
+    const seen = new Set<string>();
+    document.querySelectorAll<HTMLLinkElement>("link[rel='preload'][as='font']").forEach(el => {
+        const key = el.href;
+        if (seen.has(key)) {
+            el.parentNode?.removeChild(el);
+        } else {
+            seen.add(key);
+        }
+    });
+    new MutationObserver(mutations => {
+        mutations.forEach(m => {
+            m.addedNodes.forEach(node => {
+                if (
+                    node instanceof HTMLLinkElement &&
+                    node.rel === "preload" &&
+                    node.as === "font"
+                ) {
+                    if (seen.has(node.href)) {
+                        node.parentNode?.removeChild(node);
+                    } else {
+                        seen.add(node.href);
+                    }
+                }
+            });
+        });
+    }).observe(document.head, { childList: true });
+}
+
 export async function initAppKit(projectId: string): Promise<void> {
+    if (_initialized) return;
+    _initialized = true;
     try {
         const networks = [sepolia, mainnet] as [any, any];
         const adapter = new WagmiAdapter({
@@ -64,8 +94,10 @@ export async function initAppKit(projectId: string): Promise<void> {
         wagmiConfig = adapter.wagmiConfig;
         appKitModal = modal;
         hasAppKit = true;
+        dedupeReownPreloads();
     } catch (e) {
         console.warn("[AppKit] init failed, falling back to injected only:", e);
+        _initialized = false;
     }
 }
 
