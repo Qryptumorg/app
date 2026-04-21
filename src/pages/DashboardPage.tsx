@@ -860,6 +860,7 @@ function Modal({ id, p }: { id: ModalId; p: SharedProps }) {
                             onComplete={() => { p.refetchData(); p.refetchBalances(); }}
                             onCancel={p.closeModal}
                             onLockChange={p.setQryptShieldLocked}
+                            onMinimize={() => p.setActiveModal(null)}
                         />
                     )}
                     {id === "qryptshield" && (!p.vaultAddress || !p.address) && (
