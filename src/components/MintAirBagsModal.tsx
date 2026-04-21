@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { parseUnits, formatUnits } from "viem";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
 import { EyeIcon, EyeOffIcon, Loader2Icon, ArrowUpIcon, RefreshCwIcon, CheckCircle2Icon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { peekNextProof, consumeProofAtPosition } from "@/lib/password";
@@ -36,6 +36,7 @@ const inputStyle: React.CSSProperties = {
 export default function MintAirBagsModal({ token, airBudget, shieldedBalance, walletAddress, vaultAddress, chainId, onClose, onMintSuccess }: Props) {
     const { toast } = useToast();
     const { pushTx } = useTxStatus();
+    const publicClient = usePublicClient({ chainId });
     const [subMode, setSubMode] = useState<"fund" | "reclaim">("fund");
     const [fundAmount, setFundAmount] = useState("");
     const [vaultProof, setVaultProof] = useState("");
@@ -93,7 +94,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
         }
         if (!vaultProof) { toast({ title: "Enter your vault proof", variant: "destructive" }); return; }
         let peeked: { proof: `0x${string}`; position: number };
-        try { peeked = await peekNextProof(vaultProof, walletAddress); } catch (err: any) {
+        try { peeked = await peekNextProof(vaultProof, walletAddress, { vaultAddress, publicClient: publicClient! }); } catch (err: any) {
             toast({ title: "Chain error", description: err.message, variant: "destructive" }); return;
         }
         pendingPositionRef.current = peeked.position;
@@ -112,7 +113,7 @@ export default function MintAirBagsModal({ token, airBudget, shieldedBalance, wa
         if (airBudget === 0n) { toast({ title: "Air budget is empty", variant: "destructive" }); return; }
         if (!vaultProof) { toast({ title: "Enter your vault proof", variant: "destructive" }); return; }
         let peeked: { proof: `0x${string}`; position: number };
-        try { peeked = await peekNextProof(vaultProof, walletAddress); } catch (err: any) {
+        try { peeked = await peekNextProof(vaultProof, walletAddress, { vaultAddress, publicClient: publicClient! }); } catch (err: any) {
             toast({ title: "Chain error", description: err.message, variant: "destructive" }); return;
         }
         pendingPositionRef.current = peeked.position;
