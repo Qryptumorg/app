@@ -45,6 +45,7 @@ interface QryptShieldPanelProps {
     vaultVersion?: "v5" | "v6";
     onComplete?: () => void;
     onLockChange?: (locked: boolean) => void;
+    onMinimize?: () => void;
 }
 
 type StepStatus = "pending" | "active" | "done" | "error";
@@ -315,7 +316,7 @@ export default function QryptShieldPanel({
             );
 
             if (alreadyShielded) {
-                stepDone("atomicShield");
+                updateStep("atomicShield", { status: "done", detail: "Deposit confirmed in Railgun pool" });
             } else {
                 // ── STEP 2: vault.unshieldToRailgun() (atomic, 1 MetaMask TX) ─
                 // Builds the Railgun shieldCalldata off-chain, then the vault
@@ -585,8 +586,12 @@ export default function QryptShieldPanel({
                         )}
                         <button
                             onClick={() => {
-                                setSyncTimedOut(false);
-                                setPhase("form");
+                                if (onMinimize) {
+                                    onMinimize();
+                                } else {
+                                    setSyncTimedOut(false);
+                                    setPhase("form");
+                                }
                             }}
                             style={{ fontSize: 12, fontWeight: 700, color: "#a78bfa", background: "none", border: "1px solid rgba(139,92,246,0.4)", borderRadius: 8, cursor: "pointer", padding: "6px 16px" }}
                         >
